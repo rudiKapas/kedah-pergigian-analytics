@@ -9,7 +9,8 @@
 
   <style>
     :root{
-      --bg:#f7f7fb; --panel:#ffffff; --ink:#0f172a; --muted:#64748b; --bd:#e5e7eb; --accent:#6366f1; --icon:#6b7280;
+      --bg:#f7f7fb; --panel:#ffffff; --ink:#0f172a; --muted:#64748b; --bd:#e5e7eb;
+      --accent:#6366f1; --icon:#6b7280;
     }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
@@ -19,7 +20,7 @@
     .page-title{margin:0;font-size:24px;font-weight:800}
     .page-sub{margin:6px 0 0;color:var(--muted);font-size:13px}
 
-    /* Layout */
+    /* Layout for tiles */
     .wrap{
       max-width:1100px;margin:8px auto 28px;padding:0 16px;
       display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:stretch
@@ -32,23 +33,23 @@
       display:flex;flex-direction:column;min-height:0
     }
 
-    /* ===== New header layout (controls left column, title full, timestamp bottom-right) ===== */
+    /* ===== Header: title left; controls right; timestamp bottom-right ===== */
     .tile-header{
       display:grid;
-      grid-template-columns: 48px 1fr;
-      grid-template-rows: auto auto;
+      grid-template-columns: 1fr 120px;   /* title grows; right column for controls */
+      grid-template-rows: auto 28px;      /* row 1: title+controls; row 2: timestamp */
       column-gap:12px; row-gap:6px;
       align-items:start;
       padding:12px 14px; border-bottom:1px solid var(--bd); background:#fff;
     }
-    .header-ctrls{
-      grid-column:1; grid-row:1 / span 2;
-      display:flex; flex-direction:column; gap:8px; align-items:stretch;
-    }
-    .header-main{ grid-column:2; grid-row:1; min-width:0; }
-    .header-meta{ grid-column:2; grid-row:2; display:flex; justify-content:flex-end; align-items:center; gap:6px; color:var(--muted); font-size:12px; }
+    .header-main{ grid-column:1; grid-row:1 / span 2; min-width:0; }
     .tile-title{ margin:0; font-size:17px; font-weight:800; letter-spacing:.2px; line-height:1.25; white-space:normal; }
 
+    .header-ctrls{
+      grid-column:2; grid-row:1;
+      display:flex; flex-direction:column; align-items:stretch; gap:8px;
+    }
+    .header-meta{ grid-column:2; grid-row:2; display:flex; justify-content:flex-end; align-items:center; gap:6px; color:var(--muted); font-size:12px; }
     .icon{width:18px;height:18px;color:var(--icon)}
     .iconbtn{
       width:40px;height:40px;border-radius:12px;border:1px solid #d1d5db;background:#fff;
@@ -56,7 +57,6 @@
     }
     .iconbtn:hover{border-color:#94a3b8;box-shadow:0 0 0 4px rgba(148,163,184,.18)}
     .iconbtn:active{transform:translateY(1px)}
-
     .btn{border:1px solid #d1d5db;background:#fff;padding:8px 10px;border-radius:12px;cursor:pointer;font-size:13px;font-weight:700}
     .btn:hover{border-color:var(--accent);box-shadow:0 0 0 4px rgba(99,102,241,.12)}
     .btn:active{transform:translateY(1px)}
@@ -114,9 +114,12 @@
   </header>
 
   <div class="wrap">
-    <!-- ===== Tile 1 ===== -->
+    <!-- ===== TILE 1 ===== -->
     <section class="tile">
       <div class="tile-header">
+        <div class="header-main">
+          <h2 class="tile-title">Akses Kepada Perkhidmatan Kesihatan Pergigian</h2>
+        </div>
         <div class="header-ctrls">
           <button class="iconbtn" id="zoom1" title="Perbesar">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -125,11 +128,6 @@
           </button>
           <button class="btn btn-primary" id="refreshBtn" type="button">Kemas Kini Data</button>
         </div>
-
-        <div class="header-main">
-          <h2 class="tile-title">Akses Kepada Perkhidmatan Kesihatan Pergigian</h2>
-        </div>
-
         <div class="header-meta">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path>
@@ -148,9 +146,12 @@
       </div>
     </section>
 
-    <!-- ===== Tile 2 ===== -->
+    <!-- ===== TILE 2 ===== -->
     <section class="tile" id="tile-primer">
       <div class="tile-header">
+        <div class="header-main">
+          <h2 class="tile-title">Jumlah Kedatangan Baru &amp; Ulangan Mengikut Kumpulan</h2>
+        </div>
         <div class="header-ctrls">
           <button class="iconbtn" id="zoom2" title="Perbesar">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -159,11 +160,6 @@
           </button>
           <button class="btn btn-primary" id="refreshBtn2" type="button">Kemas Kini Data</button>
         </div>
-
-        <div class="header-main">
-          <h2 class="tile-title">Jumlah Kedatangan Baru &amp; Ulangan Mengikut Kumpulan</h2>
-        </div>
-
         <div class="header-meta">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path>
