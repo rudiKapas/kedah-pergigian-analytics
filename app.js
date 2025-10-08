@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  /* ===== Helpers ===== */
+  /* ---------- helpers ---------- */
   function colIndexFromLetter(L){var n=0,i;for(i=0;i<L.length;i++)n=n*26+(L.charCodeAt(i)-64);return n-1;}
   function niceNum(n){if(n==null)return"—";return n>=1e6?(n/1e6).toFixed(2)+"M":n>=1e3?(n/1e3).toFixed(1)+"k":Number(n).toLocaleString();}
   function fetchCSV(url){
@@ -9,7 +9,7 @@
     .catch(function(){var proxy="https://r.jina.ai/http/"+url.replace(/^https?:\/\//,"");return fetch(proxy,{cache:"no-store"}).then(function(r2){if(!r2.ok)throw new Error("proxy");return r2.text();});});
   }
 
-  /* ===== Tile 1: Akses ===== */
+  /* ---------- TILE 1: AKSES ---------- */
   var CSV1="https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1057141723&single=true&output=csv";
   var MAP=[{name:"Kota Setar",col:"C"},{name:"Pendang",col:"D"},{name:"Kuala Muda",col:"E"},{name:"Sik",col:"F"},{name:"Kulim",col:"G"},{name:"Bandar Baru",col:"H"},{name:"Kubang Pasu",col:"I"},{name:"Padang Terap",col:"J"},{name:"Baling",col:"K"},{name:"Yan",col:"L"},{name:"Langkawi",col:"M"},{name:"Kedah",col:"N"}];
 
@@ -17,6 +17,7 @@
   function cleanPct(x){if(x==null)return null;var s=String(x).replace(/\u00A0/g,"").trim();var had=s.indexOf("%")>-1;s=s.replace(/[%\s]/g,"").replace(/,/g,".");var p=s.split(".");if(p.length>2)s=p[0]+"."+p.slice(1).join("");var v=Number(s);if(isNaN(v))return null;if(!had&&v>0&&v<=1)v=v*100;return +v.toFixed(2);}
 
   var RAW1=null,CHART1=null;
+
   function padEnds(labels,series){
     var s=[0],i,l=[""];for(i=0;i<series.length;i++)s.push(series[i]==null?0:series[i]);s.push(0);
     for(i=0;i<labels.length;i++)l.push(labels[i]);l.push("");return {labels:l,series:s};
@@ -35,12 +36,12 @@
     var g1=ctx.createLinearGradient(0,0,0,520);g1.addColorStop(0,"rgba(245,158,11,0.45)");g1.addColorStop(1,"rgba(245,158,11,0.02)");
     var g2=ctx.createLinearGradient(0,0,0,520);g2.addColorStop(0,"rgba(99,102,241,0.45)");g2.addColorStop(1,"rgba(99,102,241,0.02)");
     if(CHART1 && ctxId==="infogChart"){CHART1.destroy();}
-    var chart = new Chart(ctx,{type:"line",
+    var chart=new Chart(ctx,{type:"line",
       data:{labels:X,datasets:[
         {label:"% Menerima Perkhidmatan",data:pA.series,borderColor:"#f59e0b",backgroundColor:g1,borderWidth:3,tension:.45,fill:true,spanGaps:true,
-         pointRadius:function(c){return(c.dataIndex===0||c.dataIndex===X.length-1)?0:4;},pointHoverRadius:function(c){return(c.dataIndex===0||c.dataIndex===X.length-1)?0:6;},yAxisID:"y1"},
+          pointRadius:function(c){return(c.dataIndex===0||c.dataIndex===X.length-1)?0:4;},pointHoverRadius:function(c){return(c.dataIndex===0||c.dataIndex===X.length-1)?0:6;},yAxisID:"y1"},
         {label:"Anggaran Penduduk",data:pP.series,borderColor:"#6366f1",backgroundColor:g2,borderWidth:3,tension:.45,fill:true,spanGaps:true,
-         pointRadius:function(c){return(c.dataIndex===0||c.dataIndex===X.length-1)?0:4;},pointHoverRadius:function(c){return(c.dataIndex===0||c.dataIndex===X.length-1)?0:6;},yAxisID:"y2"}
+          pointRadius:function(c){return(c.dataIndex===0||c.dataIndex===X.length-1)?0:4;},pointHoverRadius:function(c){return(c.dataIndex===0||c.dataIndex===X.length-1)?0:6;},yAxisID:"y2"}
       ]},
       options:{
         responsive:true,maintainAspectRatio:false,layout:{padding:{bottom:16}},
@@ -50,7 +51,7 @@
         }},
         scales:{
           x:{grid:{display:false},ticks:{
-            autoSkip:false,maxRotation: dense?40:40,minRotation: dense?40:40,
+            autoSkip:false,maxRotation:40,minRotation:40,
             callback: dense?function(v,i){if(i===0||i===X.length-1)return"";return X[i];}:xTickCallbackAll(X)
           }},
           y1:{position:"left",beginAtZero:true,grid:{color:"rgba(15,23,42,.06)"},ticks:{callback:function(v){return v+"%";}}},
@@ -82,7 +83,7 @@
   document.getElementById("refreshBtn").addEventListener("click",load1);
   load1();
 
-  /* ===== Tile 2: Pesakit Primer ===== */
+  /* ---------- TILE 2: PESAKIT PRIMER ---------- */
   var CSV2="https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1808391684&single=true&output=csv";
   var DIST=[{name:"Kota Setar",col:"D"},{name:"Pendang",col:"E"},{name:"Kuala Muda",col:"F"},{name:"Sik",col:"G"},{name:"Kulim",col:"H"},{name:"Bandar Baru",col:"I"},{name:"Kubang Pasu",col:"J"},{name:"Padang Terap",col:"K"},{name:"Baling",col:"L"},{name:"Yan",col:"M"},{name:"Langkawi",col:"N"},{name:"Kedah",col:"O"}];
   var CATS=[{key:"<5 tahun",b:[8,10],u:[9,11]},{key:"5-6 tahun",b:[12],u:[13]},{key:"7-12 tahun",b:[14,16],u:[15,17]},{key:"13-17 tahun",b:[18,20],u:[19,21]},{key:"18-59 tahun",b:[22,24,26,28],u:[23,25,27,29]},{key:"<60 tahun",b:[30],u:[31]},{key:"Ibu mengandung",b:[34],u:[35]},{key:"OKU",b:[36],u:[37]},{key:"Bukan warganegara",b:[38],u:[39]}];
@@ -155,7 +156,6 @@
       var data=computePerCat(RAW2,selectedKeys());
       draw2(data,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer",false);
 
-      // dropdown bindings
       var ddBtn=document.getElementById("ddBtn"),ddMenu=document.getElementById("ddMenu");
       ddBtn.onclick=function(){ddMenu.classList.toggle("open");};
       document.getElementById("btnClose").onclick=function(){ddMenu.classList.remove("open");};
@@ -177,7 +177,6 @@
       });
       document.addEventListener("click",function(ev){var box=document.getElementById("ddBox");if(!box.contains(ev.target))ddMenu.classList.remove("open");});
 
-      // baru/ulangan toggles
       document.getElementById("chkBaru").addEventListener("change",function(){var d4=computePerCat(RAW2,selectedKeys());draw2(d4,this.checked,document.getElementById("chkUlangan").checked,"chartPrimer",false);});
       document.getElementById("chkUlangan").addEventListener("change",function(){var d5=computePerCat(RAW2,selectedKeys());draw2(d5,document.getElementById("chkBaru").checked,this.checked,"chartPrimer",false);});
 
@@ -187,7 +186,7 @@
   document.getElementById("refreshBtn2").addEventListener("click",load2);
   load2();
 
-  /* ===== Modal (Zoom) ===== */
+  /* ---------- Modal (zoom) ---------- */
   var modal=document.getElementById("modal");
   var modalTitle=document.getElementById("modalTitle");
   var modalClose=document.getElementById("modalClose");
