@@ -2,29 +2,39 @@
   "use strict";
 
   /* ---------- helpers ---------- */
-  function colIndexFromLetter(L){var n=0,i;for(i=0;i<L.length;i++)n=n*26+(L.charCodeAt(i)-64);return n-1;}
+  const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
+  function colIndexFromLetter(L){let n=0;for(let i=0;i<L.length;i++) n=n*26+(L.charCodeAt(i)-64);return n-1;}
   function niceNum(n){if(n==null)return"—";return n>=1e6?(n/1e6).toFixed(2)+"M":n>=1e3?(n/1e3).toFixed(1)+"k":Number(n).toLocaleString();}
 
   async function fetchCSV(url){
-    try{
-      const r = await fetch(url,{mode:"cors",cache:"no-store"});
-      if(!r.ok) throw new Error("HTTP "+r.status);
-      return await r.text();
-    }catch(e){
-      // CORS-safe proxy fallback
-      const proxy = "https://r.jina.ai/http/" + url.replace(/^https?:\/\//,"");
-      const r2 = await fetch(proxy,{cache:"no-store"});
-      if(!r2.ok) throw new Error("Proxy HTTP "+r2.status);
-      return await r2.text();
+    // Try direct, then two fallbacks, with readable error message
+    const attempts = [
+      {name:"direct",     u:url},
+      {name:"proxyA",     u:"https://r.jina.ai/http/" + url.replace(/^https?:\/\//,"")},
+      {name:"proxyB",     u:"https://r.jina.ai/http/https://" + url.replace(/^https?:\/\//,"")} // some environments prefer explicit https
+    ];
+    let lastErr = null, lastText = "";
+    for (const a of attempts){
+      try{
+        const r = await fetch(a.u,{mode:"cors",cache:"no-store"});
+        if(!r.ok) throw new Error(`${a.name} HTTP ${r.status}`);
+        const t = await r.text();
+        // quick sanity check: CSV should have commas or semicolons and multiple lines
+        if (!t || t.length<10) throw new Error(`${a.name} empty response`);
+        lastText = t.slice(0,160);
+        return t;
+      }catch(e){ lastErr = e; await sleep(120); }
     }
+    const hint = lastErr ? String(lastErr.message||lastErr) : "unknown";
+    throw new Error(`CSV fetch failed: ${hint}`);
   }
 
   /* ---------- TILE 1: AKSES ---------- */
   const CSV1="https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1057141723&single=true&output=csv";
   const MAP=[{name:"Kota Setar",col:"C"},{name:"Pendang",col:"D"},{name:"Kuala Muda",col:"E"},{name:"Sik",col:"F"},{name:"Kulim",col:"G"},{name:"Bandar Baru",col:"H"},{name:"Kubang Pasu",col:"I"},{name:"Padang Terap",col:"J"},{name:"Baling",col:"K"},{name:"Yan",col:"L"},{name:"Langkawi",col:"M"},{name:"Kedah",col:"N"}];
 
-  function cleanPop(x){if(x==null)return null;var s=String(x).replace(/\u00A0/g,"").replace(/[\s,]/g,"").trim();var v=Number(s);return isNaN(v)?null:v;}
-  function cleanPct(x){if(x==null)return null;var s=String(x).replace(/\u00A0/g,"").trim();var had=s.includes("%");s=s.replace(/[%\s]/g,"").replace(/,/g,".");var p=s.split(".");if(p.length>2)s=p[0]+"."+p.slice(1).join("");var v=Number(s);if(isNaN(v))return null;if(!had&&v>0&&v<=1)v=v*100;return +v.toFixed(2);}
+  function cleanPop(x){if(x==null)return null;const s=String(x).replace(/\u00A0/g,"").replace(/[\s,]/g,"").trim();const v=Number(s);return isNaN(v)?null:v;}
+  function cleanPct(x){if(x==null)return null;let s=String(x).replace(/\u00A0/g,"").trim();const had=s.includes("%");s=s.replace(/[%\s]/g,"").replace(/,/g,".");const p=s.split(".");if(p.length>2)s=p[0]+"."+p.slice(1).join("");let v=Number(s);if(isNaN(v))return null;if(!had&&v>0&&v<=1)v=v*100;return +v.toFixed(2);}
 
   let RAW1=null, CHART1=null;
 
@@ -33,7 +43,7 @@
     const l=["",...labels,""];
     return {labels:l,series:s};
   }
-  function xTickCallbackAll(X){
+  function labelDensityCallback(X){
     return (v,i)=> (i===0||i===X.length-1) ? "" : ((window.innerWidth<560? (i%3===0):(i%2===0)) ? X[i] : "");
   }
   function draw1(rows, ctxId, dense){
@@ -51,9 +61,9 @@
       type:"line",
       data:{labels:X,datasets:[
         {label:"% Menerima Perkhidmatan",data:pA.series,borderColor:"#f59e0b",backgroundColor:g1,borderWidth:3,tension:.45,fill:true,spanGaps:true,
-          pointRadius:c=> (c.dataIndex===0||c.dataIndex===X.length-1)?0:4, pointHoverRadius:c=> (c.dataIndex===0||c.dataIndex===X.length-1)?0:6, yAxisID:"y1"},
+          pointRadius:c=> (c.dataIndex===0||c.dataIndex===X.length-1)?0:3, pointHoverRadius:5, yAxisID:"y1"},
         {label:"Anggaran Penduduk",data:pP.series,borderColor:"#6366f1",backgroundColor:g2,borderWidth:3,tension:.45,fill:true,spanGaps:true,
-          pointRadius:c=> (c.dataIndex===0||c.dataIndex===X.length-1)?0:4, pointHoverRadius:c=> (c.dataIndex===0||c.dataIndex===X.length-1)?0:6, yAxisID:"y2"},
+          pointRadius:c=> (c.dataIndex===0||c.dataIndex===X.length-1)?0:3, pointHoverRadius:5, yAxisID:"y2"},
       ]},
       options:{
         responsive:true,maintainAspectRatio:false,layout:{padding:{bottom:16}},
@@ -62,7 +72,7 @@
           callbacks:{label:c=> c.datasetIndex===0 ? ` Akses: ${c.parsed.y||0}%` : ` Populasi: ${niceNum(c.parsed.y)}`}}},
         scales:{
           x:{grid:{display:false},ticks:{autoSkip:false,maxRotation:40,minRotation:40,
-            callback: dense ? ((v,i)=> (i===0||i===X.length-1) ? "" : X[i]) : xTickCallbackAll(X)}},
+            callback: dense ? ((v,i)=> (i===0||i===X.length-1) ? "" : X[i]) : labelDensityCallback(X)}},
           y1:{position:"left",beginAtZero:true,grid:{color:"rgba(15,23,42,.06)"},ticks:{callback:v=>v+"%"}},
           y2:{position:"right",beginAtZero:true,grid:{display:false},ticks:{callback:v=>niceNum(v)}}
         }
@@ -103,8 +113,8 @@
   const CATS=[{key:"<5 tahun",b:[8,10],u:[9,11]},{key:"5-6 tahun",b:[12],u:[13]},{key:"7-12 tahun",b:[14,16],u:[15,17]},{key:"13-17 tahun",b:[18,20],u:[19,21]},{key:"18-59 tahun",b:[22,24,26,28],u:[23,25,27,29]},{key:"<60 tahun",b:[30],u:[31]},{key:"Ibu mengandung",b:[34],u:[35]},{key:"OKU",b:[36],u:[37]},{key:"Bukan warganegara",b:[38],u:[39]}];
   const CAT_COLOR={"<5 tahun":"#0ea5e9","5-6 tahun":"#4f46e5","7-12 tahun":"#10b981","13-17 tahun":"#ef4444","18-59 tahun":"#8b5cf6","<60 tahun":"#14b8a6","Ibu mengandung":"#f59e0b","OKU":"#22c55e","Bukan warganegara":"#a855f7"};
 
-  function cleanInt(x){if(x==null)return 0;var s=String(x).replace(/\u00A0/g,"").trim();s=s.replace(/[%\s]/g,"").replace(/,/g,"");var v=Number(s);return isNaN(v)?0:v;}
-  function cell(arr,addr){var m=/^([A-Z]+)(\d+)$/.exec(addr);if(!m)return 0;var col=m[1],row=parseInt(m[2],10);var r=row-1,c=colIndexFromLetter(col);return cleanInt((arr[r]||[])[c]);}
+  function cleanInt(x){if(x==null)return 0;let s=String(x).replace(/\u00A0/g,"").trim();s=s.replace(/[%\s]/g,"").replace(/,/g,"");const v=Number(s);return isNaN(v)?0:v;}
+  function cell(arr,addr){const m=/^([A-Z]+)(\d+)$/.exec(addr);if(!m)return 0;const col=m[1],row=parseInt(m[2],10);const r=row-1,c=colIndexFromLetter(col);return cleanInt((arr[r]||[])[c]);}
   function sumCells(arr,letter,rows){return rows.reduce((t,r)=>t+cell(arr,letter+String(r)),0);}
 
   let RAW2=null, CHART2=null;
@@ -216,8 +226,9 @@
       document.getElementById("lastUpdated2").textContent="Dikemas kini: "+new Date().toLocaleString();
     }catch(e){
       console.error("Tile 2 CSV error:", e);
+      const hint = (e && e.message) ? ` (${e.message})` : "";
       err.style.display='block';
-      err.textContent="Gagal memuatkan CSV (Tile 2). Pastikan pautan 'Publish to web' aktif atau cuba semula.";
+      err.textContent="Gagal memuatkan CSV (Tile 2)"+hint+". Sahkan 'Publish to web' aktif & cuba 'Kemas Kini Data'.";
     }
   }
   document.getElementById("refreshBtn2").addEventListener("click",load2);
