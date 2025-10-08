@@ -7,26 +7,23 @@
   function niceNum(n){if(n==null)return"—";return n>=1e6?(n/1e6).toFixed(2)+"M":n>=1e3?(n/1e3).toFixed(1)+"k":Number(n).toLocaleString();}
 
   async function fetchCSV(url){
-    // Try direct, then two fallbacks, with readable error message
+    // Direct + two proxy fallbacks. Return readable error if all fail.
     const attempts = [
-      {name:"direct",     u:url},
-      {name:"proxyA",     u:"https://r.jina.ai/http/" + url.replace(/^https?:\/\//,"")},
-      {name:"proxyB",     u:"https://r.jina.ai/http/https://" + url.replace(/^https?:\/\//,"")} // some environments prefer explicit https
+      {name:"direct", u:url},
+      {name:"proxyA", u:"https://r.jina.ai/http/" + url.replace(/^https?:\/\//,"")},
+      {name:"proxyB", u:"https://r.jina.ai/http/https://" + url.replace(/^https?:\/\//,"")}
     ];
-    let lastErr = null, lastText = "";
-    for (const a of attempts){
+    let lastErr=null;
+    for(const a of attempts){
       try{
         const r = await fetch(a.u,{mode:"cors",cache:"no-store"});
         if(!r.ok) throw new Error(`${a.name} HTTP ${r.status}`);
         const t = await r.text();
-        // quick sanity check: CSV should have commas or semicolons and multiple lines
-        if (!t || t.length<10) throw new Error(`${a.name} empty response`);
-        lastText = t.slice(0,160);
+        if(!t || t.length<10) throw new Error(`${a.name} empty response`);
         return t;
-      }catch(e){ lastErr = e; await sleep(120); }
+      }catch(e){ lastErr=e; await sleep(120); }
     }
-    const hint = lastErr ? String(lastErr.message||lastErr) : "unknown";
-    throw new Error(`CSV fetch failed: ${hint}`);
+    throw new Error(lastErr? String(lastErr.message||lastErr):"CSV fetch failed");
   }
 
   /* ---------- TILE 1: AKSES ---------- */
@@ -43,7 +40,7 @@
     const l=["",...labels,""];
     return {labels:l,series:s};
   }
-  function labelDensityCallback(X){
+  function labelDensity(X){
     return (v,i)=> (i===0||i===X.length-1) ? "" : ((window.innerWidth<560? (i%3===0):(i%2===0)) ? X[i] : "");
   }
   function draw1(rows, ctxId, dense){
@@ -53,8 +50,8 @@
     const pA = padEnds(L,A), pP = padEnds(L,P), X = pA.labels;
 
     const ctx=document.getElementById(ctxId).getContext("2d");
-    const g1=ctx.createLinearGradient(0,0,0,520); g1.addColorStop(0,"rgba(245,158,11,0.45)"); g1.addColorStop(1,"rgba(245,158,11,0.02)");
-    const g2=ctx.createLinearGradient(0,0,0,520); g2.addColorStop(0,"rgba(99,102,241,0.45)"); g2.addColorStop(1,"rgba(99,102,241,0.02)");
+    const g1=ctx.createLinearGradient(0,0,0,260); g1.addColorStop(0,"rgba(245,158,11,0.45)"); g1.addColorStop(1,"rgba(245,158,11,0.02)");
+    const g2=ctx.createLinearGradient(0,0,0,260); g2.addColorStop(0,"rgba(99,102,241,0.45)"); g2.addColorStop(1,"rgba(99,102,241,0.02)");
 
     if(CHART1 && ctxId==="infogChart") CHART1.destroy();
     const chart = new Chart(ctx,{
@@ -66,13 +63,13 @@
           pointRadius:c=> (c.dataIndex===0||c.dataIndex===X.length-1)?0:3, pointHoverRadius:5, yAxisID:"y2"},
       ]},
       options:{
-        responsive:true,maintainAspectRatio:false,layout:{padding:{bottom:16}},
+        responsive:true,maintainAspectRatio:false,layout:{padding:{bottom:10}},
         plugins:{legend:{display:false},tooltip:{mode:"index",intersect:false,
           filter:i=> !(i.dataIndex===0||i.dataIndex===X.length-1),
           callbacks:{label:c=> c.datasetIndex===0 ? ` Akses: ${c.parsed.y||0}%` : ` Populasi: ${niceNum(c.parsed.y)}`}}},
         scales:{
           x:{grid:{display:false},ticks:{autoSkip:false,maxRotation:40,minRotation:40,
-            callback: dense ? ((v,i)=> (i===0||i===X.length-1) ? "" : X[i]) : labelDensityCallback(X)}},
+            callback: dense ? ((v,i)=> (i===0||i===X.length-1) ? "" : X[i]) : labelDensity(X)}},
           y1:{position:"left",beginAtZero:true,grid:{color:"rgba(15,23,42,.06)"},ticks:{callback:v=>v+"%"}},
           y2:{position:"right",beginAtZero:true,grid:{display:false},ticks:{callback:v=>niceNum(v)}}
         }
@@ -97,7 +94,7 @@
       const csv = await fetchCSV(CSV1);
       RAW1 = Papa.parse(csv,{header:false,skipEmptyLines:true}).data;
       draw1(compute1(),"infogChart",false);
-      document.getElementById("lastUpdated").textContent="Dikemas kini: "+new Date().toLocaleString();
+      document.getElementById("lastUpdated").textContent=new Date().toLocaleString();
     }catch(e){
       console.error("Tile 1 CSV error:", e);
       err.style.display='block';
@@ -174,7 +171,7 @@
       if(showU) sets.push({label:cat.key+" • Ulangan",data:cat.ulangan,borderColor:color,backgroundColor:"transparent",borderWidth:3,tension:.45,fill:false,borderDash:[6,4],pointRadius:c=> (c.dataIndex===0||c.dataIndex===data.labels.length-1)?0:3,pointHoverRadius:5});
     });
     const chart=new Chart(ctx,{type:"line",data:{labels:data.labels,datasets:sets},options:{
-      responsive:true,maintainAspectRatio:false,layout:{padding:{bottom:16}},
+      responsive:true,maintainAspectRatio:false,layout:{padding:{bottom:10}},
       plugins:{legend:{display:false},tooltip:{mode:"index",intersect:false,filter:i=> !(i.dataIndex===0||i.dataIndex===data.labels.length-1)}},
       scales:{
         x:{grid:{display:false},ticks:{autoSkip:false,maxRotation:40,minRotation:40,
@@ -223,12 +220,11 @@
       document.getElementById("chkBaru").addEventListener("change",()=>{const d=computePerCat(RAW2,selectedKeys()); draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer",false);});
       document.getElementById("chkUlangan").addEventListener("change",()=>{const d=computePerCat(RAW2,selectedKeys()); draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer",false);});
 
-      document.getElementById("lastUpdated2").textContent="Dikemas kini: "+new Date().toLocaleString();
+      document.getElementById("lastUpdated2").textContent=new Date().toLocaleString();
     }catch(e){
       console.error("Tile 2 CSV error:", e);
-      const hint = (e && e.message) ? ` (${e.message})` : "";
       err.style.display='block';
-      err.textContent="Gagal memuatkan CSV (Tile 2)"+hint+". Sahkan 'Publish to web' aktif & cuba 'Kemas Kini Data'.";
+      err.textContent="Gagal memuatkan CSV (Tile 2). Sahkan 'Publish to web' aktif & cuba 'Kemas Kini Data'.";
     }
   }
   document.getElementById("refreshBtn2").addEventListener("click",load2);
@@ -257,7 +253,7 @@
     MODAL_CHART=draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"modalChart",true);
   });
 
-  // Redraw on resize for nicer x-axis labels
+  // Redraw on resize (keep labels readable on compact height)
   window.addEventListener("resize",()=>{
     if(RAW1){draw1(compute1(),"infogChart",false);}
     if(RAW2){const d=computePerCat(RAW2,selectedKeys());
