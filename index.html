@@ -10,7 +10,7 @@
   <style>
     :root{
       --bg:#f7f7fb; --panel:#ffffff; --ink:#0f172a; --muted:#64748b; --bd:#e5e7eb;
-      --accent:#6366f1; --icon:#6b7280;
+      --accent:#6366f1; --icon:#6b7280; --hover:#f8fafc;
     }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
@@ -28,39 +28,42 @@
     @media (max-width:980px){ .wrap{grid-template-columns:1fr} .page-title{font-size:20px} }
 
     .tile{
-      background:var(--panel);border:1px solid var(--bd);border-radius:18px;
-      box-shadow:0 1px 2px rgba(15,23,42,.06),0 10px 20px rgba(15,23,42,.04);
+      background:var(--panel);border:1px solid var(--bd);border-radius:16px;
+      box-shadow:0 1px 2px rgba(15,23,42,.06),0 8px 16px rgba(15,23,42,.04);
       display:flex;flex-direction:column;min-height:0
     }
 
-    /* ===== Header: title left; controls right; timestamp bottom-right ===== */
+    /* ===== Header: title left; controls stacked on right; timestamp bottom-right ===== */
     .tile-header{
       display:grid;
-      grid-template-columns: 1fr 120px;   /* title grows; right column for controls */
-      grid-template-rows: auto 28px;      /* row 1: title+controls; row 2: timestamp */
-      column-gap:12px; row-gap:6px;
+      grid-template-columns: 1fr 136px;    /* title grows; right column for controls */
+      grid-template-rows: auto 28px;       /* row 1: title+controls; row 2: timestamp */
+      column-gap:14px; row-gap:6px;
       align-items:start;
-      padding:12px 14px; border-bottom:1px solid var(--bd); background:#fff;
+      padding:14px 14px 10px; border-bottom:1px solid var(--bd); background:#fff;
+      border-top-left-radius:16px;border-top-right-radius:16px;
     }
     .header-main{ grid-column:1; grid-row:1 / span 2; min-width:0; }
-    .tile-title{ margin:0; font-size:17px; font-weight:800; letter-spacing:.2px; line-height:1.25; white-space:normal; }
+    .tile-title{ margin:0; font-size:18px; font-weight:800; letter-spacing:.2px; line-height:1.25; white-space:normal; }
 
     .header-ctrls{
       grid-column:2; grid-row:1;
       display:flex; flex-direction:column; align-items:stretch; gap:8px;
     }
-    .header-meta{ grid-column:2; grid-row:2; display:flex; justify-content:flex-end; align-items:center; gap:6px; color:var(--muted); font-size:12px; }
+    .header-meta{
+      grid-column:2; grid-row:2; display:flex; justify-content:flex-end; align-items:center;
+      gap:6px; color:var(--muted); font-size:12px;
+    }
     .icon{width:18px;height:18px;color:var(--icon)}
     .iconbtn{
-      width:40px;height:40px;border-radius:12px;border:1px solid #d1d5db;background:#fff;
+      width:44px;height:44px;border-radius:12px;border:1px solid #d1d5db;background:#fff;
       display:grid;place-items:center;cursor:pointer;transition:box-shadow .15s,border-color .15s,transform .06s
     }
-    .iconbtn:hover{border-color:#94a3b8;box-shadow:0 0 0 4px rgba(148,163,184,.18)}
+    .iconbtn:hover{border-color:#94a3b8;box-shadow:0 0 0 4px rgba(148,163,184,.18);background:var(--hover)}
     .iconbtn:active{transform:translateY(1px)}
-    .btn{border:1px solid #d1d5db;background:#fff;padding:8px 10px;border-radius:12px;cursor:pointer;font-size:13px;font-weight:700}
+    .btn{border:1px solid #d1d5db;background:linear-gradient(180deg,#fff,#f9fafb);padding:10px 10px;border-radius:12px;cursor:pointer;font-size:13px;font-weight:700}
     .btn:hover{border-color:var(--accent);box-shadow:0 0 0 4px rgba(99,102,241,.12)}
     .btn:active{transform:translateY(1px)}
-    .btn-primary{border-color:#d1d5db;background:linear-gradient(180deg,#eef2ff,#fff)}
 
     /* Bodies */
     .tile-body{padding:10px 12px 8px;display:flex;flex-direction:column;min-height:0}
@@ -110,7 +113,7 @@
 
   <header class="page-header">
     <h1 class="page-title">Analitik Data Teknikal Kesihatan Pergigian Negeri Kedah</h1>
-    <p class="page-sub">Sumber: Google Sheets (Publish to Web) • Kemas kini manual</p>
+    <p class="page-sub">Sumber: Google Sheets (Publish to Web)</p>
   </header>
 
   <div class="wrap">
@@ -126,7 +129,7 @@
               <circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path>
             </svg>
           </button>
-          <button class="btn btn-primary" id="refreshBtn" type="button">Kemas Kini Data</button>
+          <button class="btn" id="refreshBtn" type="button">Kemas Kini Data</button>
         </div>
         <div class="header-meta">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -158,7 +161,7 @@
               <circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path>
             </svg>
           </button>
-          <button class="btn btn-primary" id="refreshBtn2" type="button">Kemas Kini Data</button>
+          <button class="btn" id="refreshBtn2" type="button">Kemas Kini Data</button>
         </div>
         <div class="header-meta">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
