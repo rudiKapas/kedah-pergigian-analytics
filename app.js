@@ -34,7 +34,7 @@
   function xTickCallbackAll(X){
     return function(v,i){
       if(i===0||i===X.length-1)return"";
-      var step=(window.innerWidth<560)?3:2;    // lighter on small screens
+      var step=(window.innerWidth<560)?3:2;
       return (i%step===0)?X[i]:"";
     };
   }
@@ -53,16 +53,14 @@
          pointRadius:function(c){return(c.dataIndex===0||c.dataIndex===X.length-1)?0:4;},pointHoverRadius:function(c){return(c.dataIndex===0||c.dataIndex===X.length-1)?0:6;},yAxisID:"y2"}
       ]},
       options:{
-        responsive:true,maintainAspectRatio:false,
-        layout:{padding:{bottom:16}},
+        responsive:true,maintainAspectRatio:false,layout:{padding:{bottom:16}},
         plugins:{legend:{display:false},tooltip:{mode:"index",intersect:false,
           filter:function(i){return !(i.dataIndex===0||i.dataIndex===X.length-1);},
           callbacks:{label:function(c){return c.datasetIndex===0?" Akses: "+(c.parsed.y||0)+"%":" Populasi: "+niceNum(c.parsed.y);}}
         }},
         scales:{
           x:{grid:{display:false},ticks:{
-            autoSkip:false,
-            maxRotation: dense?40:40,minRotation: dense?40:40,
+            autoSkip:false,maxRotation: dense?40:40,minRotation: dense?40:40,
             callback: dense?function(v,i){if(i===0||i===X.length-1)return"";return X[i];}:xTickCallbackAll(X)
           }},
           y1:{position:"left",beginAtZero:true,grid:{color:"rgba(15,23,42,.06)"},ticks:{callback:function(v){return v+"%";}}},
@@ -109,22 +107,28 @@
   function updateTagsAndLegend(){
     var tags=document.getElementById("selectedTags");tags.innerHTML="";
     var ks=Array.from(selectedKeys()),legend=document.getElementById("legend2"),i,t,item,dot,txt;legend.innerHTML="";
-    for(i=0;i<ks.length;i++){t=document.createElement("span");t.className="tag";t.textContent=ks[i];tags.appendChild(t);
+    for(i=0;i<ks.length;i++){
+      t=document.createElement("span");t.className="tag";t.textContent=ks[i];tags.appendChild(t);
       item=document.createElement("div");item.style.display="flex";item.style.alignItems="center";item.style.gap="8px";
       dot=document.createElement("span");dot.className="dot";dot.style.background=CAT_COLOR[ks[i]]||"#64748b";
-      txt=document.createElement("span");txt.textContent=ks[i];item.appendChild(dot);item.appendChild(txt);legend.appendChild(item);}
+      txt=document.createElement("span");txt.textContent=ks[i];item.appendChild(dot);item.appendChild(txt);legend.appendChild(item);
+    }
   }
   function computePerCat(arr,keys){
     var out=[],labels=[""],d,c,cat,baru,ulang,col,d2;for(d=0;d<DIST.length;d++)labels.push(DIST[d].name);labels.push("");
-    for(c=0;c<CATS.length;c++){cat=CATS[c];if(!keys.has(cat.key))continue;baru=[];ulang=[];
+    for(c=0;c<CATS.length;c++){
+      cat=CATS[c];if(!keys.has(cat.key))continue;baru=[];ulang=[];
       for(d2=0;d2<DIST.length;d2++){col=DIST[d2].col;baru.push(sumCells(arr,col,cat.b));ulang.push(sumCells(arr,col,cat.u));}
-      baru=[0].concat(baru).concat([0]);ulang=[0].concat(ulang).concat([0]);out.push({key:cat.key,baru:baru,ulangan:ulang});}
+      baru=[0].concat(baru).concat([0]);ulang=[0].concat(ulang).concat([0]);
+      out.push({key:cat.key,baru:baru,ulangan:ulang});
+    }
     return {labels:labels,perCat:out};
   }
   function draw2(data,showB,showU, ctxId, dense){
     var ctx=document.getElementById(ctxId).getContext("2d");if(CHART2 && ctxId==="chartPrimer")CHART2.destroy();
     var sets=[],i,cat,color;
-    for(i=0;i<data.perCat.length;i++){cat=data.perCat[i];color=CAT_COLOR[cat.key]||"#64748b";
+    for(i=0;i<data.perCat.length;i++){
+      cat=data.perCat[i];color=CAT_COLOR[cat.key]||"#64748b";
       if(showB)sets.push({label:cat.key+" • Baru",data:cat.baru,borderColor:color,backgroundColor:"transparent",borderWidth:3,tension:.45,fill:false,borderDash:[],pointRadius:function(c){return(c.dataIndex===0||c.dataIndex===data.labels.length-1)?0:3;},pointHoverRadius:5});
       if(showU)sets.push({label:cat.key+" • Ulangan",data:cat.ulangan,borderColor:color,backgroundColor:"transparent",borderWidth:3,tension:.45,fill:false,borderDash:[6,4],pointRadius:function(c){return(c.dataIndex===0||c.dataIndex===data.labels.length-1)?0:3;},pointHoverRadius:5});
     }
@@ -151,14 +155,29 @@
       var data=computePerCat(RAW2,selectedKeys());
       draw2(data,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer",false);
 
+      // dropdown bindings
       var ddBtn=document.getElementById("ddBtn"),ddMenu=document.getElementById("ddMenu");
       ddBtn.onclick=function(){ddMenu.classList.toggle("open");};
       document.getElementById("btnClose").onclick=function(){ddMenu.classList.remove("open");};
-      document.getElementById("btnAll").onclick=function(){ddMenu.querySelectorAll("input[type=checkbox]").forEach(function(i){i.checked=true;});updateTagsAndLegend();var d=computePerCat(RAW2,selectedKeys());draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer",false);};
-      document.getElementById("btnNone").onclick=function(){ddMenu.querySelectorAll("input[type=checkbox]").forEach(function(i){i.checked=false;});updateTagsAndLegend();var d2=computePerCat(RAW2,selectedKeys());draw2(d2,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer",false);};
-      ddMenu.querySelectorAll("input[type=checkbox]").forEach(function(i){i.addEventListener("change",function(){updateTagsAndLegend();var d3=computePerCat(RAW2,selectedKeys());draw2(d3,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer",false);});});
+      document.getElementById("btnAll").onclick=function(){
+        ddMenu.querySelectorAll("input[type=checkbox]").forEach(function(i){i.checked=true;});
+        updateTagsAndLegend();var d=computePerCat(RAW2,selectedKeys());
+        draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer",false);
+      };
+      document.getElementById("btnNone").onclick=function(){
+        ddMenu.querySelectorAll("input[type=checkbox]").forEach(function(i){i.checked=false;});
+        updateTagsAndLegend();var d2=computePerCat(RAW2,selectedKeys());
+        draw2(d2,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer",false);
+      };
+      ddMenu.querySelectorAll("input[type=checkbox]").forEach(function(i){
+        i.addEventListener("change",function(){
+          updateTagsAndLegend();var d3=computePerCat(RAW2,selectedKeys());
+          draw2(d3,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer",false);
+        });
+      });
       document.addEventListener("click",function(ev){var box=document.getElementById("ddBox");if(!box.contains(ev.target))ddMenu.classList.remove("open");});
 
+      // baru/ulangan toggles
       document.getElementById("chkBaru").addEventListener("change",function(){var d4=computePerCat(RAW2,selectedKeys());draw2(d4,this.checked,document.getElementById("chkUlangan").checked,"chartPrimer",false);});
       document.getElementById("chkUlangan").addEventListener("change",function(){var d5=computePerCat(RAW2,selectedKeys());draw2(d5,document.getElementById("chkBaru").checked,this.checked,"chartPrimer",false);});
 
@@ -168,51 +187,30 @@
   document.getElementById("refreshBtn2").addEventListener("click",load2);
   load2();
 
-  /* ===== Modal (Magnify) handling ===== */
+  /* ===== Modal (Zoom) ===== */
   var modal=document.getElementById("modal");
   var modalTitle=document.getElementById("modalTitle");
   var modalClose=document.getElementById("modalClose");
   var MODAL_CHART=null;
 
-  function openModal(title){
-    modalTitle.textContent=title;
-    modal.classList.add("open");
-  }
-  function closeModal(){
-    if(MODAL_CHART){MODAL_CHART.destroy();MODAL_CHART=null;}
-    modal.classList.remove("open");
-  }
+  function openModal(title){modalTitle.textContent=title;modal.classList.add("open");}
+  function closeModal(){if(MODAL_CHART){MODAL_CHART.destroy();MODAL_CHART=null;}modal.classList.remove("open");}
   modalClose.addEventListener("click",closeModal);
   modal.addEventListener("click",function(e){if(e.target===modal)closeModal();});
 
-  // Zoom buttons: redraw in modal with denser x-ticks
   document.getElementById("zoom1").addEventListener("click",function(){
     openModal("Akses Kepada Perkhidmatan Kesihatan Pergigian");
-    // ensure data ready
-    if(!RAW1){return;}
-    var rows=compute1();
-    MODAL_CHART=draw1(rows,"modalChart",true); // dense labels in modal
+    if(!RAW1){return;} MODAL_CHART=draw1(compute1(),"modalChart",true);
   });
-
   document.getElementById("zoom2").addEventListener("click",function(){
     openModal("Jumlah Kedatangan Baru & Ulangan Mengikut Kumpulan");
-    if(!RAW2){return;}
-    var data=computePerCat(RAW2,selectedKeys());
-    MODAL_CHART=draw2(
-      data,
-      document.getElementById("chkBaru").checked,
-      document.getElementById("chkUlangan").checked,
-      "modalChart",
-      true // dense labels in modal
-    );
+    if(!RAW2){return;} var data=computePerCat(RAW2,selectedKeys());
+    MODAL_CHART=draw2(data,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"modalChart",true);
   });
 
-  /* Redraw on resize so label skipping matches screen */
   window.addEventListener("resize",function(){
     if(RAW1){draw1(compute1(),"infogChart",false);}
-    if(RAW2){
-      var data=computePerCat(RAW2,selectedKeys());
-      draw2(data,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer",false);
-    }
+    if(RAW2){var data=computePerCat(RAW2,selectedKeys());
+      draw2(data,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer",false);}
   });
 }());
