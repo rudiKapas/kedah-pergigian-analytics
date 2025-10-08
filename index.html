@@ -9,17 +9,13 @@
 
   <style>
     :root{
-      --bg:#f7f7fb; --panel:#fff; --ink:#0f172a; --muted:#64748b; --bd:#e5e7eb; --accent:#6366f1;
+      --bg:#f7f7fb; --panel:#ffffff; --ink:#0f172a; --muted:#64748b; --bd:#e5e7eb; --accent:#6366f1; --icon:#6b7280;
     }
-
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
 
     /* Page header */
-    .page-header{
-      max-width:1100px;margin:24px auto 8px;padding:0 16px;
-      display:flex;align-items:center;justify-content:space-between
-    }
+    .page-header{max-width:1100px;margin:24px auto 8px;padding:0 16px}
     .page-title{margin:0;font-size:24px;font-weight:800}
     .page-sub{margin:6px 0 0;color:var(--muted);font-size:13px}
 
@@ -28,10 +24,7 @@
       max-width:1100px;margin:8px auto 28px;padding:0 16px;
       display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:stretch
     }
-    @media (max-width: 980px){
-      .wrap{grid-template-columns:1fr;gap:12px}
-      .page-title{font-size:20px}
-    }
+    @media (max-width:980px){ .wrap{grid-template-columns:1fr} .page-title{font-size:20px} }
 
     .tile{
       background:var(--panel);border:1px solid var(--bd);border-radius:18px;
@@ -39,53 +32,43 @@
       display:flex;flex-direction:column;min-height:0
     }
 
-    /* ===== Refined tile header (no title wrapping) ===== */
+    /* ===== New header layout (controls left column, title full, timestamp bottom-right) ===== */
     .tile-header{
-      display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;
-      padding:12px 14px;border-bottom:1px solid var(--bd);background:#fff
+      display:grid;
+      grid-template-columns: 48px 1fr;
+      grid-template-rows: auto auto;
+      column-gap:12px; row-gap:6px;
+      align-items:start;
+      padding:12px 14px; border-bottom:1px solid var(--bd); background:#fff;
     }
-    .header-left{display:flex;align-items:center;gap:10px;min-width:0}
-    .tile-title{
-      margin:0;font-size:16px;font-weight:800;letter-spacing:.2px;line-height:1.15;
-      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0
+    .header-ctrls{
+      grid-column:1; grid-row:1 / span 2;
+      display:flex; flex-direction:column; gap:8px; align-items:stretch;
     }
-    .header-dot{width:4px;height:4px;border-radius:50%;background:#cbd5e1;display:inline-block}
-    .header-meta{
-      display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px;white-space:nowrap;min-width:0
-    }
-    .icon{width:16px;height:16px;color:#475569}
-    .header-right{display:flex;align-items:center;gap:6px}
+    .header-main{ grid-column:2; grid-row:1; min-width:0; }
+    .header-meta{ grid-column:2; grid-row:2; display:flex; justify-content:flex-end; align-items:center; gap:6px; color:var(--muted); font-size:12px; }
+    .tile-title{ margin:0; font-size:17px; font-weight:800; letter-spacing:.2px; line-height:1.25; white-space:normal; }
 
-    /* Buttons (tighter) */
+    .icon{width:18px;height:18px;color:var(--icon)}
     .iconbtn{
-      width:32px;height:32px;border-radius:10px;border:1px solid #d1d5db;background:#fff;
+      width:40px;height:40px;border-radius:12px;border:1px solid #d1d5db;background:#fff;
       display:grid;place-items:center;cursor:pointer;transition:box-shadow .15s,border-color .15s,transform .06s
     }
-    .iconbtn:hover{border-color:var(--accent);box-shadow:0 0 0 4px rgba(99,102,241,.12)}
+    .iconbtn:hover{border-color:#94a3b8;box-shadow:0 0 0 4px rgba(148,163,184,.18)}
     .iconbtn:active{transform:translateY(1px)}
-    .btn{
-      border:1px solid #d1d5db;background:#fff;padding:6px 10px;border-radius:10px;cursor:pointer;
-      font-size:13px;font-weight:700;transition:box-shadow .15s,border-color .15s,transform .06s
-    }
+
+    .btn{border:1px solid #d1d5db;background:#fff;padding:8px 10px;border-radius:12px;cursor:pointer;font-size:13px;font-weight:700}
     .btn:hover{border-color:var(--accent);box-shadow:0 0 0 4px rgba(99,102,241,.12)}
     .btn:active{transform:translateY(1px)}
-    .btn-primary{border-color:transparent;background:linear-gradient(180deg,#eef2ff,#fff)}
-    .btn-primary:hover{border-color:#c7d2fe;box-shadow:0 0 0 4px rgba(99,102,241,.12)}
-
-    /* On narrow screens, keep header clean: hide meta if needed */
-    @media (max-width: 560px){
-      .tile-title{font-size:15px}
-      .header-meta{display:none}
-    }
+    .btn-primary{border-color:#d1d5db;background:linear-gradient(180deg,#eef2ff,#fff)}
 
     /* Bodies */
     .tile-body{padding:10px 12px 8px;display:flex;flex-direction:column;min-height:0}
     .chart-container{height:520px;width:100%}
-    @media (max-width: 980px){.tile-body{padding:10px}.chart-container{height:420px}}
+    @media (max-width:980px){ .tile-body{padding:10px} .chart-container{height:420px} }
 
     .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:6px;color:var(--muted);font-size:12px}
     .dot{width:10px;height:10px;border-radius:50%}
-
     #err,#err2{display:none;margin-top:8px;color:#b91c1c;font-size:13px}
 
     /* Dropdown (tile 2) */
@@ -125,37 +108,33 @@
 </head>
 <body>
 
-  <!-- Page header -->
   <header class="page-header">
-    <div>
-      <h1 class="page-title">Analitik Data Teknikal Kesihatan Pergigian Negeri Kedah</h1>
-      <p class="page-sub">Sumber: Google Sheets (Publish to Web) • Kemas kini manual</p>
-    </div>
+    <h1 class="page-title">Analitik Data Teknikal Kesihatan Pergigian Negeri Kedah</h1>
+    <p class="page-sub">Sumber: Google Sheets (Publish to Web) • Kemas kini manual</p>
   </header>
 
   <div class="wrap">
-    <!-- ===== Tile 1: Akses ===== -->
+    <!-- ===== Tile 1 ===== -->
     <section class="tile">
       <div class="tile-header">
-        <div class="header-left">
-          <h2 class="tile-title">Akses Kepada Perkhidmatan Kesihatan Pergigian</h2>
-          <span class="header-dot" aria-hidden="true"></span>
-          <div class="header-meta">
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="9"></circle>
-              <path d="M12 7v5l3 3"></path>
-            </svg>
-            <span id="lastUpdated">—</span>
-          </div>
-        </div>
-        <div class="header-right">
+        <div class="header-ctrls">
           <button class="iconbtn" id="zoom1" title="Perbesar">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="7"></circle>
-              <path d="m21 21-4.3-4.3"></path>
+              <circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path>
             </svg>
           </button>
           <button class="btn btn-primary" id="refreshBtn" type="button">Kemas Kini Data</button>
+        </div>
+
+        <div class="header-main">
+          <h2 class="tile-title">Akses Kepada Perkhidmatan Kesihatan Pergigian</h2>
+        </div>
+
+        <div class="header-meta">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path>
+          </svg>
+          <span id="lastUpdated">—</span>
         </div>
       </div>
 
@@ -169,33 +148,31 @@
       </div>
     </section>
 
-    <!-- ===== Tile 2: Pesakit Primer ===== -->
+    <!-- ===== Tile 2 ===== -->
     <section class="tile" id="tile-primer">
       <div class="tile-header">
-        <div class="header-left">
-          <h2 class="tile-title">Jumlah Kedatangan Baru &amp; Ulangan Mengikut Kumpulan</h2>
-          <span class="header-dot" aria-hidden="true"></span>
-          <div class="header-meta">
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="9"></circle>
-              <path d="M12 7v5l3 3"></path>
-            </svg>
-            <span id="lastUpdated2">—</span>
-          </div>
-        </div>
-        <div class="header-right">
+        <div class="header-ctrls">
           <button class="iconbtn" id="zoom2" title="Perbesar">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="7"></circle>
-              <path d="m21 21-4.3-4.3"></path>
+              <circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path>
             </svg>
           </button>
           <button class="btn btn-primary" id="refreshBtn2" type="button">Kemas Kini Data</button>
         </div>
+
+        <div class="header-main">
+          <h2 class="tile-title">Jumlah Kedatangan Baru &amp; Ulangan Mengikut Kumpulan</h2>
+        </div>
+
+        <div class="header-meta">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path>
+          </svg>
+          <span id="lastUpdated2">—</span>
+        </div>
       </div>
 
       <div class="tile-body">
-        <!-- Category dropdown + chips -->
         <div class="dropdown" id="ddBox">
           <button class="dd-btn" id="ddBtn" type="button">Pilih Kategori</button>
           <div class="tagbox" id="selectedTags"></div>
@@ -209,27 +186,23 @@
           </div>
         </div>
 
-        <!-- Baru/Ulangan toggles -->
         <div class="type-filter">
           <label class="type-pill"><input type="checkbox" id="chkBaru" checked> Pesakit Baru</label>
           <label class="type-pill"><input type="checkbox" id="chkUlangan" checked> Pesakit Ulangan</label>
         </div>
 
         <div class="chart-container"><canvas id="chartPrimer"></canvas></div>
-
-        <!-- Color legend (category colors filled by JS) -->
         <div class="legend" id="legend2"></div>
         <div class="legend" style="margin-top:0">
           <span class="linekey"><span class="seg"></span>Pesakit Baru</span>
           <span class="linekey"><span class="seg dashed"></span>Pesakit Ulangan</span>
         </div>
-
         <div id="err2"></div>
       </div>
     </section>
   </div>
 
-  <!-- ===== Modal (zoom) ===== -->
+  <!-- Modal -->
   <div class="modal" id="modal">
     <div class="modal-inner">
       <div class="modal-header">
@@ -242,7 +215,6 @@
     </div>
   </div>
 
-  <!-- App -->
   <script src="app.js"></script>
 </body>
 </html>
