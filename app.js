@@ -7,7 +7,6 @@
   function niceNum(n){if(n==null)return"—";return n>=1e6?(n/1e6).toFixed(2)+"M":n>=1e3?(n/1e3).toFixed(1)+"k":Number(n).toLocaleString();}
 
   async function fetchCSV(url){
-    // Direct + two proxy fallbacks. Return readable error if all fail.
     const attempts = [
       {name:"direct", u:url},
       {name:"proxyA", u:"https://r.jina.ai/http/" + url.replace(/^https?:\/\//,"")},
@@ -40,10 +39,9 @@
     const l=["",...labels,""];
     return {labels:l,series:s};
   }
-  function labelDensity(X){
-    return (v,i)=> (i===0||i===X.length-1) ? "" : ((window.innerWidth<560? (i%3===0):(i%2===0)) ? X[i] : "");
-  }
-  function draw1(rows, ctxId, dense){
+
+  // "mode": "main" uses 90° labels & shows all districts; "modal" uses 40° for comfort
+  function draw1(rows, ctxId, mode){
     const L = rows.map(r=>r.name);
     const A = rows.map(r=>r.access ?? 0);
     const P = rows.map(r=>r.population ?? 0);
@@ -68,8 +66,12 @@
           filter:i=> !(i.dataIndex===0||i.dataIndex===X.length-1),
           callbacks:{label:c=> c.datasetIndex===0 ? ` Akses: ${c.parsed.y||0}%` : ` Populasi: ${niceNum(c.parsed.y)}`}}},
         scales:{
-          x:{grid:{display:false},ticks:{autoSkip:false,maxRotation:40,minRotation:40,
-            callback: dense ? ((v,i)=> (i===0||i===X.length-1) ? "" : X[i]) : labelDensity(X)}},
+          x:{grid:{display:false},ticks:{
+              autoSkip:false,
+              maxRotation: mode==="main"?90:40,
+              minRotation: mode==="main"?90:40,
+              callback:(v,i)=> (i===0||i===X.length-1) ? "" : X[i]
+            }},
           y1:{position:"left",beginAtZero:true,grid:{color:"rgba(15,23,42,.06)"},ticks:{callback:v=>v+"%"}},
           y2:{position:"right",beginAtZero:true,grid:{display:false},ticks:{callback:v=>niceNum(v)}}
         }
@@ -93,7 +95,7 @@
     try{
       const csv = await fetchCSV(CSV1);
       RAW1 = Papa.parse(csv,{header:false,skipEmptyLines:true}).data;
-      draw1(compute1(),"infogChart",false);
+      draw1(compute1(),"infogChart","main");
       document.getElementById("lastUpdated").textContent=new Date().toLocaleString();
     }catch(e){
       console.error("Tile 1 CSV error:", e);
@@ -161,7 +163,7 @@
     });
     return {labels,perCat};
   }
-  function draw2(data,showB,showU, ctxId, dense){
+  function draw2(data,showB,showU, ctxId, mode){
     const ctx=document.getElementById(ctxId).getContext("2d");
     if(CHART2 && ctxId==="chartPrimer") CHART2.destroy();
     const sets=[];
@@ -174,9 +176,12 @@
       responsive:true,maintainAspectRatio:false,layout:{padding:{bottom:10}},
       plugins:{legend:{display:false},tooltip:{mode:"index",intersect:false,filter:i=> !(i.dataIndex===0||i.dataIndex===data.labels.length-1)}},
       scales:{
-        x:{grid:{display:false},ticks:{autoSkip:false,maxRotation:40,minRotation:40,
-          callback: dense ? ((v,i)=> (i===0||i===data.labels.length-1) ? "" : data.labels[i])
-                           : ((v,i)=> (i===0||i===data.labels.length-1) ? "" : ((window.innerWidth<560? (i%3===0):(i%2===0)) ? data.labels[i] : ""))}},
+        x:{grid:{display:false},ticks:{
+            autoSkip:false,
+            maxRotation: mode==="main"?90:40,
+            minRotation: mode==="main"?90:40,
+            callback:(v,i)=> (i===0||i===data.labels.length-1) ? "" : data.labels[i]
+        }},
         y:{beginAtZero:true,grid:{color:"rgba(15,23,42,.06)"},ticks:{callback:v=>Number(v).toLocaleString()}}
       }
     }});
@@ -193,9 +198,8 @@
       RAW2 = Papa.parse(csv,{header:false,skipEmptyLines:true}).data;
 
       const data = computePerCat(RAW2,selectedKeys());
-      draw2(data,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer",false);
+      draw2(data,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer","main");
 
-      // dropdown wiring (after it exists)
       const ddBtn=document.getElementById("ddBtn");
       const ddMenu=document.getElementById("ddMenu");
       ddBtn.onclick=()=> ddMenu.classList.toggle("open");
@@ -203,22 +207,22 @@
       document.getElementById("btnAll").onclick=()=>{
         ddMenu.querySelectorAll("input[type=checkbox]").forEach(i=>i.checked=true);
         updateTagsAndLegend(); const d=computePerCat(RAW2,selectedKeys());
-        draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer",false);
+        draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer","main");
       };
       document.getElementById("btnNone").onclick=()=>{
         ddMenu.querySelectorAll("input[type=checkbox]").forEach(i=>i.checked=false);
         updateTagsAndLegend(); const d=computePerCat(RAW2,selectedKeys());
-        draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer",false);
+        draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer","main");
       };
       ddMenu.querySelectorAll("input[type=checkbox]").forEach(i=>{
         i.addEventListener("change",()=>{
           updateTagsAndLegend(); const d=computePerCat(RAW2,selectedKeys());
-          draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer",false);
+          draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer","main");
         });
       });
       document.addEventListener("click",(ev)=>{const box=document.getElementById("ddBox"); if(!box.contains(ev.target)) ddMenu.classList.remove("open");});
-      document.getElementById("chkBaru").addEventListener("change",()=>{const d=computePerCat(RAW2,selectedKeys()); draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer",false);});
-      document.getElementById("chkUlangan").addEventListener("change",()=>{const d=computePerCat(RAW2,selectedKeys()); draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer",false);});
+      document.getElementById("chkBaru").addEventListener("change",()=>{const d=computePerCat(RAW2,selectedKeys()); draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer","main");});
+      document.getElementById("chkUlangan").addEventListener("change",()=>{const d=computePerCat(RAW2,selectedKeys()); draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer","main");});
 
       document.getElementById("lastUpdated2").textContent=new Date().toLocaleString();
     }catch(e){
@@ -244,19 +248,19 @@
   document.getElementById("zoom1").addEventListener("click",()=>{
     openModal("Akses Kepada Perkhidmatan Kesihatan Pergigian");
     if(!RAW1) return;
-    MODAL_CHART=draw1(compute1(),"modalChart",true);
+    MODAL_CHART=draw1(compute1(),"modalChart","modal");
   });
   document.getElementById("zoom2").addEventListener("click",()=>{
     openModal("Jumlah Kedatangan Baru & Ulangan Mengikut Kumpulan");
     if(!RAW2) return;
     const d=computePerCat(RAW2,selectedKeys());
-    MODAL_CHART=draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"modalChart",true);
+    MODAL_CHART=draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"modalChart","modal");
   });
 
-  // Redraw on resize (keep labels readable on compact height)
+  // Redraw on resize
   window.addEventListener("resize",()=>{
-    if(RAW1){draw1(compute1(),"infogChart",false);}
+    if(RAW1){draw1(compute1(),"infogChart","main");}
     if(RAW2){const d=computePerCat(RAW2,selectedKeys());
-      draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer",false);}
+      draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer","main");}
   });
 }());
