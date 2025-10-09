@@ -146,4 +146,66 @@
     TODD_METRICS.forEach(m=>{
       if(!keys.has(m.key)) return;
       const series=[0];
-      DIST4.forEach(d=>{ series.push(cell(arr, d.col + String(m.
+      DIST4.forEach(d=>{ series.push(cell(arr, d.col + String(m.row))); });
+      series.push(0);
+      per.push({key:m.key,type:m.type,color:m.color,data:series});
+    });
+    return {labels,per};
+  }
+  function draw4(data,cid,mode){
+    const ctx=$(cid).getContext("2d");
+    if(CH4 && cid==="chartToddlers") CH4.destroy();
+    const sets=[];
+    data.per.forEach(m=>{
+      const ds={label:m.key,data:m.data,borderColor:m.color,backgroundColor:"transparent",borderWidth:3,tension:.45,fill:false};
+      ds.yAxisID = m.type==="count" ? "yR" : "yL";
+      if(m.key.includes("Lift")) ds.borderDash=[6,4]; // small visual variation
+      sets.push(ds);
+    });
+    const chart=new Chart(ctx,{type:"line",data:{labels:data.labels,datasets:sets},options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{mode:"index",intersect:false,filter:i=>!(i.dataIndex===0||i.dataIndex===data.labels.length-1)}},
+      scales:{
+        x:{grid:{display:false},ticks:{autoSkip:false,maxRotation:mode==="main"?90:40,minRotation:mode==="main"?90:40,callback:(v,i)=> (i===0||i===data.labels.length-1)?"":data.labels[i]}},
+        yL:{position:"left",beginAtZero:true,grid:{color:"rgba(15,23,42,.06)"},ticks:{callback:v=>v+"%"}},
+        yR:{position:"right",beginAtZero:true,grid:{display:false},ticks:{callback:v=>niceNum(v)}}
+      }
+    }});
+    if(cid==="chartToddlers") CH4=chart;
+    return chart;
+  }
+  async function load4(){
+    const err=$("err4"); err.style.display="none"; err.textContent="";
+    try{
+      buildDropdown("ddMenu4","btnAll4","btnNone4","btnClose4", TODD_METRICS.map(m=>m.key), "% TASKA dilawati");
+      tagsLegend4();
+      const csv=await fetchCSV(CSV4); RAW4=Papa.parse(csv,{header:false,skipEmptyLines:true}).data;
+      const d=compute4(RAW4,selected4()); draw4(d,"chartToddlers","main");
+      $("ddBtn4").onclick=()=>$("ddMenu4").classList.toggle("open");
+      $("ddMenu4").querySelectorAll("input[type=checkbox]").forEach(i=>i.addEventListener("change",()=>{tagsLegend4(); const d2=compute4(RAW4,selected4()); draw4(d2,"chartToddlers","main");}));
+      document.addEventListener("click",(e)=>{const box=$("ddBox4"); if(box && !box.contains(e.target)) $("ddMenu4").classList.remove("open");});
+      $("lastUpdated4").textContent=new Date().toLocaleString();
+    }catch(e){ console.error("Tile 4 CSV error:",e); err.style.display='block'; err.textContent="Gagal memuatkan CSV (Tile 4)."; }
+  }
+  $("refreshBtn4").addEventListener("click",load4); load4();
+
+  /* ---------------- Modal (all tiles) ---------------- */
+  const modal=$("modal"), modalTitle=$("modalTitle");
+  let MCH=null;
+  function openModal(t){modalTitle.textContent=t; modal.classList.add("open");}
+  function closeModal(){ if(MCH){MCH.destroy();MCH=null;} modal.classList.remove("open"); }
+  $("modalClose").addEventListener("click",closeModal);
+  modal.addEventListener("click",(e)=>{ if(e.target===modal) closeModal(); });
+
+  $("zoom1").addEventListener("click",()=>{ if(!RAW1) return; openModal("Akses Kepada Perkhidmatan Kesihatan Pergigian"); MCH=draw1(MAP.map(m=>{const i=colIndexFromLetter(m.col); return {name:m.name,population:cleanPop((RAW1[9]||[])[i]),access:cleanPct((RAW1[10]||[])[i])||0};}),"modalChart","modal"); });
+  $("zoom2").addEventListener("click",()=>{ if(!RAW2) return; openModal("Kedatangan Baru & Ulangan"); const d=compute2(RAW2,selected2()); MCH=draw2(d,true,true,"modalChart","modal"); });
+  $("zoom3").addEventListener("click",()=>{ if(!RAW3) return; openModal("Kedatangan Pesakit Outreach"); const d=compute3(RAW3,selected3()); MCH=draw3(d,true,true,"modalChart","modal"); });
+  $("zoom4").addEventListener("click",()=>{ if(!RAW4) return; openModal("PENCAPAIAN PROGRAM TODDLER"); const d=compute4(RAW4,selected4()); MCH=draw4(d,"modalChart","modal"); });
+
+  window.addEventListener("resize",()=>{ 
+    if(RAW1){const rows=MAP.map(m=>{const i=colIndexFromLetter(m.col); return {name:m.name,population:cleanPop((RAW1[9]||[])[i]),access:cleanPct((RAW1[10]||[])[i])||0};}); draw1(rows,"infogChart","main");}
+    if(RAW2){const d=compute2(RAW2,selected2()); draw2(d,true,true,"chartPrimer","main");}
+    if(RAW3){const d=compute3(RAW3,selected3()); draw3(d,true,true,"chartOutreach","main");}
+    if(RAW4){const d=compute4(RAW4,selected4()); draw4(d,"chartToddlers","main");}
+  });
+})();
