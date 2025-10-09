@@ -11,7 +11,6 @@
       {u:"https://r.jina.ai/http/" + url.replace(/^https?:\/\//,"")},
       {u:"https://r.jina.ai/http/https://" + url.replace(/^https?:\/\//,"")}
     ];
-    let lastErr=null;
     for (const a of attempts){
       try{
         const r=await fetch(a.u,{mode:"cors",cache:"no-store"});
@@ -19,7 +18,7 @@
         const t=await r.text();
         if(!t || t.length<10) throw 0;
         return t;
-      }catch(e){ lastErr=e; await sleep(120); }
+      }catch(e){ await sleep(120); }
     }
     throw new Error("CSV fetch failed");
   }
@@ -32,7 +31,7 @@
   function cleanPct(x){if(x==null)return null;let s=String(x).replace(/\u00A0/g,"").trim();const had=s.includes("%");s=s.replace(/[%\s]/g,"").replace(/,/g,".");const p=s.split(".");if(p.length>2)s=p[0]+"."+p.slice(1).join("");let v=Number(s);if(isNaN(v))return null;if(!had&&v>0&&v<=1)v=v*100;return +v.toFixed(2);}
 
   let RAW1=null, CHART1=null;
-  function padEnds(labels,series){return {labels:["",...labels,""],series:[0,...series.map(v=>v??0),0]};}
+  function padEnds(labels,series){return {labels:["",...labels,""],series:[0,...series.map(v=>v??0),0]}};
 
   function draw1(rows, ctxId, mode){
     const L = rows.map(r=>r.name);
@@ -216,7 +215,7 @@
     }catch(e){
       console.error("Tile 2 CSV error:", e);
       err.style.display='block';
-      err.textContent="Gagal memuatkan CSV (Tile 2). Sahkan 'Publish to web' aktif & cuba 'Kemas Kini Data'.";
+      err.textContent="Gagal memuatkan CSV (Tile 2). Sahkan 'Publish to web' aktif & cuba Kemas Kini.";
     }
   }
   document.getElementById("refreshBtn2").addEventListener("click",load2);
