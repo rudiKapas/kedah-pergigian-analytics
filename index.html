@@ -6,19 +6,20 @@
   <title>Analitik Data Teknikal Kesihatan Pergigian Negeri Kedah</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-
   <style>
     :root{
       --bg:#f7f7fb; --panel:#ffffff; --ink:#0f172a; --muted:#64748b; --bd:#e5e7eb;
       --accent:#6366f1; --icon:#6b7280; --hover:#f8fafc;
-      --ctl-h:48px; /* unified height for action buttons */
+      --ctl-h:48px;
+      /* single source of truth for page & tile titles */
+      --title-size:24px;
     }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
 
     /* Page header */
     .page-header{max-width:1100px;margin:22px auto 6px;padding:0 16px}
-    .page-title{margin:0;font-size:24px;font-weight:800}
+    .page-title{margin:0;font-size:var(--title-size);font-weight:800}
     .page-sub{margin:6px 0 0;color:var(--muted);font-size:13px}
 
     /* Tiles layout */
@@ -26,7 +27,10 @@
       max-width:1100px;margin:6px auto 24px;padding:0 16px;
       display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:stretch
     }
-    @media (max-width:980px){ .wrap{grid-template-columns:1fr} .page-title{font-size:20px} }
+    @media (max-width:980px){
+      :root{ --title-size:20px; }
+      .wrap{grid-template-columns:1fr}
+    }
 
     .tile{
       background:var(--panel);border:1px solid var(--bd);border-radius:16px;
@@ -34,34 +38,27 @@
       display:flex;flex-direction:column;min-height:0
     }
 
-    /* Header (compact) - grid keeps action area from being squeezed */
+    /* Header */
     .tile-header{
       display:grid;grid-template-columns:1fr auto;gap:12px;
       align-items:start;padding:14px;border-bottom:1px solid var(--bd);background:#fff;
       border-top-left-radius:16px;border-top-right-radius:16px
     }
     .header-left{min-width:0}
-    .tile-title{margin:0 0 6px 0;font-size:24px;line-height:1.15;font-weight:800;white-space:normal}
+    .tile-title{margin:0 0 6px 0;font-size:var(--title-size);line-height:1.15;font-weight:800;white-space:normal}
     .header-time{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
     .icon{width:18px;height:18px;color:var(--icon)}
 
     .header-right{display:flex;align-items:center;gap:12px}
-    .btn{
-      height:var(--ctl-h); display:inline-flex; align-items:center; justify-content:center;
-      border:1px solid #d1d5db; background:linear-gradient(180deg,#fff,#f9fafb);
-      padding:0 14px; border-radius:14px; cursor:pointer; font-size:14px; font-weight:800;
-      white-space:nowrap; min-width:160px; /* prevent wrap */
-    }
-    .btn:hover{border-color:var(--accent);box-shadow:0 0 0 4px rgba(99,102,241,.12)}
     .iconbtn{
       width:var(--ctl-h); height:var(--ctl-h); border-radius:14px; border:1px solid #d1d5db;
       background:#fff; display:grid; place-items:center; cursor:pointer;
       transition:box-shadow .15s,border-color .15s,transform .06s
     }
     .iconbtn:hover{border-color:#94a3b8;box-shadow:0 0 0 4px rgba(148,163,184,.18);background:var(--hover)}
-    .iconbtn:active,.btn:active{transform:translateY(1px)}
+    .iconbtn:active{transform:translateY(1px)}
 
-    /* Bodies (half-height charts) */
+    /* Bodies */
     .tile-body{padding:10px 12px 8px;display:flex;flex-direction:column;min-height:0}
     .chart-container{height:260px;width:100%}
     @media (max-width:980px){ .tile-body{padding:10px} .chart-container{height:220px} }
@@ -126,7 +123,12 @@
           </div>
         </div>
         <div class="header-right">
-          <button class="btn" id="refreshBtn" type="button">Kemas Kini Data</button>
+          <!-- refresh icon button replaces text button -->
+          <button class="iconbtn" id="refreshBtn" title="Kemas Kini Data">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/>
+            </svg>
+          </button>
           <button class="iconbtn" id="zoom1" title="Perbesar">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path>
@@ -158,7 +160,12 @@
           </div>
         </div>
         <div class="header-right">
-          <button class="btn" id="refreshBtn2" type="button">Kemas Kini Data</button>
+          <!-- refresh icon button replaces text button -->
+          <button class="iconbtn" id="refreshBtn2" title="Kemas Kini Data">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/>
+            </svg>
+          </button>
           <button class="iconbtn" id="zoom2" title="Perbesar">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path>
@@ -174,9 +181,9 @@
           <div class="dd-menu" id="ddMenu">
             <!-- options injected by app.js -->
             <div class="dd-footer">
-              <button class="btn" id="btnAll" type="button">Pilih Semua</button>
-              <button class="btn" id="btnNone" type="button">Kosongkan</button>
-              <button class="btn" id="btnClose" type="button">Tutup</button>
+              <button class="dd-btn" id="btnAll" type="button">Pilih Semua</button>
+              <button class="dd-btn" id="btnNone" type="button">Kosongkan</button>
+              <button class="dd-btn" id="btnClose" type="button">Tutup</button>
             </div>
           </div>
         </div>
