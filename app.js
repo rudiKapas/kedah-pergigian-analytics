@@ -1,9 +1,12 @@
 (function () {
   "use strict";
 
+  /* ----------------- utilities ----------------- */
   const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
   function colIndexFromLetter(L){let n=0;for(let i=0;i<L.length;i++) n=n*26+(L.charCodeAt(i)-64);return n-1;}
   function niceNum(n){if(n==null)return"—";return n>=1e6?(n/1e6).toFixed(2)+"M":n>=1e3?(n/1e3).toFixed(1)+"k":Number(n).toLocaleString();}
+  function cleanInt(x){if(x==null)return 0;let s=String(x).replace(/\u00A0/g,"").trim();s=s.replace(/[%\s]/g,"").replace(/,/g,"");const v=Number(s);return isNaN(v)?0:v;}
+  function cell(arr,addr){const m=/^([A-Z]+)(\d+)$/.exec(addr);if(!m)return 0;const col=m[1],row=parseInt(m[2],10);const r=row-1,c=colIndexFromLetter(col);return cleanInt((arr[r]||[])[c]);}
 
   async function fetchCSV(url){
     const attempts = [
@@ -23,7 +26,7 @@
     throw new Error("CSV fetch failed");
   }
 
-  /* ---------- TILE 1 ---------- */
+  /* ----------------- TILE 1 ----------------- */
   const CSV1="https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1057141723&single=true&output=csv";
   const MAP=[{name:"Kota Setar",col:"C"},{name:"Pendang",col:"D"},{name:"Kuala Muda",col:"E"},{name:"Sik",col:"F"},{name:"Kulim",col:"G"},{name:"Bandar Baru",col:"H"},{name:"Kubang Pasu",col:"I"},{name:"Padang Terap",col:"J"},{name:"Baling",col:"K"},{name:"Yan",col:"L"},{name:"Langkawi",col:"M"},{name:"Kedah",col:"N"}];
 
@@ -95,24 +98,20 @@
   document.getElementById("refreshBtn").addEventListener("click",load1);
   load1();
 
-  /* ---------- TILE 2 ---------- */
+  /* ----------------- TILE 2 (Primer by age groups) ----------------- */
   const CSV2="https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1808391684&single=true&output=csv";
-  const DIST=[{name:"Kota Setar",col:"D"},{name:"Pendang",col:"E"},{name:"Kuala Muda",col:"F"},{name:"Sik",col:"G"},{name:"Kulim",col:"H"},{name:"Bandar Baru",col:"I"},{name:"Kubang Pasu",col:"J"},{name:"Padang Terap",col:"K"},{name:"Baling",col:"L"},{name:"Yan",col:"M"},{name:"Langkawi",col:"N"},{name:"Kedah",col:"O"}];
-  const CATS=[{key:"<5 tahun",b:[8,10],u:[9,11]},{key:"5-6 tahun",b:[12],u:[13]},{key:"7-12 tahun",b:[14,16],u:[15,17]},{key:"13-17 tahun",b:[18,20],u:[19,21]},{key:"18-59 tahun",b:[22,24,26,28],u:[23,25,27,29]},{key:"<60 tahun",b:[30],u:[31]},{key:"Ibu mengandung",b:[34],u:[35]},{key:"OKU",b:[36],u:[37]},{key:"Bukan warganegara",b:[38],u:[39]}];
-  const CAT_COLOR={"<5 tahun":"#0ea5e9","5-6 tahun":"#4f46e5","7-12 tahun":"#10b981","13-17 tahun":"#ef4444","18-59 tahun":"#8b5cf6","<60 tahun":"#14b8a6","Ibu mengandung":"#f59e0b","OKU":"#22c55e","Bukan warganegara":"#a855f7"};
-
-  function cleanInt(x){if(x==null)return 0;let s=String(x).replace(/\u00A0/g,"").trim();s=s.replace(/[%\s]/g,"").replace(/,/g,"");const v=Number(s);return isNaN(v)?0:v;}
-  function cell(arr,addr){const m=/^([A-Z]+)(\d+)$/.exec(addr);if(!m)return 0;const col=m[1],row=parseInt(m[2],10);const r=row-1,c=colIndexFromLetter(col);return cleanInt((arr[r]||[])[c]);}
-  function sumCells(arr,letter,rows){return rows.reduce((t,r)=>t+cell(arr,letter+String(r)),0);}
+  const DIST2=[{name:"Kota Setar",col:"D"},{name:"Pendang",col:"E"},{name:"Kuala Muda",col:"F"},{name:"Sik",col:"G"},{name:"Kulim",col:"H"},{name:"Bandar Baru",col:"I"},{name:"Kubang Pasu",col:"J"},{name:"Padang Terap",col:"K"},{name:"Baling",col:"L"},{name:"Yan",col:"M"},{name:"Langkawi",col:"N"},{name:"Kedah",col:"O"}];
+  const CATS2=[{key:"<5 tahun",b:[8,10],u:[9,11]},{key:"5-6 tahun",b:[12],u:[13]},{key:"7-12 tahun",b:[14,16],u:[15,17]},{key:"13-17 tahun",b:[18,20],u:[19,21]},{key:"18-59 tahun",b:[22,24,26,28],u:[23,25,27,29]},{key:"<60 tahun",b:[30],u:[31]},{key:"Ibu mengandung",b:[34],u:[35]},{key:"OKU",b:[36],u:[37]},{key:"Bukan warganegara",b:[38],u:[39]}];
+  const CAT_COLOR2={"<5 tahun":"#0ea5e9","5-6 tahun":"#4f46e5","7-12 tahun":"#10b981","13-17 tahun":"#ef4444","18-59 tahun":"#8b5cf6","<60 tahun":"#14b8a6","Ibu mengandung":"#f59e0b","OKU":"#22c55e","Bukan warganegara":"#a855f7"};
 
   let RAW2=null, CHART2=null;
 
-  function ensureDropdown(){
-    const menu=document.getElementById("ddMenu");
+  function ensureDropdown2(){
+    const menu=document.getElementById("ddMenu2");
     if(menu.querySelector(".dd-row")) return;
     const footer=menu.querySelector(".dd-footer");
     const frag=document.createDocumentFragment();
-    CATS.forEach((c,idx)=>{
+    CATS2.forEach((c,idx)=>{
       const lab=document.createElement("label");
       lab.className="dd-row";
       lab.innerHTML=`<input type="checkbox" data-key="${c.key}" ${idx===0?'checked':''}> ${c.key}`;
@@ -120,30 +119,31 @@
     });
     menu.insertBefore(frag,footer);
   }
-  function selectedKeys(){
+  function selectedKeys2(){
     const ks=new Set();
-    document.querySelectorAll("#ddMenu input[type=checkbox]").forEach(i=>{if(i.checked) ks.add(i.getAttribute("data-key"));});
+    document.querySelectorAll("#ddMenu2 input[type=checkbox]").forEach(i=>{if(i.checked) ks.add(i.getAttribute("data-key"));});
     if(ks.size===0) ks.add("<5 tahun");
     return ks;
   }
-  function updateTagsAndLegend(){
-    const tags=document.getElementById("selectedTags"); tags.innerHTML="";
+  function updateTagsAndLegend2(){
+    const tags=document.getElementById("selectedTags2"); tags.innerHTML="";
     const legend=document.getElementById("legend2"); legend.innerHTML="";
-    Array.from(selectedKeys()).forEach(k=>{
+    Array.from(selectedKeys2()).forEach(k=>{
       const t=document.createElement("span"); t.className="tag"; t.textContent=k; tags.appendChild(t);
       const item=document.createElement("div"); item.style.display="flex"; item.style.alignItems="center"; item.style.gap="8px";
-      const dot=document.createElement("span"); dot.className="dot"; dot.style.background=CAT_COLOR[k]||"#64748b";
+      const dot=document.createElement("span"); dot.className="dot"; dot.style.background=CAT_COLOR2[k]||"#64748b";
       const txt=document.createElement("span"); txt.textContent=k;
       item.append(dot,txt); legend.appendChild(item);
     });
   }
-  function computePerCat(arr,keys){
-    const labels=["",...DIST.map(d=>d.name),""];
+  function sumCells(arr,letter,rows){return rows.reduce((t,r)=>t+cell(arr,letter+String(r)),0);}
+  function computePerCat2(arr,keys){
+    const labels=["",...DIST2.map(d=>d.name),""];
     const perCat=[];
-    CATS.forEach(cat=>{
+    CATS2.forEach(cat=>{
       if(!keys.has(cat.key)) return;
       const baru = [0], ulangan=[0];
-      DIST.forEach(d=>{
+      DIST2.forEach(d=>{
         baru.push(sumCells(arr,d.col,cat.b));
         ulangan.push(sumCells(arr,d.col,cat.u));
       });
@@ -157,7 +157,7 @@
     if(CHART2 && ctxId==="chartPrimer") CHART2.destroy();
     const sets=[];
     data.perCat.forEach(cat=>{
-      const color=CAT_COLOR[cat.key]||"#64748b";
+      const color=CAT_COLOR2[cat.key]||"#64748b";
       if(showB) sets.push({label:cat.key+" • Baru",data:cat.baru,borderColor:color,backgroundColor:"transparent",borderWidth:3,tension:.45,fill:false,borderDash:[],pointRadius:c=> (c.dataIndex===0||c.dataIndex===data.labels.length-1)?0:3,pointHoverRadius:5});
       if(showU) sets.push({label:cat.key+" • Ulangan",data:cat.ulangan,borderColor:color,backgroundColor:"transparent",borderWidth:3,tension:.45,fill:false,borderDash:[6,4],pointRadius:c=> (c.dataIndex===0||c.dataIndex===data.labels.length-1)?0:3,pointHoverRadius:5});
     });
@@ -179,37 +179,37 @@
   async function load2(){
     const err=document.getElementById("err2"); err.style.display="none"; err.textContent="";
     try{
-      ensureDropdown(); updateTagsAndLegend();
+      ensureDropdown2(); updateTagsAndLegend2();
 
       const csv = await fetchCSV(CSV2);
       RAW2 = Papa.parse(csv,{header:false,skipEmptyLines:true}).data;
 
-      const data = computePerCat(RAW2,selectedKeys());
-      draw2(data,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer","main");
+      const data = computePerCat2(RAW2,selectedKeys2());
+      draw2(data,document.getElementById("chkBaru2").checked,document.getElementById("chkUlangan2").checked,"chartPrimer","main");
 
-      const ddBtn=document.getElementById("ddBtn");
-      const ddMenu=document.getElementById("ddMenu");
+      const ddBtn=document.getElementById("ddBtn2");
+      const ddMenu=document.getElementById("ddMenu2");
       ddBtn.onclick=()=> ddMenu.classList.toggle("open");
-      document.getElementById("btnClose").onclick=()=> ddMenu.classList.remove("open");
-      document.getElementById("btnAll").onclick=()=>{
+      document.getElementById("btnClose2").onclick=()=> ddMenu.classList.remove("open");
+      document.getElementById("btnAll2").onclick=()=>{
         ddMenu.querySelectorAll("input[type=checkbox]").forEach(i=>i.checked=true);
-        updateTagsAndLegend(); const d=computePerCat(RAW2,selectedKeys());
-        draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer","main");
+        updateTagsAndLegend2(); const d=computePerCat2(RAW2,selectedKeys2());
+        draw2(d,document.getElementById("chkBaru2").checked,document.getElementById("chkUlangan2").checked,"chartPrimer","main");
       };
-      document.getElementById("btnNone").onclick=()=>{
+      document.getElementById("btnNone2").onclick=()=>{
         ddMenu.querySelectorAll("input[type=checkbox]").forEach(i=>i.checked=false);
-        updateTagsAndLegend(); const d=computePerCat(RAW2,selectedKeys());
-        draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer","main");
+        updateTagsAndLegend2(); const d=computePerCat2(RAW2,selectedKeys2());
+        draw2(d,document.getElementById("chkBaru2").checked,document.getElementById("chkUlangan2").checked,"chartPrimer","main");
       };
       ddMenu.querySelectorAll("input[type=checkbox]").forEach(i=>{
         i.addEventListener("change",()=>{
-          updateTagsAndLegend(); const d=computePerCat(RAW2,selectedKeys());
-          draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer","main");
+          updateTagsAndLegend2(); const d=computePerCat2(RAW2,selectedKeys2());
+          draw2(d,document.getElementById("chkBaru2").checked,document.getElementById("chkUlangan2").checked,"chartPrimer","main");
         });
       });
-      document.addEventListener("click",(ev)=>{const box=document.getElementById("ddBox"); if(!box.contains(ev.target)) ddMenu.classList.remove("open");});
-      document.getElementById("chkBaru").addEventListener("change",()=>{const d=computePerCat(RAW2,selectedKeys()); draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer","main");});
-      document.getElementById("chkUlangan").addEventListener("change",()=>{const d=computePerCat(RAW2,selectedKeys()); draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer","main");});
+      document.addEventListener("click",(ev)=>{const box=document.getElementById("ddBox2"); if(!box.contains(ev.target)) ddMenu.classList.remove("open");});
+      document.getElementById("chkBaru2").addEventListener("change",()=>{const d=computePerCat2(RAW2,selectedKeys2()); draw2(d,document.getElementById("chkBaru2").checked,document.getElementById("chkUlangan2").checked,"chartPrimer","main");});
+      document.getElementById("chkUlangan2").addEventListener("change",()=>{const d=computePerCat2(RAW2,selectedKeys2()); draw2(d,document.getElementById("chkBaru2").checked,document.getElementById("chkUlangan2").checked,"chartPrimer","main");});
 
       document.getElementById("lastUpdated2").textContent=new Date().toLocaleString();
     }catch(e){
@@ -221,7 +221,146 @@
   document.getElementById("refreshBtn2").addEventListener("click",load2);
   load2();
 
-  /* ---------- Modal ---------- */
+  /* ----------------- TILE 3 (OUTREACH sheet) ----------------- */
+  const CSV3="https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1032207232&single=true&output=csv";
+  const DIST3=[
+    {name:"Kota Setar",col:"D"},{name:"Pendang",col:"E"},{name:"Kuala Muda",col:"F"},{name:"Sik",col:"G"},
+    {name:"Kulim",col:"H"},{name:"Bandar Baharu",col:"I"},{name:"Kubang Pasu",col:"J"},{name:"Padang Terap",col:"K"},
+    {name:"Baling",col:"L"},{name:"Yan",col:"M"},{name:"Langkawi",col:"N"},{name:"Kedah",col:"O"}
+  ];
+  // Each service: rows for 'baru' and 'ulangan' (from your spec)
+  const SERVICES = [
+    {key:"Primer", baru:6, ulangan:7, color:"#0ea5e9"},
+    {key:"Outreach", baru:10, ulangan:11, color:"#10b981"},
+    {key:"UTC", baru:14, ulangan:15, color:"#f59e0b"},
+    {key:"RTC", baru:18, ulangan:19, color:"#ef4444"},
+    {key:"TASTAD", baru:22, ulangan:23, color:"#8b5cf6"},
+    {key:"Sekolah", baru:26, ulangan:27, color:"#14b8a6"}
+  ];
+
+  let RAW3=null, CHART3=null;
+
+  function ensureDropdown3(){
+    const menu=document.getElementById("ddMenu3");
+    if(menu.querySelector(".dd-row")) return;
+    const footer=menu.querySelector(".dd-footer");
+    const frag=document.createDocumentFragment();
+    SERVICES.forEach((s,idx)=>{
+      const lab=document.createElement("label");
+      lab.className="dd-row";
+      lab.innerHTML=`<input type="checkbox" data-key="${s.key}" ${idx===0?'checked':''}> ${s.key}`;
+      frag.appendChild(lab);
+    });
+    menu.insertBefore(frag,footer);
+  }
+  function selectedKeys3(){
+    const ks=new Set();
+    document.querySelectorAll("#ddMenu3 input[type=checkbox]").forEach(i=>{if(i.checked) ks.add(i.getAttribute("data-key"));});
+    if(ks.size===0) ks.add("Primer");
+    return ks;
+  }
+  function updateTagsAndLegend3(){
+    const tags=document.getElementById("selectedTags3"); tags.innerHTML="";
+    const legend=document.getElementById("legend3"); legend.innerHTML="";
+    Array.from(selectedKeys3()).forEach(k=>{
+      const svc=SERVICES.find(x=>x.key===k);
+      const color=svc?.color || "#64748b";
+      const t=document.createElement("span"); t.className="tag"; t.textContent=k; tags.appendChild(t);
+      const item=document.createElement("div"); item.style.display="flex"; item.style.alignItems="center"; item.style.gap="8px";
+      const dot=document.createElement("span"); dot.className="dot"; dot.style.background=color;
+      const txt=document.createElement("span"); txt.textContent=k;
+      item.append(dot,txt); legend.appendChild(item);
+    });
+  }
+
+  function computeOutreach(arr,keys){
+    const labels=["",...DIST3.map(d=>d.name),""];
+    const perSvc=[];
+    SERVICES.forEach(svc=>{
+      if(!keys.has(svc.key)) return;
+      const baru=[0], ulangan=[0];
+      DIST3.forEach(d=>{
+        baru.push(cell(arr, d.col + String(svc.baru)));
+        ulangan.push(cell(arr, d.col + String(svc.ulangan)));
+      });
+      baru.push(0); ulangan.push(0);
+      perSvc.push({key:svc.key,color:svc.color,baru,ulangan});
+    });
+    return {labels,perSvc};
+  }
+
+  function draw3(data,showB,showU, ctxId, mode){
+    const ctx=document.getElementById(ctxId).getContext("2d");
+    if(CHART3 && ctxId==="chartOutreach") CHART3.destroy();
+
+    const sets=[];
+    data.perSvc.forEach(s=>{
+      const color=s.color||"#64748b";
+      if(showB) sets.push({label:s.key+" • Baru",data:s.baru,borderColor:color,backgroundColor:"transparent",borderWidth:3,tension:.45,fill:false,borderDash:[],pointRadius:c=> (c.dataIndex===0||c.dataIndex===data.labels.length-1)?0:3,pointHoverRadius:5});
+      if(showU) sets.push({label:s.key+" • Ulangan",data:s.ulangan,borderColor:color,backgroundColor:"transparent",borderWidth:3,tension:.45,fill:false,borderDash:[6,4],pointRadius:c=> (c.dataIndex===0||c.dataIndex===data.labels.length-1)?0:3,pointHoverRadius:5});
+    });
+
+    const chart=new Chart(ctx,{type:"line",data:{labels:data.labels,datasets:sets},options:{
+      responsive:true,maintainAspectRatio:false,layout:{padding:{bottom:10}},
+      plugins:{legend:{display:false},tooltip:{mode:"index",intersect:false,filter:i=> !(i.dataIndex===0||i.dataIndex===data.labels.length-1)}},
+      scales:{
+        x:{grid:{display:false},ticks:{
+            autoSkip:false,maxRotation:mode==="main"?90:40,minRotation:mode==="main"?90:40,
+            callback:(v,i)=> (i===0||i===data.labels.length-1) ? "" : data.labels[i]
+        }},
+        y:{beginAtZero:true,grid:{color:"rgba(15,23,42,.06)"},ticks:{callback:v=>Number(v).toLocaleString()}}
+      }
+    }});
+    if(ctxId==="chartOutreach") CHART3=chart;
+    return chart;
+  }
+
+  async function load3(){
+    const err=document.getElementById("err3"); err.style.display="none"; err.textContent="";
+    try{
+      ensureDropdown3(); updateTagsAndLegend3();
+
+      const csv = await fetchCSV(CSV3);
+      RAW3 = Papa.parse(csv,{header:false,skipEmptyLines:true}).data;
+
+      const data = computeOutreach(RAW3,selectedKeys3());
+      draw3(data,document.getElementById("chkBaru3").checked,document.getElementById("chkUlangan3").checked,"chartOutreach","main");
+
+      const ddBtn=document.getElementById("ddBtn3");
+      const ddMenu=document.getElementById("ddMenu3");
+      ddBtn.onclick=()=> ddMenu.classList.toggle("open");
+      document.getElementById("btnClose3").onclick=()=> ddMenu.classList.remove("open");
+      document.getElementById("btnAll3").onclick=()=>{
+        ddMenu.querySelectorAll("input[type=checkbox]").forEach(i=>i.checked=true);
+        updateTagsAndLegend3(); const d=computeOutreach(RAW3,selectedKeys3());
+        draw3(d,document.getElementById("chkBaru3").checked,document.getElementById("chkUlangan3").checked,"chartOutreach","main");
+      };
+      document.getElementById("btnNone3").onclick=()=>{
+        ddMenu.querySelectorAll("input[type=checkbox]").forEach(i=>i.checked=false);
+        updateTagsAndLegend3(); const d=computeOutreach(RAW3,selectedKeys3());
+        draw3(d,document.getElementById("chkBaru3").checked,document.getElementById("chkUlangan3").checked,"chartOutreach","main");
+      };
+      ddMenu.querySelectorAll("input[type=checkbox]").forEach(i=>{
+        i.addEventListener("change",()=>{
+          updateTagsAndLegend3(); const d=computeOutreach(RAW3,selectedKeys3());
+          draw3(d,document.getElementById("chkBaru3").checked,document.getElementById("chkUlangan3").checked,"chartOutreach","main");
+        });
+      });
+      document.addEventListener("click",(ev)=>{const box=document.getElementById("ddBox3"); if(!box.contains(ev.target)) ddMenu.classList.remove("open");});
+      document.getElementById("chkBaru3").addEventListener("change",()=>{const d=computeOutreach(RAW3,selectedKeys3()); draw3(d,document.getElementById("chkBaru3").checked,document.getElementById("chkUlangan3").checked,"chartOutreach","main");});
+      document.getElementById("chkUlangan3").addEventListener("change",()=>{const d=computeOutreach(RAW3,selectedKeys3()); draw3(d,document.getElementById("chkBaru3").checked,document.getElementById("chkUlangan3").checked,"chartOutreach","main");});
+
+      document.getElementById("lastUpdated3").textContent=new Date().toLocaleString();
+    }catch(e){
+      console.error("Tile 3 CSV error:", e);
+      err.style.display='block';
+      err.textContent="Gagal memuatkan CSV (Tile 3). Sahkan 'Publish to web' aktif & cuba Kemas Kini.";
+    }
+  }
+  document.getElementById("refreshBtn3").addEventListener("click",load3);
+  load3();
+
+  /* ----------------- Modal ----------------- */
   const modal=document.getElementById("modal");
   const modalTitle=document.getElementById("modalTitle");
   const modalClose=document.getElementById("modalClose");
@@ -240,13 +379,21 @@
   document.getElementById("zoom2").addEventListener("click",()=>{
     openModal("Jumlah Kedatangan Baru & Ulangan Mengikut Kumpulan");
     if(!RAW2) return;
-    const d=computePerCat(RAW2,selectedKeys());
-    MODAL_CHART=draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"modalChart","modal");
+    const d=computePerCat2(RAW2,selectedKeys2());
+    MODAL_CHART=draw2(d,document.getElementById("chkBaru2").checked,document.getElementById("chkUlangan2").checked,"modalChart","modal");
+  });
+  document.getElementById("zoom3").addEventListener("click",()=>{
+    openModal("Jumlah Kedatangan Pesakit Outreach Baru & Ulangan Mengikut Kumpulan");
+    if(!RAW3) return;
+    const d=computeOutreach(RAW3,selectedKeys3());
+    MODAL_CHART=draw3(d,document.getElementById("chkBaru3").checked,document.getElementById("chkUlangan3").checked,"modalChart","modal");
   });
 
+  // Re-render on resize for crisp labels
   window.addEventListener("resize",()=>{
     if(RAW1){draw1(compute1(),"infogChart","main");}
-    if(RAW2){const d=computePerCat(RAW2,selectedKeys());
-      draw2(d,document.getElementById("chkBaru").checked,document.getElementById("chkUlangan").checked,"chartPrimer","main");}
+    if(RAW2){const d=computePerCat2(RAW2,selectedKeys2()); draw2(d,document.getElementById("chkBaru2").checked,document.getElementById("chkUlangan2").checked,"chartPrimer","main");}
+    if(RAW3){const d=computeOutreach(RAW3,selectedKeys3()); draw3(d,document.getElementById("chkBaru3").checked,document.getElementById("chkUlangan3").checked,"chartOutreach","main");}
   });
+
 }());
