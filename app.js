@@ -27,8 +27,8 @@
     const g2=ctx.createLinearGradient(0,0,0,260); g2.addColorStop(0,"rgba(99,102,241,.45)"); g2.addColorStop(1,"rgba(99,102,241,.02)");
     if(CH1 && cid==="infogChart") CH1.destroy();
     const chart=new Chart(ctx,{type:"line",data:{labels:X,datasets:[
-      {label:"% Menerima Perkhidmatan",data:pA.series,borderColor:"#f59e0b",backgroundColor:g1,borderWidth:3,tension:.45,fill:true,spanGaps:true,pointRadius:c=> (c.dataIndex===0||c.dataIndex===X.length-1)?0:3,pointHoverRadius:5,yAxisID:"y1"},
-      {label:"Anggaran Penduduk",data:pP.series,borderColor:"#6366f1",backgroundColor:g2,borderWidth:3,tension:.45,fill:true,spanGaps:true,pointRadius:c=> (c.dataIndex===0||c.dataIndex===X.length-1)?0:3,pointHoverRadius:5,yAxisID:"y2"}]},
+      {label:"% Menerima Perkhidmatan",data:pA.series,borderColor:"#f59e0b",backgroundColor:g1,borderWidth:3,tension:.45,fill:true,spanGaps:true,pointRadius:c=>(c.dataIndex===0||c.dataIndex===X.length-1)?0:3,yAxisID:"y1"},
+      {label:"Anggaran Penduduk",data:pP.series,borderColor:"#6366f1",backgroundColor:g2,borderWidth:3,tension:.45,fill:true,spanGaps:true,pointRadius:c=>(c.dataIndex===0||c.dataIndex===X.length-1)?0:3,yAxisID:"y2"}]},
       options:{responsive:true,maintainAspectRatio:false,layout:{padding:{bottom:10}},
         plugins:{legend:{display:false},tooltip:{mode:"index",intersect:false,filter:i=>!(i.dataIndex===0||i.dataIndex===X.length-1),
           callbacks:{label:c=>c.datasetIndex===0?` Akses: ${c.parsed.y||0}%`:` Populasi: ${niceNum(c.parsed.y)}`}}},
@@ -46,7 +46,7 @@
   }
   $("refreshBtn").addEventListener("click",load1); load1();
 
-  /* -------- helpers for dropdowns (Tile 2 & 3) -------- */
+  /* -------- generic dropdown helpers -------- */
   function buildDropdown(menuId, btnAllId, btnNoneId, btnCloseId, items, defaultKey){
     const menu=$(menuId); if(!menu) return;
     if(menu.dataset.built==="1") return;
@@ -92,13 +92,13 @@
       $("chkBaru2").addEventListener("change",()=>{const d2=compute2(RAW2,selected2()); draw2(d2,$("chkBaru2").checked,$("chkUlangan2").checked,"chartPrimer","main");});
       $("chkUlangan2").addEventListener("change",()=>{const d2=compute2(RAW2,selected2()); draw2(d2,$("chkBaru2").checked,$("chkUlangan2").checked,"chartPrimer","main");});
       $("lastUpdated2").textContent=new Date().toLocaleString();
-    }catch(e){ console.error("Tile 2 CSV error:",e); err.style.display="block"; err.textContent="Gagal memuatkan CSV (Tile 2). Sahkan 'Publish to web' aktif & cuba Kemas Kini."; }
+    }catch(e){ console.error("Tile 2 CSV error:",e); err.style.display='block'; err.textContent="Gagal memuatkan CSV (Tile 2)."; }
   }
   $("refreshBtn2").addEventListener("click",load2); load2();
 
   /* ---------------- TILE 3 (OUTREACH) ---------------- */
   const CSV3="https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1032207232&single=true&output=csv";
-  const DIST3=[{name:"Kota Setar",col:"D"},{name:"Pendang",col:"E"},{name:"Kuala Muda",col:"F"},{name:"Sik",col:"G"},{name:"Kulim",col:"H"},{name:"Bandar Baharu",col:"I"},{name:"Kubang Pasu",col:"J"},{name:"Padang Terap",col:"K"},{name:"Baling",col:"L"},{name:"Yan",col:"M"},{name:"Langkawi",col:"N"},{name:"Kedah",col:"O"}];
+  const DIST3=[...DIST2]; // same districts/columns letters mapping as Tile 2
   const SERVICES=[{key:"Primer",baru:6,ulangan:7,color:"#0ea5e9"},{key:"Outreach",baru:10,ulangan:11,color:"#10b981"},{key:"UTC",baru:14,ulangan:15,color:"#f59e0b"},{key:"RTC",baru:18,ulangan:19,color:"#ef4444"},{key:"TASTAD",baru:22,ulangan:23,color:"#8b5cf6"},{key:"Sekolah",baru:26,ulangan:27,color:"#14b8a6"}];
   let RAW3=null,CH3=null;
   function selected3(){return getChecked("ddMenu3","Primer");}
@@ -118,23 +118,32 @@
       $("chkBaru3").addEventListener("change",()=>{const d2=compute3(RAW3,selected3()); draw3(d2,$("chkBaru3").checked,$("chkUlangan3").checked,"chartOutreach","main");});
       $("chkUlangan3").addEventListener("change",()=>{const d2=compute3(RAW3,selected3()); draw3(d2,$("chkBaru3").checked,$("chkUlangan3").checked,"chartOutreach","main");});
       $("lastUpdated3").textContent=new Date().toLocaleString();
-    }catch(e){ console.error("Tile 3 CSV error:",e); err.style.display="block"; err.textContent="Gagal memuatkan CSV (Tile 3). Sahkan 'Publish to web' aktif & cuba Kemas Kini."; }
+    }catch(e){ console.error("Tile 3 CSV error:",e); err.style.display='block'; err.textContent="Gagal memuatkan CSV (Tile 3)."; }
   }
   $("refreshBtn3").addEventListener("click",load3); load3();
 
-  /* modal */
-  const modal=$("modal"), modalTitle=$("modalTitle");
-  let MCH=null;
-  function openModal(t){modalTitle.textContent=t; modal.classList.add("open");}
-  function closeModal(){ if(MCH){MCH.destroy();MCH=null;} modal.classList.remove("open"); }
-  $("modalClose").addEventListener("click",closeModal);
-  modal.addEventListener("click",(e)=>{ if(e.target===modal) closeModal(); });
-  $("zoom1").addEventListener("click",()=>{ if(!RAW1) return; openModal("Akses Kepada Perkhidmatan Kesihatan Pergigian"); MCH=draw1(MAP.map(m=>{const i=colIndexFromLetter(m.col); return {name:m.name,population:cleanPop((RAW1[9]||[])[i]),access:cleanPct((RAW1[10]||[])[i])||0};}),"modalChart","modal"); });
-  $("zoom2").addEventListener("click",()=>{ if(!RAW2) return; openModal("Kedatangan Baru & Ulangan"); const d=compute2(RAW2,selected2()); MCH=draw2(d,$("chkBaru2").checked,$("chkUlangan2").checked,"modalChart","modal"); });
-  $("zoom3").addEventListener("click",()=>{ if(!RAW3) return; openModal("Kedatangan Pesakit Outreach"); const d=compute3(RAW3,selected3()); MCH=draw3(d,$("chkBaru3").checked,$("chkUlangan3").checked,"modalChart","modal"); });
-
-  window.addEventListener("resize",()=>{ if(RAW1){draw1(MAP.map(m=>{const i=colIndexFromLetter(m.col); return {name:m.name,population:cleanPop((RAW1[9]||[])[i]),access:cleanPct((RAW1[10]||[])[i])||0};}),"infogChart","main");}
-    if(RAW2){const d=compute2(RAW2,selected2()); draw2(d,$("chkBaru2").checked,$("chkUlangan2").checked,"chartPrimer","main");}
-    if(RAW3){const d=compute3(RAW3,selected3()); draw3(d,$("chkBaru3").checked,$("chkUlangan3").checked,"chartOutreach","main");}
-  });
-})();
+  /* ---------------- TILE 4 (TODDLERS) ---------------- */
+  const CSV4="https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1851801564&single=true&output=csv";
+  const DIST4=[
+    {name:"Kota Setar",col:"D"},{name:"Pendang",col:"E"},{name:"Kuala Muda",col:"F"},{name:"Sik",col:"G"},
+    {name:"Kulim",col:"H"},{name:"Bandar Baru",col:"I"},{name:"Kubang Pasu",col:"J"},{name:"Padang Terap",col:"K"},
+    {name:"Baling",col:"L"},{name:"Yan",col:"M"},{name:"Langkawi",col:"N"},{name:"Kedah",col:"O"}
+  ];
+  // metrics from your spec: row numbers + type (pct or count)
+  const TODD_METRICS=[
+    {key:"% TASKA dilawati", row:12, type:"pct", color:"#0ea5e9"},
+    {key:"% Liputan Toddler", row:17, type:"pct", color:"#10b981"},
+    {key:"% 'Lift the Lip'", row:22, type:"pct", color:"#f59e0b"},
+    {key:"% Maintaining Orally Fit", row:28, type:"pct", color:"#8b5cf6"},
+    {key:"% Sapuan Fluoride Varnish", row:32, type:"pct", color:"#ef4444"},
+    {key:"Bil. Ibubapa diberi 'AG'", row:33, type:"count", color:"#22c55e"}
+  ];
+  let RAW4=null,CH4=null;
+  function selected4(){return getChecked("ddMenu4","% TASKA dilawati");}
+  function tagsLegend4(){const tags=$("selectedTags4"),leg=$("legend4"); if(!tags||!leg) return; tags.innerHTML=""; leg.innerHTML=""; Array.from(selected4()).forEach(k=>{const m=TODD_METRICS.find(x=>x.key===k); const color=m?.color||"#64748b"; const t=document.createElement("span"); t.className="tag"; t.textContent=k; tags.appendChild(t); const it=document.createElement("div"); it.style.display="flex"; it.style.alignItems="center"; it.style.gap="8px"; const dot=document.createElement("span"); dot.className="dot"; dot.style.background=color; const s=document.createElement("span"); s.textContent=k; it.append(dot,s); leg.appendChild(it);});}
+  function compute4(arr,keys){
+    const labels=["",...DIST4.map(d=>d.name),""], per=[];
+    TODD_METRICS.forEach(m=>{
+      if(!keys.has(m.key)) return;
+      const series=[0];
+      DIST4.forEach(d=>{ series.push(cell(arr, d.col + String(m.
