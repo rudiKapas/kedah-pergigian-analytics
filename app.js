@@ -7,6 +7,7 @@
   function niceNum(n){if(n==null)return"—";return n>=1e6?(n/1e6).toFixed(2)+"M":n>=1e3?(n/1e3).toFixed(1)+"k":Number(n).toLocaleString();}
   function cleanInt(x){if(x==null)return 0;let s=String(x).replace(/\u00A0/g,"").trim();s=s.replace(/[%\s]/g,"").replace(/,/g,"");const v=Number(s);return isNaN(v)?0:v;}
   function cell(arr,addr){const m=/^([A-Z]+)(\d+)$/.exec(addr);if(!m)return 0;const col=m[1],row=parseInt(m[2],10);const r=row-1,c=colIndexFromLetter(col);return cleanInt((arr[r]||[])[c]);}
+  const $ = (id)=>document.getElementById(id);
 
   async function fetchCSV(url){
     const attempts = [
@@ -42,7 +43,7 @@
     const P = rows.map(r=>r.population ?? 0);
     const pA = padEnds(L,A), pP = padEnds(L,P), X = pA.labels;
 
-    const ctx=document.getElementById(ctxId).getContext("2d");
+    const ctx=$(ctxId).getContext("2d");
     const g1=ctx.createLinearGradient(0,0,0,260); g1.addColorStop(0,"rgba(245,158,11,0.45)"); g1.addColorStop(1,"rgba(245,158,11,0.02)");
     const g2=ctx.createLinearGradient(0,0,0,260); g2.addColorStop(0,"rgba(99,102,241,0.45)"); g2.addColorStop(1,"rgba(99,102,241,0.02)");
 
@@ -83,20 +84,49 @@
     });
   }
   async function load1(){
-    const err=document.getElementById("err"); err.style.display="none"; err.textContent="";
+    const err=$("err"); err.style.display="none"; err.textContent="";
     try{
       const csv = await fetchCSV(CSV1);
       RAW1 = Papa.parse(csv,{header:false,skipEmptyLines:true}).data;
       draw1(compute1(),"infogChart","main");
-      document.getElementById("lastUpdated").textContent=new Date().toLocaleString();
+      $("lastUpdated").textContent=new Date().toLocaleString();
     }catch(e){
       console.error("Tile 1 CSV error:", e);
       err.style.display='block';
       err.textContent="Gagal memuatkan data CSV (Tile 1).";
     }
   }
-  document.getElementById("refreshBtn").addEventListener("click",load1);
+  $("refreshBtn").addEventListener("click",load1);
   load1();
+
+  /* ---------- Generic dropdown builder (used by tile 2 & 3) ---------- */
+  function buildDropdown(menuId, footerBtnAllId, footerBtnNoneId, footerBtnCloseId, items, defaultKey){
+    const menu=$(menuId); if(!menu) return;
+    if(menu.dataset.built==="1") return; // already built
+    const footer=menu.querySelector(".dd-footer");
+    const frag=document.createDocumentFragment();
+    items.forEach((label,idx)=>{
+      const el=document.createElement("label");
+      el.className="dd-row";
+      const checked = (defaultKey ? (label===defaultKey) : idx===0) ? "checked":"";
+      el.innerHTML=`<input type="checkbox" data-key="${label}" ${checked}> ${label}`;
+      frag.appendChild(el);
+    });
+    menu.insertBefore(frag,footer);
+    menu.dataset.built="1";
+
+    $(footerBtnAllId)?.addEventListener("click",()=>{ menu.querySelectorAll("input[type=checkbox]").forEach(i=>i.checked=true); });
+    $(footerBtnNoneId)?.addEventListener("click",()=>{ menu.querySelectorAll("input[type=checkbox]").forEach(i=>i.checked=false); });
+    $(footerBtnCloseId)?.addEventListener("click",()=>{ menu.classList.remove("open"); });
+  }
+  function getCheckedSet(menuId, fallback){
+    const menu=$(menuId); const s=new Set();
+    if(menu){
+      menu.querySelectorAll("input[type=checkbox]").forEach(i=>{ if(i.checked) s.add(i.getAttribute("data-key")); });
+    }
+    if(s.size===0 && fallback) s.add(fallback);
+    return s;
+  }
 
   /* ----------------- TILE 2 (Primer by age groups) ----------------- */
   const CSV2="https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1808391684&single=true&output=csv";
@@ -106,34 +136,15 @@
 
   let RAW2=null, CHART2=null;
 
-  function ensureDropdown2(){
-    const menu=document.getElementById("ddMenu2");
-    if(menu.querySelector(".dd-row")) return;
-    const footer=menu.querySelector(".dd-footer");
-    const frag=document.createDocumentFragment();
-    CATS2.forEach((c,idx)=>{
-      const lab=document.createElement("label");
-      lab.className="dd-row";
-      lab.innerHTML=`<input type="checkbox" data-key="${c.key}" ${idx===0?'checked':''}> ${c.key}`;
-      frag.appendChild(lab);
-    });
-    menu.insertBefore(frag,footer);
-  }
-  function selectedKeys2(){
-    const ks=new Set();
-    document.querySelectorAll("#ddMenu2 input[type=checkbox]").forEach(i=>{if(i.checked) ks.add(i.getAttribute("data-key"));});
-    if(ks.size===0) ks.add("<5 tahun");
-    return ks;
-  }
+  function selectedKeys2(){ return getCheckedSet("ddMenu2","<5 tahun"); }
   function updateTagsAndLegend2(){
-    const tags=document.getElementById("selectedTags2"); tags.innerHTML="";
-    const legend=document.getElementById("legend2"); legend.innerHTML="";
+    const tags=$("selectedTags2"); const legend=$("legend2"); if(!tags||!legend) return;
+    tags.innerHTML=""; legend.innerHTML="";
     Array.from(selectedKeys2()).forEach(k=>{
       const t=document.createElement("span"); t.className="tag"; t.textContent=k; tags.appendChild(t);
       const item=document.createElement("div"); item.style.display="flex"; item.style.alignItems="center"; item.style.gap="8px";
       const dot=document.createElement("span"); dot.className="dot"; dot.style.background=CAT_COLOR2[k]||"#64748b";
-      const txt=document.createElement("span"); txt.textContent=k;
-      item.append(dot,txt); legend.appendChild(item);
+      const txt=document.createElement("span"); txt.textContent=k; item.append(dot,txt); legend.appendChild(item);
     });
   }
   function sumCells(arr,letter,rows){return rows.reduce((t,r)=>t+cell(arr,letter+String(r)),0);}
@@ -153,7 +164,7 @@
     return {labels,perCat};
   }
   function draw2(data,showB,showU, ctxId, mode){
-    const ctx=document.getElementById(ctxId).getContext("2d");
+    const ctx=$(ctxId).getContext("2d");
     if(CHART2 && ctxId==="chartPrimer") CHART2.destroy();
     const sets=[];
     data.perCat.forEach(cat=>{
@@ -177,48 +188,37 @@
   }
 
   async function load2(){
-    const err=document.getElementById("err2"); err.style.display="none"; err.textContent="";
+    const err=$("err2"); err.style.display="none"; err.textContent="";
     try{
-      ensureDropdown2(); updateTagsAndLegend2();
+      // build dropdown safely (generic)
+      buildDropdown("ddMenu2","btnAll2","btnNone2","btnClose2", CATS2.map(c=>c.key), "<5 tahun");
+      updateTagsAndLegend2();
 
       const csv = await fetchCSV(CSV2);
       RAW2 = Papa.parse(csv,{header:false,skipEmptyLines:true}).data;
 
       const data = computePerCat2(RAW2,selectedKeys2());
-      draw2(data,document.getElementById("chkBaru2").checked,document.getElementById("chkUlangan2").checked,"chartPrimer","main");
+      draw2(data,$("chkBaru2").checked,$("chkUlangan2").checked,"chartPrimer","main");
 
-      const ddBtn=document.getElementById("ddBtn2");
-      const ddMenu=document.getElementById("ddMenu2");
-      ddBtn.onclick=()=> ddMenu.classList.toggle("open");
-      document.getElementById("btnClose2").onclick=()=> ddMenu.classList.remove("open");
-      document.getElementById("btnAll2").onclick=()=>{
-        ddMenu.querySelectorAll("input[type=checkbox]").forEach(i=>i.checked=true);
-        updateTagsAndLegend2(); const d=computePerCat2(RAW2,selectedKeys2());
-        draw2(d,document.getElementById("chkBaru2").checked,document.getElementById("chkUlangan2").checked,"chartPrimer","main");
-      };
-      document.getElementById("btnNone2").onclick=()=>{
-        ddMenu.querySelectorAll("input[type=checkbox]").forEach(i=>i.checked=false);
-        updateTagsAndLegend2(); const d=computePerCat2(RAW2,selectedKeys2());
-        draw2(d,document.getElementById("chkBaru2").checked,document.getElementById("chkUlangan2").checked,"chartPrimer","main");
-      };
-      ddMenu.querySelectorAll("input[type=checkbox]").forEach(i=>{
+      $("ddBtn2").onclick=()=> $("ddMenu2").classList.toggle("open");
+      $("ddMenu2").querySelectorAll("input[type=checkbox]").forEach(i=>{
         i.addEventListener("change",()=>{
           updateTagsAndLegend2(); const d=computePerCat2(RAW2,selectedKeys2());
-          draw2(d,document.getElementById("chkBaru2").checked,document.getElementById("chkUlangan2").checked,"chartPrimer","main");
+          draw2(d,$("chkBaru2").checked,$("chkUlangan2").checked,"chartPrimer","main");
         });
       });
-      document.addEventListener("click",(ev)=>{const box=document.getElementById("ddBox2"); if(!box.contains(ev.target)) ddMenu.classList.remove("open");});
-      document.getElementById("chkBaru2").addEventListener("change",()=>{const d=computePerCat2(RAW2,selectedKeys2()); draw2(d,document.getElementById("chkBaru2").checked,document.getElementById("chkUlangan2").checked,"chartPrimer","main");});
-      document.getElementById("chkUlangan2").addEventListener("change",()=>{const d=computePerCat2(RAW2,selectedKeys2()); draw2(d,document.getElementById("chkBaru2").checked,document.getElementById("chkUlangan2").checked,"chartPrimer","main");});
+      document.addEventListener("click",(ev)=>{const box=$("ddBox2"); if(box && !box.contains(ev.target)) $("ddMenu2").classList.remove("open");});
+      $("chkBaru2").addEventListener("change",()=>{const d=computePerCat2(RAW2,selectedKeys2()); draw2(d,$("chkBaru2").checked,$("chkUlangan2").checked,"chartPrimer","main");});
+      $("chkUlangan2").addEventListener("change",()=>{const d=computePerCat2(RAW2,selectedKeys2()); draw2(d,$("chkBaru2").checked,$("chkUlangan2").checked,"chartPrimer","main");});
 
-      document.getElementById("lastUpdated2").textContent=new Date().toLocaleString();
+      $("lastUpdated2").textContent=new Date().toLocaleString();
     }catch(e){
       console.error("Tile 2 CSV error:", e);
       err.style.display='block';
       err.textContent="Gagal memuatkan CSV (Tile 2). Sahkan 'Publish to web' aktif & cuba Kemas Kini.";
     }
   }
-  document.getElementById("refreshBtn2").addEventListener("click",load2);
+  $("refreshBtn2").addEventListener("click",load2);
   load2();
 
   /* ----------------- TILE 3 (OUTREACH sheet) ----------------- */
@@ -228,7 +228,6 @@
     {name:"Kulim",col:"H"},{name:"Bandar Baharu",col:"I"},{name:"Kubang Pasu",col:"J"},{name:"Padang Terap",col:"K"},
     {name:"Baling",col:"L"},{name:"Yan",col:"M"},{name:"Langkawi",col:"N"},{name:"Kedah",col:"O"}
   ];
-  // Each service: rows for 'baru' and 'ulangan' (from your spec)
   const SERVICES = [
     {key:"Primer", baru:6, ulangan:7, color:"#0ea5e9"},
     {key:"Outreach", baru:10, ulangan:11, color:"#10b981"},
@@ -240,39 +239,18 @@
 
   let RAW3=null, CHART3=null;
 
-  function ensureDropdown3(){
-    const menu=document.getElementById("ddMenu3");
-    if(menu.querySelector(".dd-row")) return;
-    const footer=menu.querySelector(".dd-footer");
-    const frag=document.createDocumentFragment();
-    SERVICES.forEach((s,idx)=>{
-      const lab=document.createElement("label");
-      lab.className="dd-row";
-      lab.innerHTML=`<input type="checkbox" data-key="${s.key}" ${idx===0?'checked':''}> ${s.key}`;
-      frag.appendChild(lab);
-    });
-    menu.insertBefore(frag,footer);
-  }
-  function selectedKeys3(){
-    const ks=new Set();
-    document.querySelectorAll("#ddMenu3 input[type=checkbox]").forEach(i=>{if(i.checked) ks.add(i.getAttribute("data-key"));});
-    if(ks.size===0) ks.add("Primer");
-    return ks;
-  }
+  function selectedKeys3(){ return getCheckedSet("ddMenu3","Primer"); }
   function updateTagsAndLegend3(){
-    const tags=document.getElementById("selectedTags3"); tags.innerHTML="";
-    const legend=document.getElementById("legend3"); legend.innerHTML="";
+    const tags=$("selectedTags3"); const legend=$("legend3"); if(!tags||!legend) return;
+    tags.innerHTML=""; legend.innerHTML="";
     Array.from(selectedKeys3()).forEach(k=>{
-      const svc=SERVICES.find(x=>x.key===k);
-      const color=svc?.color || "#64748b";
+      const svc=SERVICES.find(x=>x.key===k); const color=svc?.color || "#64748b";
       const t=document.createElement("span"); t.className="tag"; t.textContent=k; tags.appendChild(t);
       const item=document.createElement("div"); item.style.display="flex"; item.style.alignItems="center"; item.style.gap="8px";
       const dot=document.createElement("span"); dot.className="dot"; dot.style.background=color;
-      const txt=document.createElement("span"); txt.textContent=k;
-      item.append(dot,txt); legend.appendChild(item);
+      const txt=document.createElement("span"); txt.textContent=k; item.append(dot,txt); legend.appendChild(item);
     });
   }
-
   function computeOutreach(arr,keys){
     const labels=["",...DIST3.map(d=>d.name),""];
     const perSvc=[];
@@ -290,7 +268,7 @@
   }
 
   function draw3(data,showB,showU, ctxId, mode){
-    const ctx=document.getElementById(ctxId).getContext("2d");
+    const ctx=$(ctxId).getContext("2d");
     if(CHART3 && ctxId==="chartOutreach") CHART3.destroy();
 
     const sets=[];
@@ -316,54 +294,42 @@
   }
 
   async function load3(){
-    const err=document.getElementById("err3"); err.style.display="none"; err.textContent="";
+    const err=$("err3"); err.style.display="none"; err.textContent="";
     try{
-      ensureDropdown3(); updateTagsAndLegend3();
+      buildDropdown("ddMenu3","btnAll3","btnNone3","btnClose3", SERVICES.map(s=>s.key), "Primer");
+      updateTagsAndLegend3();
 
       const csv = await fetchCSV(CSV3);
       RAW3 = Papa.parse(csv,{header:false,skipEmptyLines:true}).data;
 
       const data = computeOutreach(RAW3,selectedKeys3());
-      draw3(data,document.getElementById("chkBaru3").checked,document.getElementById("chkUlangan3").checked,"chartOutreach","main");
+      draw3(data,$("chkBaru3").checked,$("chkUlangan3").checked,"chartOutreach","main");
 
-      const ddBtn=document.getElementById("ddBtn3");
-      const ddMenu=document.getElementById("ddMenu3");
-      ddBtn.onclick=()=> ddMenu.classList.toggle("open");
-      document.getElementById("btnClose3").onclick=()=> ddMenu.classList.remove("open");
-      document.getElementById("btnAll3").onclick=()=>{
-        ddMenu.querySelectorAll("input[type=checkbox]").forEach(i=>i.checked=true);
-        updateTagsAndLegend3(); const d=computeOutreach(RAW3,selectedKeys3());
-        draw3(d,document.getElementById("chkBaru3").checked,document.getElementById("chkUlangan3").checked,"chartOutreach","main");
-      };
-      document.getElementById("btnNone3").onclick=()=>{
-        ddMenu.querySelectorAll("input[type=checkbox]").forEach(i=>i.checked=false);
-        updateTagsAndLegend3(); const d=computeOutreach(RAW3,selectedKeys3());
-        draw3(d,document.getElementById("chkBaru3").checked,document.getElementById("chkUlangan3").checked,"chartOutreach","main");
-      };
-      ddMenu.querySelectorAll("input[type=checkbox]").forEach(i=>{
+      $("ddBtn3").onclick=()=> $("ddMenu3").classList.toggle("open");
+      $("ddMenu3").querySelectorAll("input[type=checkbox]").forEach(i=>{
         i.addEventListener("change",()=>{
           updateTagsAndLegend3(); const d=computeOutreach(RAW3,selectedKeys3());
-          draw3(d,document.getElementById("chkBaru3").checked,document.getElementById("chkUlangan3").checked,"chartOutreach","main");
+          draw3(d,$("chkBaru3").checked,$("chkUlangan3").checked,"chartOutreach","main");
         });
       });
-      document.addEventListener("click",(ev)=>{const box=document.getElementById("ddBox3"); if(!box.contains(ev.target)) ddMenu.classList.remove("open");});
-      document.getElementById("chkBaru3").addEventListener("change",()=>{const d=computeOutreach(RAW3,selectedKeys3()); draw3(d,document.getElementById("chkBaru3").checked,document.getElementById("chkUlangan3").checked,"chartOutreach","main");});
-      document.getElementById("chkUlangan3").addEventListener("change",()=>{const d=computeOutreach(RAW3,selectedKeys3()); draw3(d,document.getElementById("chkBaru3").checked,document.getElementById("chkUlangan3").checked,"chartOutreach","main");});
+      document.addEventListener("click",(ev)=>{const box=$("ddBox3"); if(box && !box.contains(ev.target)) $("ddMenu3").classList.remove("open");});
+      $("chkBaru3").addEventListener("change",()=>{const d=computeOutreach(RAW3,selectedKeys3()); draw3(d,$("chkBaru3").checked,$("chkUlangan3").checked,"chartOutreach","main");});
+      $("chkUlangan3").addEventListener("change",()=>{const d=computeOutreach(RAW3,selectedKeys3()); draw3(d,$("chkBaru3").checked,$("chkUlangan3").checked,"chartOutreach","main");});
 
-      document.getElementById("lastUpdated3").textContent=new Date().toLocaleString();
+      $("lastUpdated3").textContent=new Date().toLocaleString();
     }catch(e){
       console.error("Tile 3 CSV error:", e);
       err.style.display='block';
       err.textContent="Gagal memuatkan CSV (Tile 3). Sahkan 'Publish to web' aktif & cuba Kemas Kini.";
     }
   }
-  document.getElementById("refreshBtn3").addEventListener("click",load3);
+  $("refreshBtn3").addEventListener("click",load3);
   load3();
 
   /* ----------------- Modal ----------------- */
-  const modal=document.getElementById("modal");
-  const modalTitle=document.getElementById("modalTitle");
-  const modalClose=document.getElementById("modalClose");
+  const modal=$("modal");
+  const modalTitle=$("modalTitle");
+  const modalClose=$("modalClose");
   let MODAL_CHART=null;
 
   function openModal(title){modalTitle.textContent=title;modal.classList.add("open");}
@@ -371,29 +337,29 @@
   modalClose.addEventListener("click",closeModal);
   modal.addEventListener("click",e=>{if(e.target===modal)closeModal();});
 
-  document.getElementById("zoom1").addEventListener("click",()=>{
+  $("zoom1").addEventListener("click",()=>{
     openModal("Akses Kepada Perkhidmatan Kesihatan Pergigian");
     if(!RAW1) return;
     MODAL_CHART=draw1(compute1(),"modalChart","modal");
   });
-  document.getElementById("zoom2").addEventListener("click",()=>{
+  $("zoom2").addEventListener("click",()=>{
     openModal("Jumlah Kedatangan Baru & Ulangan Mengikut Kumpulan");
     if(!RAW2) return;
     const d=computePerCat2(RAW2,selectedKeys2());
-    MODAL_CHART=draw2(d,document.getElementById("chkBaru2").checked,document.getElementById("chkUlangan2").checked,"modalChart","modal");
+    MODAL_CHART=draw2(d,$("chkBaru2").checked,$("chkUlangan2").checked,"modalChart","modal");
   });
-  document.getElementById("zoom3").addEventListener("click",()=>{
+  $("zoom3").addEventListener("click",()=>{
     openModal("Jumlah Kedatangan Pesakit Outreach Baru & Ulangan Mengikut Kumpulan");
     if(!RAW3) return;
     const d=computeOutreach(RAW3,selectedKeys3());
-    MODAL_CHART=draw3(d,document.getElementById("chkBaru3").checked,document.getElementById("chkUlangan3").checked,"modalChart","modal");
+    MODAL_CHART=draw3(d,$("chkBaru3").checked,$("chkUlangan3").checked,"modalChart","modal");
   });
 
   // Re-render on resize for crisp labels
   window.addEventListener("resize",()=>{
     if(RAW1){draw1(compute1(),"infogChart","main");}
-    if(RAW2){const d=computePerCat2(RAW2,selectedKeys2()); draw2(d,document.getElementById("chkBaru2").checked,document.getElementById("chkUlangan2").checked,"chartPrimer","main");}
-    if(RAW3){const d=computeOutreach(RAW3,selectedKeys3()); draw3(d,document.getElementById("chkBaru3").checked,document.getElementById("chkUlangan3").checked,"chartOutreach","main");}
+    if(RAW2){const d=computePerCat2(RAW2,selectedKeys2()); draw2(d,$("chkBaru2").checked,$("chkUlangan2").checked,"chartPrimer","main");}
+    if(RAW3){const d=computeOutreach(RAW3,selectedKeys3()); draw3(d,$("chkBaru3").checked,$("chkUlangan3").checked,"chartOutreach","main");}
   });
 
 }());
