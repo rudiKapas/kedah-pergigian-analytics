@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  /* ---------------- helpers ---------------- */
+  /* ---------- helpers ---------- */
   const $ = (id) => document.getElementById(id);
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -50,7 +50,7 @@
     throw new Error("CSV fetch failed");
   }
 
-  /* -------- dropdown (generic) -------- */
+  /* ---------- dropdown (generic) ---------- */
   function buildDropdown(menuId, btnAllId, btnNoneId, btnCloseId, items, defaultKey) {
     const menu = $(menuId);
     if (!menu || menu.dataset.built === "1") return;
@@ -65,10 +65,7 @@
     });
     menu.insertBefore(frag, footer);
     menu.dataset.built = "1";
-
-    const a = $(btnAllId);
-    const n = $(btnNoneId);
-    const c = $(btnCloseId);
+    const a = $(btnAllId), n = $(btnNoneId), c = $(btnCloseId);
     if (a) a.addEventListener("click", () => menu.querySelectorAll("input[type=checkbox]").forEach(i => { i.checked = true; }));
     if (n) n.addEventListener("click", () => menu.querySelectorAll("input[type=checkbox]").forEach(i => { i.checked = false; }));
     if (c) c.addEventListener("click", () => menu.classList.remove("open"));
@@ -77,9 +74,7 @@
     const menu = $(menuId);
     const s = new Set();
     if (menu) {
-      menu.querySelectorAll("input[type=checkbox]").forEach(i => {
-        if (i.checked) s.add(i.getAttribute("data-key"));
-      });
+      menu.querySelectorAll("input[type=checkbox]").forEach(i => { if (i.checked) s.add(i.getAttribute("data-key")); });
     }
     if (s.size === 0 && fallback) s.add(fallback);
     return s;
@@ -117,13 +112,10 @@
     const pA = padEnds(L, A);
     const pP = padEnds(L, P);
     const X = pA.labels;
-
     const ctx = $(canvasId).getContext("2d");
     if (CH1 && canvasId === "infogChart") CH1.destroy();
-
     const g1 = ctx.createLinearGradient(0, 0, 0, 260); g1.addColorStop(0, "rgba(245,158,11,.45)"); g1.addColorStop(1, "rgba(245,158,11,.02)");
     const g2 = ctx.createLinearGradient(0, 0, 0, 260); g2.addColorStop(0, "rgba(99,102,241,.45)"); g2.addColorStop(1, "rgba(99,102,241,.02)");
-
     const chart = new Chart(ctx, {
       type: "line",
       data: {
@@ -147,9 +139,7 @@
     return chart;
   }
   async function load1() {
-    const err = $("err");
-    err.style.display = "none";
-    err.textContent = "";
+    const err = $("err"); err.style.display = "none"; err.textContent = "";
     try {
       const csv = await fetchCSV(CSV1);
       RAW1 = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
@@ -165,9 +155,7 @@
       draw1(rows, "infogChart", "main");
       $("lastUpdated").textContent = new Date().toLocaleString();
     } catch (e) {
-      console.error("Tile 1 error:", e);
-      err.style.display = "block";
-      err.textContent = "Gagal memuatkan data CSV (Tile 1).";
+      console.error("Tile 1 error:", e); err.style.display = "block"; err.textContent = "Gagal memuatkan data CSV (Tile 1).";
     }
   }
   $("refreshBtn").addEventListener("click", load1);
@@ -200,17 +188,12 @@
 
   function selected2() { return getCheckedSet("ddMenu2", "<5 tahun"); }
   function tagsLegend2() {
-    const tags = $("selectedTags2");
-    const leg = $("legend2");
-    if (!tags || !leg) return;
-    tags.innerHTML = ""; leg.innerHTML = "";
+    const tags = $("selectedTags2"), leg = $("legend2");
+    if (!tags || !leg) return; tags.innerHTML = ""; leg.innerHTML = "";
     Array.from(selected2()).forEach(k => {
-      const tag = document.createElement("span");
-      tag.className = "tag"; tag.textContent = k; tags.appendChild(tag);
-      const row = document.createElement("div");
-      row.style.display = "flex"; row.style.alignItems = "center"; row.style.gap = "8px";
-      const dot = document.createElement("span");
-      dot.className = "dot"; dot.style.background = CAT_COLOR2[k] || "#64748b";
+      const tag = document.createElement("span"); tag.className = "tag"; tag.textContent = k; tags.appendChild(tag);
+      const row = document.createElement("div"); row.style.display = "flex"; row.style.alignItems = "center"; row.style.gap = "8px";
+      const dot = document.createElement("span"); dot.className = "dot"; dot.style.background = CAT_COLOR2[k] || "#64748b";
       const t = document.createElement("span"); t.textContent = k;
       row.appendChild(dot); row.appendChild(t); leg.appendChild(row);
     });
@@ -289,10 +272,8 @@
 
   function selected3() { return getCheckedSet("ddMenu3", "Primer"); }
   function tagsLegend3() {
-    const tags = $("selectedTags3");
-    const leg = $("legend3");
-    if (!tags || !leg) return;
-    tags.innerHTML = ""; leg.innerHTML = "";
+    const tags = $("selectedTags3"), leg = $("legend3");
+    if (!tags || !leg) return; tags.innerHTML = ""; leg.innerHTML = "";
     Array.from(selected3()).forEach(k => {
       const svc = SERVICES.find(x => x.key === k);
       const color = (svc && svc.color) ? svc.color : "#64748b";
@@ -380,10 +361,8 @@
 
   function selected4() { return getCheckedSet("ddMenu4", "% TASKA dilawati"); }
   function tagsLegend4() {
-    const tags = $("selectedTags4");
-    const leg = $("legend4");
-    if (!tags || !leg) return;
-    tags.innerHTML = ""; leg.innerHTML = "";
+    const tags = $("selectedTags4"), leg = $("legend4");
+    if (!tags || !leg) return; tags.innerHTML = ""; leg.innerHTML = "";
     Array.from(selected4()).forEach(k => {
       const m = TODD_METRICS.find(x => x.key === k);
       const color = (m && m.color) ? m.color : "#64748b";
@@ -410,15 +389,7 @@
     const ctx = $(canvasId).getContext("2d");
     if (CH4 && canvasId === "chartToddlers") CH4.destroy();
     const sets = data.per.map(m => {
-      const ds = {
-        label: m.key,
-        data: m.data,
-        borderColor: m.color,
-        backgroundColor: "transparent",
-        borderWidth: 3,
-        tension: 0.45,
-        fill: false
-      };
+      const ds = { label: m.key, data: m.data, borderColor: m.color, backgroundColor: "transparent", borderWidth: 3, tension: 0.45, fill: false };
       ds.yAxisID = m.type === "count" ? "yR" : "yL";
       if (m.key.includes("Lift")) ds.borderDash = [6, 4];
       return ds;
@@ -431,57 +402,4 @@
         plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false, filter: (i) => !(i.dataIndex === 0 || i.dataIndex === data.labels.length - 1) } },
         scales: {
           x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: mode === "main" ? 90 : 40, minRotation: mode === "main" ? 90 : 40, callback: (v, i) => (i === 0 || i === data.labels.length - 1) ? "" : data.labels[i] } },
-          yL: { position: "left", beginAtZero: true, grid: { color: "rgba(15,23,42,.06)" }, ticks: { callback: (v) => v + "%" } },
-          yR: { position: "right", beginAtZero: true, grid: { display: false }, ticks: { callback: (v) => niceNum(v) } }
-        }
-      }
-    });
-    if (canvasId === "chartToddlers") CH4 = chart;
-    return chart;
-  }
-  async function load4() {
-    const err = $("err4"); err.style.display = "none"; err.textContent = "";
-    try {
-      buildDropdown("ddMenu4", "btnAll4", "btnNone4", "btnClose4", TODD_METRICS.map(m => m.key), "% TASKA dilawati");
-      tagsLegend4();
-      const csv = await fetchCSV(CSV4);
-      RAW4 = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
-      const d = compute4(RAW4, selected4());
-      draw4(d, "chartToddlers", "main");
-      $("ddBtn4").onclick = () => $("ddMenu4").classList.toggle("open");
-      $("ddMenu4").querySelectorAll("input[type=checkbox]").forEach(i => {
-        i.addEventListener("change", () => { tagsLegend4(); const d2 = compute4(RAW4, selected4()); draw4(d2, "chartToddlers", "main"); });
-      });
-      document.addEventListener("click", (ev) => { const box = $("ddBox4"); if (box && !box.contains(ev.target)) $("ddMenu4").classList.remove("open"); });
-      $("lastUpdated4").textContent = new Date().toLocaleString();
-    } catch (e) {
-      console.error("Tile 4 error:", e); err.style.display = "block"; err.textContent = "Gagal memuatkan CSV (Tile 4).";
-    }
-  }
-  $("refreshBtn4").addEventListener("click", load4);
-  load4();
-
-  /* ------------ Modal ------------ */
-  const modal = $("modal");
-  const modalTitle = $("modalTitle");
-  const modalClose = $("modalClose");
-  let MOD = null;
-
-  function openModal(t) { modalTitle.textContent = t; modal.style.display = "flex"; }
-  function closeModal() { if (MOD) { MOD.destroy(); MOD = null; } modal.style.display = "none"; }
-  modalClose.addEventListener("click", closeModal);
-  modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
-
-  $("zoom1").addEventListener("click", () => { if (!RAW1) return; openModal("Akses Kepada Perkhidmatan Kesihatan Pergigian"); const popR = RAW1[9] || []; const accR = RAW1[10] || []; const rows = MAP1.map(m => { const i = colIndexFromLetter(m.col); return { name: m.name, population: Number(String(popR[i] ?? "").replace(/[^\d]/g, "")) || null, access: cleanPct(accR[i]) || 0 }; }); MOD = draw1(rows, "modalChart", "modal"); });
-  $("zoom2").addEventListener("click", () => { if (!RAW2) return; openModal("Kedatangan Baru & Ulangan"); const d = compute2(RAW2, selected2()); MOD = draw2(d, "modalChart", "modal"); });
-  $("zoom3").addEventListener("click", () => { if (!RAW3) return; openModal("Kedatangan Pesakit Outreach"); const d = compute3(RAW3, selected3()); MOD = draw3(d, "modalChart", "modal"); });
-  $("zoom4").addEventListener("click", () => { if (!RAW4) return; openModal("Pencapaian Program Toddler"); const d = compute4(RAW4, selected4()); MOD = draw4(d, "modalChart", "modal"); });
-
-  /* reflow on resize */
-  window.addEventListener("resize", () => {
-    if (RAW1) { const popR = RAW1[9] || []; const accR = RAW1[10] || []; const rows = MAP1.map(m => { const i = colIndexFromLetter(m.col); return { name: m.name, population: Number(String(popR[i] ?? "").replace(/[^\d]/g, "")) || null, access: cleanPct(accR[i]) || 0 }; }); draw1(rows, "infogChart", "main"); }
-    if (RAW2) { const d2 = compute2(RAW2, selected2()); draw2(d2, "chartPrimer", "main"); }
-    if (RAW3) { const d3 = compute3(RAW3, selected3()); draw3(d3, "chartOutreach", "main"); }
-    if (RAW4) { const d4 = compute4(RAW4, selected4()); draw4(d4, "chartToddlers", "main"); }
-  });
-})();
+          yL:
