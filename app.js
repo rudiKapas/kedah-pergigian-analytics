@@ -1,16 +1,13 @@
 (function () {
   "use strict";
 
-  // ==========
-  // Helpers
-  // ==========
+  // ========== Helpers ==========
   const $ = (id) => document.getElementById(id);
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   // A -> 0, B -> 1, ... Z -> 25, AA -> 26, ...
   function colIdx(L) { let n = 0; for (let i = 0; i < L.length; i++) n = n * 26 + (L.charCodeAt(i) - 64); return n - 1; }
 
-  // Integer-ish cleaner
   function cleanInt(v) {
     if (v == null) return 0;
     const s = String(v).replace(/\u00A0/g, "").replace(/[, ]/g, "");
@@ -18,7 +15,7 @@
     return isNaN(n) ? 0 : n;
   }
 
-  // Robust percentage cleaner => 0..100, accepts "54%", "0.542", "54"
+  // Robust % cleaner (accepts "54%", "0.54", "54")
   function cleanPct(v) {
     if (v == null) return null;
     let s = String(v).replace(/\u00A0/g, "").trim();
@@ -28,7 +25,7 @@
     if (parts.length > 2) s = parts[0] + "." + parts.slice(1).join("");
     let n = Number(s);
     if (isNaN(n)) return null;
-    if (!hadPct && n > 0 && n <= 1) n = n * 100;
+    if (!hadPct && n > 0 && n <= 1) n *= 100;
     if (!hadPct && n > 1000) return null;
     return +n.toFixed(2);
   }
@@ -40,29 +37,19 @@
     const c = colIdx(m[1]);
     return (data[r] || [])[c];
   }
-
-  // CSV cell -> integer
   function cellInt(data, addr) { return cleanInt(rawCell(data, addr)); }
-
-  // CSV cell -> integer with "12+3" support
   function cellIntPlus(data, addr) {
     const raw = rawCell(data, addr);
     if (raw == null) return 0;
     const s = String(raw).replace(/\u00A0/g, "").trim();
     return s.split("+").map(x => cleanInt(x)).reduce((a, b) => a + b, 0);
   }
-
-  // CSV cell -> percentage (0..100)
   function cellPct(data, addr) {
     const raw = rawCell(data, addr);
     let p = cleanPct(raw);
-    if (p == null) {
-      const asInt = cleanInt(raw);
-      p = asInt ? asInt : 0;
-    }
+    if (p == null) { const asInt = cleanInt(raw); p = asInt ? asInt : 0; }
     return p;
   }
-
   function nice(n) {
     n = Number(n) || 0;
     if (n >= 1e6) return (n / 1e6).toFixed(2) + "M";
@@ -87,7 +74,7 @@
     throw new Error("CSV fetch failed");
   }
 
-  // Modal (full-screen expand)
+  // Modal
   const modal = $("modal"), mtitle = $("mtitle"), mclose = $("mclose");
   let MCH = null;
   function openModal(title) {
@@ -105,9 +92,9 @@
   mclose.addEventListener("click", closeModal);
   modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
 
-  // tiny helper
+  // Multi-select dropdown
   function buildDD(menuId, btnAll, btnNone, btnClose, items, def) {
-    const menu = $(menuId); if (menu.dataset.built) return;
+    const menu = $(menuId); if (!menu || menu.dataset.built) return;
     const foot = menu.querySelector(".mfoot"), frag = document.createDocumentFragment();
     items.forEach((txt, i) => {
       const el = document.createElement("label");
@@ -179,6 +166,7 @@
         }
       }
     });
+
     try {
       const core = A.series.slice(1, -1).concat(P.series.slice(1, -1));
       if (allZero(core)) { ctx.font = "12px Inter, system-ui"; ctx.fillStyle = "#94a3b8"; ctx.fillText("Tiada data untuk dipaparkan", 12, 22); }
@@ -192,12 +180,7 @@
       const csv = await fetchCSV(CSV1);
       RAW1 = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
       const popRow = RAW1[9] || [], accRow = RAW1[10] || [];
-      const rows = DIST1.map(d => {
-        const i = colIdx(d.L);
-        let a = cleanPct(accRow[i]); if (a == null) a = cleanInt(accRow[i]) || 0;
-        const p = cleanInt(popRow[i]);
-        return { n: d.n, a, p };
-      });
+      const rows = DIST1.map(d => { const i = colIdx(d.L); let a = cleanPct(accRow[i]); if (a == null) a = cleanInt(accRow[i]) || 0; const p = cleanInt(popRow[i]); return { n: d.n, a, p }; });
       drawT1(rows, "t1", "main");
       $("t1time").textContent = new Date().toLocaleString();
     } catch (e) { console.error(e); err.textContent = "Gagal memuatkan CSV (Tile 1)."; err.style.display = "block"; }
@@ -212,7 +195,7 @@
   loadT1();
 
   // =========================
-  // TILE 2 — Kedatangan Pesakit Primer (kategori umur)
+  // TILE 2 — Primer (kategori umur)
   // =========================
   const CSV2 = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1808391684&single=true&output=csv";
   const DIST2 = [
@@ -318,6 +301,8 @@
   let RAW3 = null, CH3 = null;
 
   function chosen3() { return chosen("dd3menu", "Primer"); }
+  function buildDD3() { buildDD("dd3menu", "dd3all", "dd3none", "dd3close", SVCS.map(s => s.key), "Primer"); }
+
   function computeT3(arr, set) {
     const labels = ["", ...DIST3.map(d => d.n), ""], per = [];
     SVCS.forEach(s => {
@@ -355,7 +340,7 @@
     } catch {}
     return CH3;
   }
-  buildDD("dd3menu", "dd3all", "dd3none", "dd3close", SVCS.map(s => s.key), "Primer");
+
   function refreshT3Tags() {
     const set = chosen3(), tags = $("dd3tags"), leg = $("t3legend"); tags.innerHTML = ""; leg.innerHTML = "";
     Array.from(set).forEach(k => {
@@ -366,10 +351,11 @@
       const tx = document.createElement("span"); tx.textContent = k; el.appendChild(dot); el.appendChild(tx); leg.appendChild(el);
     });
   }
+
   async function loadT3() {
     const err = $("t3err"); err.style.display = "none";
     try {
-      const csv = await fetchCSV(CSV3); RAW3 = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
+      buildDD3(); const csv = await fetchCSV(CSV3); RAW3 = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
       refreshT3Tags(); drawT3(computeT3(RAW3, chosen3()), "t3", "main");
       $("dd3btn").onclick = () => $("dd3menu").classList.toggle("open");
       $("dd3menu").querySelectorAll("input").forEach(i => i.addEventListener("change", () => { refreshT3Tags(); drawT3(computeT3(RAW3, chosen3()), "t3", "main"); }));
@@ -382,7 +368,7 @@
   loadT3();
 
   // =========================
-  // TILE 4 — Pesakit Pakar (Jumlah Baru & Ulangan)
+  // TILE 4 — Pesakit Pakar
   // =========================
   const CSV4_SPEC = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=666852668&single=true&output=csv";
   const SPEC = {
@@ -419,8 +405,7 @@
 
   function buildDD4S() { buildDD("dd4menu", "dd4all", "dd4none", "dd4close", Object.keys(SPEC), "OMF"); }
   function chosen4S() {
-    const menu = $("dd4menu");
-    let pick = null;
+    const menu = $("dd4menu"); let pick = null;
     menu.querySelectorAll("input").forEach(i => { if (i.checked && !pick) pick = i.getAttribute("data-k"); });
     return pick || "OMF";
   }
@@ -475,7 +460,8 @@
     try {
       buildDD4S();
       const csv = await fetchCSV(CSV4_SPEC); RAW4S = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
-      refreshT4STags(); drawT4S(computeT4S(RAW4S, chosen4S()), "t4", "main");
+      refreshT4STags();
+      drawT4S(computeT4S(RAW4S, chosen4S()), "t4", "main");
       $("dd4btn").onclick = () => $("dd4menu").classList.toggle("open");
       $("dd4menu").querySelectorAll("input").forEach(i => i.addEventListener("change", () => { refreshT4STags(); drawT4S(computeT4S(RAW4S, chosen4S()), "t4", "main"); }));
       document.addEventListener("click", (e) => { const box = $("dd4"); if (box && !box.contains(e.target)) $("dd4menu").classList.remove("open"); });
@@ -490,7 +476,366 @@
   // TILE 5 — Toddler
   // =========================
   const CSV_TOD = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1851801564&single=true&output=csv";
-  const DIST_TOD = [
+  const DIST_TOD = DIST2.slice();
+  const MET_TOD = [
+    { key: "% TASKA dilawati", row: 12, type: "pct", color: "#0ea5e9" },
+    { key: "% Liputan Toddler", row: 17, type: "pct", color: "#10b981", target: 25 },
+    { key: "% 'Lift the Lip'", row: 22, type: "pct", color: "#f59e0b", target: 50 },
+    { key: "% Maintaining Orally Fit", row: 28, type: "pct", color: "#8b5cf6", target: 75 },
+    { key: "% Sapuan Fluoride Varnish", row: 32, type: "pct", color: "#ef4444", target: 70 },
+    { key: "Bil. Ibubapa diberi 'AG'", row: 33, type: "cnt", color: "#22c55e" }
+  ];
+  let RAW_TOD = null, CH_TOD = null;
+
+  function buildDD5() { buildDD("dd5menu", "dd5all", "dd5none", "dd5close", MET_TOD.map(m => m.key), "% TASKA dilawati"); }
+  function chosen5() { return chosen("dd5menu", "% TASKA dilawati"); }
+
+  function computeT5(arr, set) {
+    const labels = ["", ...DIST_TOD.map(d => d.n), ""], per = [];
+    MET_TOD.forEach(m => {
+      if (!set.has(m.key)) return;
+      const s = [0]; DIST_TOD.forEach(d => s.push(m.type === "pct" ? cellPct(arr, d.L + String(m.row)) : cellInt(arr, d.L + String(m.row)))); s.push(0);
+      per.push({ key: m.key, type: m.type, color: m.color, target: m.target, data: s });
+    });
+    return { labels, per };
+  }
+
+  function straightLine(len, value) { return new Array(len).fill(value); }
+
+  function drawT5(data, canvas, mode) {
+    if (CH_TOD) CH_TOD.destroy();
+    const ds = [];
+    data.per.forEach(m => {
+      ds.push({
+        label: m.key, data: m.data, borderColor: m.color, backgroundColor: "transparent",
+        borderWidth: 3, tension: .45, fill: false, yAxisID: m.type === "cnt" ? "yR" : "yL",
+        borderDash: m.key.includes("Lift") ? [6, 4] : undefined
+      });
+      if (m.target != null && m.type !== "cnt") {
+        const flat = straightLine(m.data.length, m.target);
+        ds.push({ label: `Sasaran ${m.key.split("%").pop().trim()}`, data: flat, borderColor: "#475569", borderWidth: 2, borderDash: [4, 4], pointRadius: 0, fill: false, yAxisID: "yL" });
+      }
+    });
+
+    CH_TOD = new Chart($(canvas).getContext("2d"), {
+      type: "line",
+      data: { labels: data.labels, datasets: ds },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false, filter: (i) => !(i.dataIndex === 0 || i.dataIndex === data.labels.length - 1) } },
+        scales: {
+          x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: mode === "main" ? 90 : 40, minRotation: mode === "main" ? 90 : 40, callback: (v, i) => (i === 0 || i === data.labels.length - 1) ? "" : data.labels[i] } },
+          yL: { position: "left", beginAtZero: true, ticks: { callback: (v) => v + "%" } },
+          yR: { position: "right", beginAtZero: true, grid: { display: false }, ticks: { callback: (v) => nice(v) } }
+        }
+      }
+    });
+    try {
+      const core = data.per.flatMap(m => m.data.slice(1, -1));
+      if (allZero(core)) { const ctx = $(canvas).getContext("2d"); ctx.font = "12px Inter, system-ui"; ctx.fillStyle = "#94a3b8"; ctx.fillText("Tiada data untuk dipaparkan", 12, 22); }
+    } catch {}
+    return CH_TOD;
+  }
+
+  async function loadT5() {
+    const err = $("t5err"); err.style.display = "none";
+    try {
+      buildDD5();
+      const csv = await fetchCSV(CSV_TOD); RAW_TOD = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
+      $("dd5btn").onclick = () => $("dd5menu").classList.toggle("open");
+      $("dd5menu").querySelectorAll("input").forEach(i => i.addEventListener("change", () => { refreshT5Tags(); drawT5(computeT5(RAW_TOD, chosen5()), "t5", "main"); }));
+      document.addEventListener("click", (e) => { const box = $("dd5"); if (box && !box.contains(e.target)) $("dd5menu").classList.remove("open"); });
+
+      refreshT5Tags(); drawT5(computeT5(RAW_TOD, chosen5()), "t5", "main");
+      $("t5time").textContent = new Date().toLocaleString();
+    } catch (e) { console.error(e); err.textContent = "Gagal memuatkan CSV (Tile 5)."; err.style.display = "block"; }
+  }
+  function refreshT5Tags() {
+    const set = chosen5(), tags = $("dd5tags"), leg = $("t5legend"); tags.innerHTML = ""; leg.innerHTML = "";
+    Array.from(set).forEach(k => {
+      const m = MET_TOD.find(x => x.key === k); const c = m ? m.color : "#64748b";
+      const s = document.createElement("span"); s.className = "tag"; s.textContent = k; tags.appendChild(s);
+      const el = document.createElement("span"); el.style.display = "inline-flex"; el.style.alignItems = "center"; el.style.gap = "6px";
+      const dot = document.createElement("span"); dot.className = "dot"; dot.style.background = c;
+      const tx = document.createElement("span"); tx.textContent = k; el.appendChild(dot); el.appendChild(tx); leg.appendChild(el);
+    });
+  }
+  $("t5refresh").addEventListener("click", loadT5);
+  $("t5expand").addEventListener("click", () => { if (!RAW_TOD) return; openModal("Pencapaian Program Toddler"); MCH = drawT5(computeT5(RAW_TOD, chosen5()), "mcanvas", "modal"); });
+  loadT5();
+
+  // =========================
+  // TILE 6 — Ibu Mengandung
+  // =========================
+  const CSV_PREG = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=205423549&single=true&output=csv";
+  const DIST_PREG = [
     { n: "Kota Setar", L: "D" }, { n: "Pendang", L: "E" }, { n: "Kuala Muda", L: "F" }, { n: "Sik", L: "G" },
     { n: "Kulim", L: "H" }, { n: "Bandar Baru", L: "I" }, { n: "Kubang Pasu", L: "J" }, { n: "Padang Terap", L: "K" },
-    { n: "Baling", L: "L" }, { n: "Yan", L: "M" }, {
+    { n: "Baling", L: "L" }, { n: "Yan", L: "M" }, { n: "Langkawi", L: "N" }, { n: "Kedah", L: "O" }, { n: "G-RET NEGERI", L: "P" }
+  ];
+  const MET_PREG = [
+    { key: "% Liputan Ibu Mengandung", row: 8, color: "#0ea5e9", target: 70 },
+    { key: "% Liputan Ibu Mengandung diberi PKP", row: 14, color: "#8b5cf6", target: 90 },
+    { key: "% Ibu Mengandung mencapai status Orally Fit", row: 19, color: "#10b981", target: 25 }
+  ];
+  let RAW_PREG = null, CH_PREG = null;
+
+  function buildDD6() { buildDD("dd6menu", "dd6all", "dd6none", "dd6close", MET_PREG.map(m => m.key), MET_PREG[0].key); }
+  function chosen6() { return chosen("dd6menu", MET_PREG[0].key); }
+
+  function computeT6(arr, set) {
+    const labels = ["", ...DIST_PREG.map(d => d.n), ""], per = [];
+    MET_PREG.forEach(m => {
+      if (!set.has(m.key)) return;
+      const s = [0];
+      DIST_PREG.forEach(d => s.push(cellPct(arr, d.L + String(m.row))));
+      s.push(0);
+      per.push({ key: m.key, color: m.color, target: m.target, data: s });
+    });
+    return { labels, per };
+  }
+
+  function drawT6(data, canvas, mode) {
+    if (CH_PREG) CH_PREG.destroy();
+    const ds = [];
+    data.per.forEach(m => {
+      ds.push({ label: m.key, data: m.data, borderColor: m.color, backgroundColor: "transparent", borderWidth: 3, tension: .45, fill: false, yAxisID: "y" });
+      if (m.target != null) {
+        const flat = new Array(m.data.length).fill(m.target);
+        ds.push({ label: `Sasaran ${m.key}`, data: flat, borderColor: "#475569", borderWidth: 2, borderDash: [4, 4], pointRadius: 0, fill: false, yAxisID: "y" });
+      }
+    });
+    CH_PREG = new Chart($(canvas).getContext("2d"), {
+      type: "line",
+      data: { labels: data.labels, datasets: ds },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false, filter: (i) => !(i.dataIndex === 0 || i.dataIndex === data.labels.length - 1) } },
+        scales: {
+          x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: mode === "main" ? 90 : 40, minRotation: mode === "main" ? 90 : 40, callback: (v, i) => (i === 0 || i === data.labels.length - 1) ? "" : data.labels[i] } },
+          y: { beginAtZero: true, ticks: { callback: (v) => v + "%" } }
+        }
+      }
+    });
+    try {
+      const core = data.per.flatMap(m => m.data.slice(1, -1));
+      if (allZero(core)) { const ctx = $(canvas).getContext("2d"); ctx.font = "12px Inter, system-ui"; ctx.fillStyle = "#94a3b8"; ctx.fillText("Tiada data untuk dipaparkan", 12, 22); }
+    } catch {}
+    return CH_PREG;
+  }
+
+  async function loadT6() {
+    const err = $("t6err"); err.style.display = "none";
+    try {
+      buildDD6(); const csv = await fetchCSV(CSV_PREG); RAW_PREG = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
+      refreshT6Tags(); drawT6(computeT6(RAW_PREG, chosen6()), "t6", "main");
+      $("dd6btn").onclick = () => $("dd6menu").classList.toggle("open");
+      $("dd6menu").querySelectorAll("input").forEach(i => i.addEventListener("change", () => { refreshT6Tags(); drawT6(computeT6(RAW_PREG, chosen6()), "t6", "main"); }));
+      document.addEventListener("click", (e) => { const box = $("dd6"); if (box && !box.contains(e.target)) $("dd6menu").classList.remove("open"); });
+      $("t6time").textContent = new Date().toLocaleString();
+    } catch (e) { console.error(e); err.textContent = "Gagal memuatkan CSV (Tile 6)."; err.style.display = "block"; }
+  }
+
+  function refreshT6Tags() {
+    const set = chosen6(), tags = $("dd6tags"), leg = $("t6legend"); tags.innerHTML = ""; leg.innerHTML = "";
+    Array.from(set).forEach(k => {
+      const m = MET_PREG.find(x => x.key === k); const c = m ? m.color : "#64748b";
+      const s = document.createElement("span"); s.className = "tag"; s.textContent = k; tags.appendChild(s);
+      const el = document.createElement("span"); el.style.display = "inline-flex"; el.style.alignItems = "center"; el.style.gap = "6px";
+      const dot = document.createElement("span"); dot.className = "dot"; dot.style.background = c;
+      const tx = document.createElement("span"); tx.textContent = k; el.appendChild(dot); el.appendChild(tx); leg.appendChild(el);
+    });
+  }
+  $("t6refresh").addEventListener("click", loadT6);
+  $("t6expand").addEventListener("click", () => { if (!RAW_PREG) return; openModal("Liputan Ibu Mengandung"); MCH = drawT6(computeT6(RAW_PREG, chosen6()), "mcanvas", "modal"); });
+  loadT6();
+
+  // =========================
+  // TILE 7 — Young Adult (YA)
+  // =========================
+  const CSV_YA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=543945307&single=true&output=csv";
+  const DIST_YA = DIST2.slice();
+  const MET_YA = [
+    { key: "Peratus tidak perlu rawatan", row: 8, color: "#0ea5e9", target: 70 },
+    { key: "Peratus kes selesai (Orally Fit)", row: 14, color: "#10b981", target: 70 }
+  ];
+  let RAW_YA = null, CH_YA = null;
+
+  function buildDD7() { buildDD("dd7menu", "dd7all", "dd7none", "dd7close", MET_YA.map(m => m.key), MET_YA[0].key); }
+  function chosen7() { return chosen("dd7menu", MET_YA[0].key); }
+
+  function computeT7(arr, set) {
+    const labels = ["", ...DIST_YA.map(d => d.n), ""], per = [];
+    MET_YA.forEach(m => {
+      if (!set.has(m.key)) return;
+      const s = [0];
+      DIST_YA.forEach(d => s.push(cellPct(arr, d.L + String(m.row))));
+      s.push(0);
+      per.push({ key: m.key, color: m.color, target: m.target, data: s });
+    });
+    return { labels, per };
+  }
+
+  function drawT7(data, canvas, mode) {
+    if (CH_YA) CH_YA.destroy();
+    const ctx = $(canvas).getContext('2d');
+    const g1 = ctx.createLinearGradient(0, 0, 0, 260); g1.addColorStop(0, 'rgba(14,165,233,.35)'); g1.addColorStop(1, 'rgba(14,165,233,.03)');
+    const g2 = ctx.createLinearGradient(0, 0, 0, 260); g2.addColorStop(0, 'rgba(16,185,129,.35)'); g2.addColorStop(1, 'rgba(16,185,129,.03)');
+
+    const ds = [];
+    data.per.forEach((m, idx) => {
+      ds.push({
+        label: m.key, data: m.data, borderColor: m.color, backgroundColor: idx === 0 ? g1 : g2,
+        borderWidth: 3, tension: .45, fill: true
+      });
+      if (m.target != null) {
+        const flat = new Array(m.data.length).fill(m.target);
+        ds.push({ label: `Sasaran ${m.key}`, data: flat, borderColor: "#475569", borderWidth: 2, borderDash: [4,4], pointRadius: 0, fill: false });
+      }
+    });
+
+    CH_YA = new Chart($(canvas).getContext("2d"), {
+      type: "line",
+      data: { labels: data.labels, datasets: ds },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false, filter: (i) => !(i.dataIndex === 0 || i.dataIndex === data.labels.length - 1) } },
+        scales: {
+          x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: mode === "main" ? 90 : 40, minRotation: mode === "main" ? 90 : 40, callback: (v, i) => (i === 0 || i === data.labels.length - 1) ? "" : data.labels[i] } },
+          y: { beginAtZero: true, ticks: { callback: (v) => v + "%" } }
+        }
+      }
+    });
+    try {
+      const core = data.per.flatMap(m => m.data.slice(1, -1));
+      if (allZero(core)) { const c = $(canvas).getContext("2d"); c.font = "12px Inter, system-ui"; c.fillStyle = "#94a3b8"; c.fillText("Tiada data untuk dipaparkan", 12, 22); }
+    } catch {}
+    return CH_YA;
+  }
+
+  async function loadT7() {
+    const err = $("t7err"); err.style.display = "none";
+    try {
+      buildDD7();
+      const csv = await fetchCSV(CSV_YA); RAW_YA = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
+      refreshT7Tags(); drawT7(computeT7(RAW_YA, chosen7()), "t7", "main");
+      $("dd7btn").onclick = () => $("dd7menu").classList.toggle("open");
+      $("dd7menu").querySelectorAll("input").forEach(i => i.addEventListener("change", () => { refreshT7Tags(); drawT7(computeT7(RAW_YA, chosen7()), "t7", "main"); }));
+      document.addEventListener("click", (e) => { const box = $("dd7"); if (box && !box.contains(e.target)) $("dd7menu").classList.remove("open"); });
+      $("t7time").textContent = new Date().toLocaleString();
+    } catch (e) { console.error(e); err.textContent = "Gagal memuatkan CSV (Tile 7)."; err.style.display = "block"; }
+  }
+  function refreshT7Tags() {
+    const set = chosen7(), tags = $("dd7tags"), leg = $("t7legend"); tags.innerHTML = ""; leg.innerHTML = "";
+    Array.from(set).forEach(k => {
+      const m = MET_YA.find(x => x.key === k); const c = m ? m.color : "#64748b";
+      const s = document.createElement("span"); s.className = "tag"; s.textContent = k; tags.appendChild(s);
+      const el = document.createElement("span"); el.style.display = "inline-flex"; el.style.alignItems = "center"; el.style.gap = "6px";
+      const dot = document.createElement("span"); dot.className = "dot"; dot.style.background = c;
+      const tx = document.createElement("span"); tx.textContent = k; el.appendChild(dot); el.appendChild(tx); leg.appendChild(el);
+    });
+  }
+  $("t7refresh").addEventListener("click", loadT7);
+  $("t7expand").addEventListener("click", () => { if (!RAW_YA) return; openModal("Young Adult"); MCH = drawT7(computeT7(RAW_YA, chosen7()), "mcanvas", "modal"); });
+  loadT7();
+
+  // =========================
+  // TILE 8 — BPE
+  // =========================
+  const CSV_BPE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1983552555&single=true&output=csv";
+  const DIST_BPE = DIST2.slice();
+  const MET_BPE = [
+    { key: "Peratus BPE screening", row: 8, color: "#0ea5e9" },
+    { key: "Peratus BPE = 0", row: 13, color: "#10b981" }
+  ];
+  let RAW_BPE = null, CH_BPE = null;
+
+  function buildDD8() { buildDD("dd8menu", "dd8all", "dd8none", "dd8close", MET_BPE.map(m => m.key), MET_BPE[0].key); }
+  function chosen8() { return chosen("dd8menu", MET_BPE[0].key); }
+
+  function computeT8(arr, set) {
+    const labels = ["", ...DIST_BPE.map(d => d.n), ""], per = [];
+    MET_BPE.forEach(m => {
+      if (!set.has(m.key)) return;
+      const s = [0];
+      DIST_BPE.forEach(d => s.push(cellPct(arr, d.L + String(m.row))));
+      s.push(0);
+      per.push({ key: m.key, color: m.color, data: s });
+    });
+    return { labels, per };
+  }
+
+  function drawT8(data, canvas, mode) {
+    if (CH_BPE) CH_BPE.destroy();
+    const ctx = $(canvas).getContext('2d');
+    const g1 = ctx.createLinearGradient(0, 0, 0, 260); g1.addColorStop(0, 'rgba(14,165,233,.35)'); g1.addColorStop(1, 'rgba(14,165,233,.03)');
+    const g2 = ctx.createLinearGradient(0, 0, 0, 260); g2.addColorStop(0, 'rgba(16,185,129,.35)'); g2.addColorStop(1, 'rgba(16,185,129,.03)');
+
+    const ds = data.per.map((m, idx) => ({
+      label: m.key, data: m.data, borderColor: m.color, backgroundColor: idx === 0 ? g1 : g2,
+      borderWidth: 3, tension: .45, fill: true
+    }));
+
+    CH_BPE = new Chart($(canvas).getContext("2d"), {
+      type: "line",
+      data: { labels: data.labels, datasets: ds },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false, filter: (i) => !(i.dataIndex === 0 || i.dataIndex === data.labels.length - 1) } },
+        scales: {
+          x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: mode === "main" ? 90 : 40, minRotation: mode === "main" ? 90 : 40, callback: (v, i) => (i === 0 || i === data.labels.length - 1) ? "" : data.labels[i] } },
+          y: { beginAtZero: true, ticks: { callback: (v) => v + "%" } }
+        }
+      }
+    });
+    try {
+      const core = data.per.flatMap(m => m.data.slice(1, -1));
+      if (allZero(core)) { const c = $(canvas).getContext("2d"); c.font = "12px Inter, system-ui"; c.fillStyle = "#94a3b8"; c.fillText("Tiada data untuk dipaparkan", 12, 22); }
+    } catch {}
+    return CH_BPE;
+  }
+
+  async function loadT8() {
+    const err = $("t8err"); err.style.display = "none";
+    try {
+      buildDD8();
+      const csv = await fetchCSV(CSV_BPE); RAW_BPE = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
+      refreshT8Tags(); drawT8(computeT8(RAW_BPE, chosen8()), "t8", "main");
+      $("dd8btn").onclick = () => $("dd8menu").classList.toggle("open");
+      $("dd8menu").querySelectorAll("input").forEach(i => i.addEventListener("change", () => { refreshT8Tags(); drawT8(computeT8(RAW_BPE, chosen8()), "t8", "main"); }));
+      document.addEventListener("click", (e) => { const box = $("dd8"); if (box && !box.contains(e.target)) $("dd8menu").classList.remove("open"); });
+      $("t8time").textContent = new Date().toLocaleString();
+    } catch (e) { console.error(e); err.textContent = "Gagal memuatkan CSV (Tile 8)."; err.style.display = "block"; }
+  }
+  function refreshT8Tags() {
+    const set = chosen8(), tags = $("dd8tags"), leg = $("t8legend"); tags.innerHTML = ""; leg.innerHTML = "";
+    Array.from(set).forEach(k => {
+      const m = MET_BPE.find(x => x.key === k); const c = m ? m.color : "#64748b";
+      const s = document.createElement("span"); s.className = "tag"; s.textContent = k; tags.appendChild(s);
+      const el = document.createElement("span"); el.style.display = "inline-flex"; el.style.alignItems = "center"; el.style.gap = "6px";
+      const dot = document.createElement("span"); dot.className = "dot"; dot.style.background = c;
+      const tx = document.createElement("span"); tx.textContent = k; el.appendChild(dot); el.appendChild(tx); leg.appendChild(el);
+    });
+  }
+  $("t8refresh").addEventListener("click", loadT8);
+  $("t8expand").addEventListener("click", () => { if (!RAW_BPE) return; openModal("Basic Periodontal Examination"); MCH = drawT8(computeT8(RAW_BPE, chosen8()), "mcanvas", "modal"); });
+  loadT8();
+
+  // =========================
+  // Reflow on resize (keeps look crisp)
+  // =========================
+  window.addEventListener("resize", () => {
+    if (RAW1) {
+      const popRow = RAW1[9] || [], accRow = RAW1[10] || [];
+      const rows = DIST1.map(d => { const i = colIdx(d.L); return { n: d.n, a: cleanPct(accRow[i]) || 0, p: cleanInt(popRow[i]) }; });
+      drawT1(rows, "t1", "main");
+    }
+    if (RAW2) drawT2(computeT2(RAW2, chosen("dd2menu", "<5 tahun")), "t2", "main");
+    if (RAW3) drawT3(computeT3(RAW3, chosen("dd3menu", "Primer")), "t3", "main");
+    if (RAW4S) drawT4S(computeT4S(RAW4S, chosen4S()), "t4", "main");
+    if (RAW_TOD) drawT5(computeT5(RAW_TOD, chosen5()), "t5", "main");
+    if (RAW_PREG) drawT6(computeT6(RAW_PREG, chosen6()), "t6", "main");
+    if (RAW_YA) drawT7(computeT7(RAW_YA, chosen7()), "t7", "main");
+    if (RAW_BPE) drawT8(computeT8(RAW_BPE, chosen8()), "t8", "main");
+  });
+})();
