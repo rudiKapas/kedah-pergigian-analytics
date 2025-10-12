@@ -275,6 +275,283 @@
       </div>
     </section>
 
+     html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Analitik Data Teknikal Kesihatan Pergigian Negeri Kedah</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#f7f7fb; --panel:#fff; --ink:#0f172a; --muted:#64748b; --bd:#e5e7eb;
+      --icon:#6b7280; --hover:#f8fafc; --danger:#b91c1c; --title:24px; --ctl:44px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    .ph{max-width:1100px;margin:18px auto 8px;padding:0 14px}
+    .ph h1{margin:0;font-size:var(--title);font-weight:800}
+    .ph p{margin:6px 0 0;color:var(--muted);font-size:13px}
+
+    .grid{max-width:1100px;margin:6px auto 22px;padding:0 14px;
+      display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    @media (max-width:980px){ :root{--title:20px} .grid{grid-template-columns:1fr}}
+
+    .tile{background:#fff;border:1px solid var(--bd);border-radius:16px;
+      box-shadow:0 1px 2px rgba(15,23,42,.06),0 8px 16px rgba(15,23,42,.04);
+      display:flex;flex-direction:column;min-height:0}
+    .th{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start;
+      padding:12px 14px;border-bottom:1px solid var(--bd)}
+    .ttl{margin:0 0 4px;font-size:var(--title);line-height:1.15;font-weight:800}
+    .sub{display:flex;gap:8px;color:var(--muted);font-size:13px}
+    .ico{width:18px;height:18px;color:var(--icon)}
+    .act{display:flex;gap:10px}
+    .btn{width:var(--ctl);height:var(--ctl);display:grid;place-items:center;border:1px solid #d1d5db;border-radius:12px;background:#fff;cursor:pointer}
+    .btn:hover{background:var(--hover)}
+    .tb{padding:10px 12px;display:flex;flex-direction:column;min-height:0}
+    .chart{height:260px}
+    @media (max-width:980px){ .chart{height:220px} }
+    .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;color:var(--muted);font-size:12px}
+    .dot{width:10px;height:10px;border-radius:50%}
+    .err{display:none;margin-top:6px;color:var(--danger);font-size:13px}
+
+    .dd{position:relative;display:inline-block}
+    .dd > .b{border:1px solid var(--bd);background:#fff;padding:8px 12px;border-radius:10px;font-weight:600;cursor:pointer}
+    .tags{display:inline-flex;gap:6px;margin-left:10px;vertical-align:middle;flex-wrap:wrap}
+    .tag{border:1px solid var(--bd);background:#f8fafc;padding:3px 8px;border-radius:999px;font-size:12px}
+    .menu{position:absolute;top:110%;left:0;min-width:260px;background:#fff;border:1px solid var(--bd);border-radius:12px;
+      box-shadow:0 10px 20px rgba(15,23,42,.08);padding:8px;display:none;z-index:5}
+    .menu.open{display:block}
+    .row{display:flex;gap:8px;align-items:center;padding:8px;border-radius:10px;cursor:pointer}
+    .row:hover{background:#f8fafc}
+    .mfoot{display:flex;gap:8px;border-top:1px solid var(--bd);padding-top:6px;margin-top:6px}
+
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(2,6,23,.55);z-index:9999}
+    .modal.open{display:flex}
+    .modal-inner{background:#fff;border:1px solid var(--bd);border-radius:16px;box-shadow:0 20px 40px rgba(2,6,23,.30);
+      width:min(1200px,96vw);height:min(90vh,820px);display:flex;flex-direction:column}
+    .mh{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--bd)}
+    .mb{padding:12px 14px;flex:1;display:flex}
+    .mchart{width:100%;height:100%}
+    .close{border:1px solid #d1d5db;background:#fff;border-radius:10px;padding:8px 12px;font-weight:700;cursor:pointer}
+    .close:hover{border-color:#ef4444;box-shadow:0 0 0 4px rgba(239,68,68,.15)}
+  </style>
+</head>
+<body>
+  <header class="ph">
+    <h1>Analitik Data Teknikal Kesihatan Pergigian Negeri Kedah</h1>
+    <p>Sumber: Google Sheets (Publish to Web)</p>
+  </header>
+
+  <main class="grid">
+    <!-- Tile 1 -->
+    <section class="tile">
+      <div class="th">
+        <div>
+          <h2 class="ttl">Akses Kepada Perkhidmatan Kesihatan Pergigian</h2>
+          <div class="sub"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span id="t1time">—</span></div>
+        </div>
+        <div class="act">
+          <button id="t1refresh" class="btn" title="Kemas Kini"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></button>
+          <button id="t1expand" class="btn" title="Perbesar"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M4 4l6 6"/><path d="M20 15v5h-5M20 20l-6-6"/><path d="M15 4h5v5M20 4l-6 6"/><path d="M9 20H4v-5M4 20l6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="tb">
+        <div class="chart"><canvas id="t1"></canvas></div>
+        <div class="legend">
+          <span style="display:flex;align-items:center;gap:8px"><span class="dot" style="background:#f59e0b"></span>% Menerima Perkhidmatan</span>
+          <span style="display:flex;align-items:center;gap:8px"><span class="dot" style="background:#6366f1"></span>Anggaran Penduduk</span>
+        </div>
+        <div class="err" id="t1err"></div>
+      </div>
+    </section>
+
+    <!-- Tile 2 -->
+    <section class="tile">
+      <div class="th">
+        <div>
+          <h2 class="ttl">Kedatangan Pesakit Primer</h2>
+          <div class="sub"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span id="t2time">—</span></div>
+        </div>
+        <div class="act">
+          <button id="t2refresh" class="btn" title="Kemas Kini"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></button>
+          <button id="t2expand" class="btn" title="Perbesar"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M4 4l6 6"/><path d="M20 15v5h-5M20 20l-6-6"/><path d="M15 4h5v5M20 4l-6 6"/><path d="M9 20H4v-5M4 20l6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="tb">
+        <div class="dd" id="dd2">
+          <button class="b" type="button" id="dd2btn">Pilih Kategori</button>
+          <div class="tags" id="dd2tags"></div>
+          <div class="menu" id="dd2menu"><div class="mfoot">
+            <button class="b" type="button" id="dd2all">Pilih Semua</button>
+            <button class="b" type="button" id="dd2none">Kosongkan</button>
+            <button class="b" type="button" id="dd2close">Tutup</button>
+          </div></div>
+        </div>
+        <div class="chart"><canvas id="t2"></canvas></div>
+        <div class="legend" id="t2legend"></div>
+        <div class="err" id="t2err"></div>
+      </div>
+    </section>
+
+    <!-- Tile 3 -->
+    <section class="tile">
+      <div class="th">
+        <div>
+          <h2 class="ttl">Kedatangan Pesakit Outreach</h2>
+          <div class="sub"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span id="t3time">—</span></div>
+        </div>
+        <div class="act">
+          <button id="t3refresh" class="btn" title="Kemas Kini"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></button>
+          <button id="t3expand" class="btn" title="Perbesar"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M4 4l6 6"/><path d="M20 15v5h-5M20 20l-6-6"/><path d="M15 4h5v5M20 4l-6 6"/><path d="M9 20H4v-5M4 20l6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="tb">
+        <div class="dd" id="dd3">
+          <button class="b" type="button" id="dd3btn">Pilih Kumpulan</button>
+          <div class="tags" id="dd3tags"></div>
+          <div class="menu" id="dd3menu"><div class="mfoot">
+            <button class="b" type="button" id="dd3all">Pilih Semua</button>
+            <button class="b" type="button" id="dd3none">Kosongkan</button>
+            <button class="b" type="button" id="dd3close">Tutup</button>
+          </div></div>
+        </div>
+        <div class="chart"><canvas id="t3"></canvas></div>
+        <div class="legend" id="t3legend"></div>
+        <div class="err" id="t3err"></div>
+      </div>
+    </section>
+
+    <!-- Tile 4 (NEW) -->
+    <section class="tile">
+      <div class="th">
+        <div>
+          <h2 class="ttl">Jumlah Kedatangan Pesakit Pakar</h2>
+          <div class="sub"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span id="t4time">—</span></div>
+        </div>
+        <div class="act">
+          <button id="t4refresh" class="btn" title="Kemas Kini"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></button>
+          <button id="t4expand" class="btn" title="Perbesar"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M4 4l6 6"/><path d="M20 15v5h-5M20 20l-6-6"/><path d="M15 4h5v5M20 4l-6 6"/><path d="M9 20H4v-5M4 20l6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="tb">
+        <div class="dd" id="dd4">
+          <button class="b" type="button" id="dd4btn">Pilih Kumpulan Pakar</button>
+          <div class="tags" id="dd4tags"></div>
+          <div class="menu" id="dd4menu"><div class="mfoot">
+            <button class="b" type="button" id="dd4all">Pilih Semua</button>
+            <button class="b" type="button" id="dd4none">Kosongkan</button>
+            <button class="b" type="button" id="dd4close">Tutup</button>
+          </div></div>
+        </div>
+        <div class="chart"><canvas id="t4"></canvas></div>
+        <div class="legend" id="t4legend"></div>
+        <div class="err" id="t4err"></div>
+      </div>
+    </section>
+
+    <!-- Tile 5 (Toddler; previously Tile 4) -->
+    <section class="tile">
+      <div class="th">
+        <div>
+          <h2 class="ttl">Pencapaian Program Toddler</h2>
+          <div class="sub"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span id="t5time">—</span></div>
+        </div>
+        <div class="act">
+          <button id="t5refresh" class="btn" title="Kemas Kini"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></button>
+          <button id="t5expand" class="btn" title="Perbesar"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M4 4l6 6"/><path d="M20 15v5h-5M20 20l-6-6"/><path d="M15 4h5v5M20 4l-6 6"/><path d="M9 20H4v-5M4 20l6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="tb">
+        <div class="dd" id="dd5">
+          <button class="b" type="button" id="dd5btn">Pilih Metrik</button>
+          <div class="tags" id="dd5tags"></div>
+          <div class="menu" id="dd5menu"><div class="mfoot">
+            <button class="b" type="button" id="dd5all">Pilih Semua</button>
+            <button class="b" type="button" id="dd5none">Kosongkan</button>
+            <button class="b" type="button" id="dd5close">Tutup</button>
+          </div></div>
+        </div>
+        <div class="chart"><canvas id="t5"></canvas></div>
+        <div class="legend" id="t5legend"></div>
+        <div class="err" id="t5err"></div>
+      </div>
+    </section>
+
+    <!-- Tile 6 (Liputan Ibu Mengandung; previously Tile 5) -->
+    <section class="tile">
+      <div class="th">
+        <div>
+          <h2 class="ttl">Liputan Ibu Mengandung</h2>
+          <div class="sub"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span id="t6time">—</span></div>
+        </div>
+        <div class="act">
+          <button id="t6refresh" class="btn" title="Kemas Kini"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></button>
+          <button id="t6expand" class="btn" title="Perbesar"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M4 4l6 6"/><path d="M20 15v5h-5M20 20l-6-6"/><path d="M15 4h5v5M20 4l-6 6"/><path d="M9 20H4v-5M4 20l6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="tb">
+        <div class="dd" id="dd6">
+          <button class="b" type="button" id="dd6btn">Pilih Metrik</button>
+          <div class="tags" id="dd6tags"></div>
+          <div class="menu" id="dd6menu"><div class="mfoot">
+            <button class="b" type="button" id="dd6all">Pilih Semua</button>
+            <button class="b" type="button" id="dd6none">Kosongkan</button>
+            <button class="b" type="button" id="dd6close">Tutup</button>
+          </div></div>
+        </div>
+        <div class="chart"><canvas id="t6"></canvas></div>
+        <div class="legend" id="t6legend"></div>
+        <div class="err" id="t6err"></div>
+      </div>
+    </section>
+
+    <!-- Empty tile (reserve slot) -->
+    <section class="tile">
+      <div class="th">
+        <div>
+          <h2 class="ttl">Slot Tambahan</h2>
+          <div class="sub"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span>—</span></div>
+        </div>
+        <div class="act"></div>
+      </div>
+      <div class="tb" style="min-height:240px;display:flex;align-items:center;justify-content:center;color:#94a3b8">
+        Ruang untuk paparan seterusnya.
+      </div>
+    </section>
+  
+    <!-- Tile 7 — Young Adult -->
+    <section class="tile">
+      <div class="th">
+        <div>
+          <h2 class="ttl">Young Adult</h2>
+          <div class="sub"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span id="t7time">—</span></div>
+        </div>
+        <div class="act">
+          <button id="t7refresh" class="btn" title="Kemas Kini"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></button>
+          <button id="t7expand" class="btn" title="Perbesar"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M4 4l6 6"/><path d="M20 15v5h-5M20 20l-6-6"/><path d="M15 4h5v5M20 4l-6 6"/><path d="M9 20H4v-5M4 20l6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="tb">
+        <div class="dd" id="dd7">
+          <button class="b" type="button" id="dd7btn">Pilih Metrik</button>
+          <div class="tags" id="dd7tags"></div>
+          <div class="menu" id="dd7menu"><div class="mfoot">
+            <button class="b" type="button" id="dd7all">Pilih Semua</button>
+            <button class="b" type="button" id="dd7none">Kosongkan</button>
+            <button class="b" type="button" id="dd7close">Tutup</button>
+          </div></div>
+        </div>
+        <div class="chart"><canvas id="t7"></canvas></div>
+        <div class="legend" id="t7legend"></div>
+        <div class="err" id="t7err"></div>
+      </div>
+    </section>
+
     <!-- Tile 8 — placeholder to the right of Tile 7 -->
     <section class="tile">
       <div class="th">
