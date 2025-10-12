@@ -101,6 +101,9 @@
   // Modal (full-screen expand)
   const modal = $("modal"), mtitle = $("mtitle"), mclose = $("mclose");
   let MCH = null;
+  
+  function allZero(arr) { return Array.isArray(arr) && arr.every(v => (v ?? 0) === 0); }
+
   function openModal(title) {
     mtitle.textContent = title || "Perincian";
     modal.classList.add("open");
@@ -189,6 +192,11 @@
         }
       }
     });
+    // Show subtle message if everything is zero/invisible
+    try {
+      const core = A.series.slice(1, -1).concat(P.series.slice(1, -1));
+      if (allZero(core)) { ctx.font = "12px Inter, system-ui"; ctx.fillStyle = "#94a3b8"; ctx.fillText("Tiada data untuk dipaparkan", 12, 22); }
+    } catch {}
     return CH1;
   }
 
@@ -198,7 +206,7 @@
       const csv = await fetchCSV(CSV1);
       RAW1 = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
       const popRow = RAW1[9] || [], accRow = RAW1[10] || [];
-      const rows = DIST1.map(d => { const i = colIdx(d.L); let a = cleanPct(accRow[i]); if (a == null && String(accRow[i] ?? "").trim() === "0") a = 0; const p = cleanInt(popRow[i]); return { n: d.n, a, p }; });
+      const rows = DIST1.map(d => { const i = colIdx(d.L); let a = cleanPct(accRow[i]); if (a == null) a = cleanInt(accRow[i]) || 0; const p = cleanInt(popRow[i]); return { n: d.n, a, p }; });
       drawT1(rows, "t1", "main");
       $("t1time").textContent = new Date().toLocaleString();
     } catch (e) { console.error(e); err.textContent = "Gagal memuatkan CSV (Tile 1)."; err.style.display = "block"; }
@@ -269,6 +277,10 @@
         }
       }
     });
+    try {
+      const core = data.per.flatMap(c => c.b.slice(1, -1).concat(c.u.slice(1, -1)));
+      if (allZero(core)) { const ctx = $(canvas).getContext("2d"); ctx.font = "12px Inter, system-ui"; ctx.fillStyle = "#94a3b8"; ctx.fillText("Tiada data untuk dipaparkan", 12, 22); }
+    } catch {}
     return CH2;
   }
 
@@ -348,6 +360,10 @@
         }
       }
     });
+    try {
+      const core = data.per.flatMap(s => s.b.slice(1, -1).concat(s.u.slice(1, -1)));
+      if (allZero(core)) { const ctx = $(canvas).getContext("2d"); ctx.font = "12px Inter, system-ui"; ctx.fillStyle = "#94a3b8"; ctx.fillText("Tiada data untuk dipaparkan", 12, 22); }
+    } catch {}
     return CH3;
   }
 
@@ -461,6 +477,10 @@
         }
       }
     });
+    try {
+      const core = data.b.slice(1, -1).concat(data.u.slice(1, -1));
+      if (allZero(core)) { const ctx = $(canvas).getContext("2d"); ctx.font = "12px Inter, system-ui"; ctx.fillStyle = "#94a3b8"; ctx.fillText("Tiada data untuk dipaparkan", 12, 22); }
+    } catch {}
     return CH4S;
   }
 
@@ -546,6 +566,10 @@
         }
       }
     });
+    try {
+      const core = data.per.flatMap(m => m.data.slice(1, -1));
+      if (allZero(core)) { const ctx = $(canvas).getContext("2d"); ctx.font = "12px Inter, system-ui"; ctx.fillStyle = "#94a3b8"; ctx.fillText("Tiada data untuk dipaparkan", 12, 22); }
+    } catch {}
     return CH_TOD;
   }
 
@@ -629,6 +653,10 @@
         }
       }
     });
+    try {
+      const core = data.per.flatMap(m => m.data.slice(1, -1));
+      if (allZero(core)) { const ctx = $(canvas).getContext("2d"); ctx.font = "12px Inter, system-ui"; ctx.fillStyle = "#94a3b8"; ctx.fillText("Tiada data untuk dipaparkan", 12, 22); }
+    } catch {}
     return CH_PREG;
   }
 
