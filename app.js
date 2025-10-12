@@ -94,7 +94,7 @@
         callbacks:{label:(c)=>c.datasetIndex===0?(" Akses: "+c.parsed.y+"%"):(" Populasi: "+nice(c.parsed.y))}}},scales:{
       x:{grid:{display:false},ticks:{autoSkip:false,maxRotation:mode==="main"?90:40,minRotation:mode==="main"?90:40,callback:(v,i)=>(i===0||i===X.length-1)?"":X[i]}},
       y1:{position:"left",beginAtZero:true,ticks:{callback:(v)=>v+"%"}},
-      y2:{position:"right",beginAtZero:true,grid:{display:false},ticks:{callback:(v)=>nice(v)}}}}); 
+      y2:{position:"right",beginAtZero:true,grid:{display:false},ticks:{callback:(v)=>nice(v)}}}); 
     try{ const core=A.series.slice(1,-1).concat(P.series.slice(1,-1)); if(allZero(core)){ ctx.font="12px Inter, system-ui"; ctx.fillStyle="#94a3b8"; ctx.fillText("Tiada data untuk dipaparkan",12,22);} }catch(e){}
     return CH1;
   }
@@ -265,3 +265,4 @@
     if (RAW_BPE) drawT8(computeT8(RAW_BPE, chosen8()), "t8", "main");
   });
 })();
+
