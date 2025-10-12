@@ -16,17 +16,14 @@
     }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-    /* page header */
     .ph{max-width:1100px;margin:18px auto 8px;padding:0 14px}
     .ph h1{margin:0;font-size:var(--title);font-weight:800}
     .ph p{margin:6px 0 0;color:var(--muted);font-size:13px}
 
-    /* grid */
     .grid{max-width:1100px;margin:6px auto 22px;padding:0 14px;
       display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
     @media (max-width:980px){ :root{--title:20px} .grid{grid-template-columns:1fr}}
 
-    /* tile */
     .tile{background:#fff;border:1px solid var(--bd);border-radius:16px;
       box-shadow:0 1px 2px rgba(15,23,42,.06),0 8px 16px rgba(15,23,42,.04);
       display:flex;flex-direction:column;min-height:0}
@@ -45,7 +42,6 @@
     .dot{width:10px;height:10px;border-radius:50%}
     .err{display:none;margin-top:6px;color:var(--danger);font-size:13px}
 
-    /* dropdown */
     .dd{position:relative;display:inline-block}
     .dd > .b{border:1px solid var(--bd);background:#fff;padding:8px 12px;border-radius:10px;font-weight:600;cursor:pointer}
     .tags{display:inline-flex;gap:6px;margin-left:10px;vertical-align:middle;flex-wrap:wrap}
@@ -57,7 +53,6 @@
     .row:hover{background:#f8fafc}
     .mfoot{display:flex;gap:8px;border-top:1px solid var(--bd);padding-top:6px;margin-top:6px}
 
-    /* FULLSCREEN MODAL */
     .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(2,6,23,.55);z-index:9999}
     .modal.open{display:flex}
     .modal-inner{background:#fff;border:1px solid var(--bd);border-radius:16px;box-shadow:0 20px 40px rgba(2,6,23,.30);
@@ -102,7 +97,7 @@
     <section class="tile">
       <div class="th">
         <div>
-          <h2 class="ttl">Kedatangan Baru &amp; Ulangan</h2>
+          <h2 class="ttl">Kedatangan Pesakit Primer</h2>
           <div class="sub"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span id="t2time">—</span></div>
         </div>
         <div class="act">
@@ -181,6 +176,48 @@
         <div class="err" id="t4err"></div>
       </div>
     </section>
+
+    <!-- Tile 5 (below Tile 3) -->
+    <section class="tile">
+      <div class="th">
+        <div>
+          <h2 class="ttl">Liputan Ibu Mengandung</h2>
+          <div class="sub"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span id="t5time">—</span></div>
+        </div>
+        <div class="act">
+          <button id="t5refresh" class="btn" title="Kemas Kini"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></button>
+          <button id="t5expand" class="btn" title="Perbesar"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M4 4l6 6"/><path d="M20 15v5h-5M20 20l-6-6"/><path d="M15 4h5v5M20 4l-6 6"/><path d="M9 20H4v-5M4 20l6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="tb">
+        <div class="dd" id="dd5">
+          <button class="b" type="button" id="dd5btn">Pilih Metrik</button>
+          <div class="tags" id="dd5tags"></div>
+          <div class="menu" id="dd5menu"><div class="mfoot">
+            <button class="b" type="button" id="dd5all">Pilih Semua</button>
+            <button class="b" type="button" id="dd5none">Kosongkan</button>
+            <button class="b" type="button" id="dd5close">Tutup</button>
+          </div></div>
+        </div>
+        <div class="chart"><canvas id="t5"></canvas></div>
+        <div class="legend" id="t5legend"></div>
+        <div class="err" id="t5err"></div>
+      </div>
+    </section>
+
+    <!-- Empty tile (below Tile 4) -->
+    <section class="tile">
+      <div class="th">
+        <div>
+          <h2 class="ttl">Slot Tambahan</h2>
+          <div class="sub"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span>—</span></div>
+        </div>
+        <div class="act"></div>
+      </div>
+      <div class="tb" style="min-height:240px;display:flex;align-items:center;justify-content:center;color:#94a3b8">
+        Ruang untuk paparan seterusnya.
+      </div>
+    </section>
   </main>
 
   <!-- Full-screen modal -->
@@ -194,7 +231,6 @@
     </div>
   </div>
 
-  <!-- bump query to defeat cache if needed -->
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
