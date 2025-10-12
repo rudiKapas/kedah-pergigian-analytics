@@ -32,33 +32,22 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,
 .dot{width:10px;height:10px;border-radius:50%}
 .err{display:none;margin-top:6px;color:var(--danger);font-size:13px}
 
-/* Tag list under the toolbar */
 .tags{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 8px}
 .tag{border:1px solid var(--bd);background:#f8fafc;padding:3px 8px;border-radius:999px;font-size:12px}
 
-/* Dropdown (icon trigger + modern panel) */
+/* Dropdown panel */
 .dd{position:relative;display:inline-block}
-.dd-trigger{border-color:#d1d5db}
 .menu{
   position:absolute;top:110%;right:0;min-width:280px;background:#fff;border:1px solid var(--bd);border-radius:14px;
   box-shadow:0 12px 30px rgba(15,23,42,.12);display:none;z-index:50;overflow:hidden;
 }
 .menu.open{display:block}
-.menu-body{
-  max-height:300px;overflow:auto;padding:6px;
-}
-.menu .row{
-  display:flex;gap:10px;align-items:center;padding:10px 10px;border-radius:10px;cursor:pointer;
-}
+.menu-body{max-height:300px;overflow:auto;padding:6px}
+.menu .row{display:flex;gap:10px;align-items:center;padding:10px 10px;border-radius:10px;cursor:pointer}
 .menu .row:hover{background:#f8fafc}
 .menu .row input{accent-color:#0ea5e9}
-.mfoot{
-  display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--bd);
-  padding:8px;background:#fafafa
-}
-.icbtn{
-  width:36px;height:36px;border:1px solid #d1d5db;border-radius:10px;background:#fff;display:grid;place-items:center;cursor:pointer
-}
+.mfoot{display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--bd);padding:8px;background:#fafafa}
+.icbtn{width:36px;height:36px;border:1px solid #d1d5db;border-radius:10px;background:#fff;display:grid;place-items:center;cursor:pointer}
 .icbtn:hover{background:#f3f4f6}
 
 /* Modal */
