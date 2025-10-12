@@ -9,84 +9,71 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      /* Greens (emerald/teal) */
-      --hero:#0f766e;         /* teal-700 */
-      --hero-2:#0ea5a0;       /* teal-500 */
-      --accent:#10b981;       /* emerald-500 */
-      --accent-ink:#065f46;   /* emerald-800 */
-
-      /* Neutrals (keep aligned with existing dashboard) */
+      /* Blue palette */
+      --hero:#0b63c7;           /* primary */
+      --hero-2:#1e88ff;         /* lighter */
+      --accent:#2563eb;         /* button/icon */
       --bg:#f7f7fb; --panel:#fff; --ink:#0f172a; --muted:#64748b; --bd:#e5e7eb;
       --shadow-1:0 1px 2px rgba(15,23,42,.06),0 8px 16px rgba(15,23,42,.05);
-      --shadow-2:0 6px 18px rgba(2,6,23,.14);
+      --shadow-2:0 8px 22px rgba(2,6,23,.14);
+      --max:1100px; --g:16px;   /* max width & grid gap */
     }
     *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;
-      color:var(--ink); background:var(--bg);
-      display:flex; flex-direction:column; min-height:100vh;
-    }
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;display:flex;min-height:100vh;flex-direction:column}
+    .wrap{max-width:var(--max);margin:0 auto;padding:0 var(--g)}
 
-    /* HERO */
-    .hero{
-      position:relative; color:#fff; background:linear-gradient(180deg,var(--hero),var(--hero-2));
-      padding:26px 0 70px; /* shorter hero, cards will overlap via negative margin */
+    /* HERO (tight to reduce empty space) */
+    header{
+      background:linear-gradient(180deg,var(--hero),var(--hero-2));
+      color:#fff;
+      padding:22px 0 26px;
+      box-shadow:inset 0 -1px 0 rgba(255,255,255,.15);
     }
-    .wrap{max-width:1100px;margin:0 auto;padding:0 14px}
-    .hero h1{margin:0 0 6px;font-weight:800;line-height:1.2;font-size:28px}
-    .hero p{margin:0;color:#e6fffb;opacity:.9}
+    header h1{margin:0 0 6px;font-weight:800;line-height:1.2;font-size:28px}
+    header p{margin:0;color:#e9f1ff}
 
-    /* subtle wave to visually “finish” the hero and reduce perceived empty space */
-    .wave{
-      position:absolute; bottom:-1px; left:0; right:0; height:44px; pointer-events:none;
-      background: radial-gradient(120% 100% at 50% 0, rgba(255,255,255,.24), rgba(255,255,255,0) 60%) ,
-                  url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 1440 100"><path fill="%23f7f7fb" d="M0,64L80,74.7C160,85,320,107,480,117.3C640,128,800,128,960,112C1120,96,1280,64,1360,48L1440,32L1440,100L1360,100C1280,100,1120,100,960,100C800,100,640,100,480,100C320,100,160,100,80,100L0,100Z"/></svg>') center/cover no-repeat;
-    }
-
-    /* Search */
-    .searchbar{margin:16px 0 0; display:flex; gap:8px}
-    .searchbar input{
-      flex:1; height:46px; border-radius:12px; border:1px solid #d1d5db; padding:0 14px; font-size:15px;
-      box-shadow:var(--shadow-1);
-    }
-    .searchbar button{
-      height:46px; padding:0 16px; border-radius:12px; border:1px solid var(--accent);
-      background:var(--accent); color:#fff; font-weight:800; cursor:pointer;
-      box-shadow:var(--shadow-1);
-    }
-    .searchbar button:hover{filter:brightness(.96)}
-
-    /* MAIN grid */
+    /* GRID: 2 columns on desktop, 1 on mobile  */
     main{flex:1}
     .grid{
-      max-width:1100px;margin:-42px auto 24px; /* overlap hero to reduce empty space */
-      padding:0 14px; display:grid; gap:14px;
-      grid-template-columns:repeat(4,minmax(0,1fr));
+      display:grid; gap:var(--g);
+      grid-template-columns:1fr; /* mobile */
+      align-items:start;
     }
-    @media (max-width:1060px){ .grid{grid-template-columns:repeat(2,1fr)} }
-    @media (max-width:640px){ .grid{grid-template-columns:1fr; margin:-36px auto 18px} }
+    /* desktop/tablet ≥900px -> 2 columns */
+    @media (min-width:900px){
+      .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
 
-    /* Card */
+    /* Headline / search align to the same grid columns */
+    .title{grid-column:1 / -1; margin:18px 0 0}
+    .subtitle{grid-column:1 / -1; margin:2px 0 10px; color:var(--muted)}
+
+    .search{grid-column:1 / -1; display:flex; gap:10px; margin:6px 0 10px}
+    .search input{
+      flex:1;height:46px;border-radius:12px;border:1px solid #d1d5db;padding:0 14px;font-size:15px;background:#fff;box-shadow:var(--shadow-1)
+    }
+    .search button{
+      height:46px;padding:0 16px;border-radius:12px;border:1px solid var(--accent);background:var(--accent);color:#fff;font-weight:800;cursor:pointer;box-shadow:var(--shadow-1)
+    }
+    .search button:hover{filter:brightness(.96)}
+
+    /* Cards */
     a.card{
-      text-decoration:none; color:inherit; background:var(--panel); border:1px solid var(--bd);
-      border-radius:16px; padding:14px; display:flex; gap:12px; min-height:128px;
-      box-shadow:var(--shadow-1); transition:transform .08s ease, box-shadow .08s ease;
+      text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--bd);
+      border-radius:16px;padding:16px;display:flex;gap:14px;min-height:140px;
+      box-shadow:var(--shadow-1);transition:transform .08s ease, box-shadow .08s ease
     }
     a.card:hover{transform:translateY(-2px); box-shadow:var(--shadow-2)}
-    .icowrap{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;
-      background:#ecfdf5;border:1px solid #bbf7d0}
-    .icowrap svg{width:24px;height:24px;color:var(--accent)}
-    .ctitle{margin:0 0 4px;font-weight:800;font-size:18px}
-    .cdesc{margin:0;color:var(--muted);font-size:13px}
-    .badge{display:inline-block;margin-top:8px;padding:2px 8px;border-radius:999px;
-      background:#f0fdf4;border:1px solid #bbf7d0;font-size:12px;color:var(--accent-ink);font-weight:600}
+    .icowrap{width:52px;height:52px;border-radius:12px;display:grid;place-items:center;background:#eef4ff;border:1px solid #dbe7ff}
+    .icowrap svg{width:26px;height:26px;color:var(--accent)}
+    .ctitle{margin:0 0 4px;font-weight:800;font-size:20px}
+    .cdesc{margin:0;color:var(--muted);font-size:14px}
+    .badge{display:inline-block;margin-top:10px;padding:4px 10px;border-radius:999px;background:#eef4ff;border:1px solid #dbe7ff;font-size:12px;color:#1e40af;font-weight:700}
 
-    /* Footer sits at the bottom, subtle */
-    footer{margin:4px 0 18px; color:#94a3b8; font-size:12px}
+    footer{margin:14px 0 20px;color:#94a3b8;font-size:12px}
   </style>
 
-  <!-- Icons -->
+  <!-- Simple icons -->
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
     <symbol id="i-access" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/>
@@ -103,21 +90,24 @@
   </svg>
 </head>
 <body>
-  <header class="hero">
+  <!-- Top banner -->
+  <header>
     <div class="wrap">
       <h1>Infographik Data Teknikal Kesihatan Pergigian Negeri Kedah</h1>
       <p>Sumber: Google Sheets (Publish to Web)</p>
-      <div class="searchbar" role="search">
+    </div>
+  </header>
+
+  <!-- Content aligned on a 2-column grid -->
+  <main class="wrap">
+    <div class="grid">
+      <!-- Align search with the same grid width -->
+      <div class="search" role="search">
         <input id="q" type="search" placeholder="Cari modul… (akses, sekolah, KPI, tenaga kerja)" aria-label="Cari modul">
         <button id="btnSearch" type="button" aria-label="Laksanakan carian">Cari</button>
       </div>
-    </div>
-    <div class="wave" aria-hidden="true"></div>
-  </header>
 
-  <main>
-    <div class="grid" id="cards">
-      <!-- Akses -->
+      <!-- 2×2 tiles -->
       <a class="card" href="akses.html" data-key="akses perkhidmatan pergigian capaian utiliti rawatan daerah liputan">
         <div class="icowrap"><svg><use href="#i-access"/></svg></div>
         <div>
@@ -127,7 +117,6 @@
         </div>
       </a>
 
-      <!-- Sekolah -->
       <a class="card" href="sekolah.html" data-key="sekolah rendah menengah program murid intervensi">
         <div class="icowrap"><svg><use href="#i-school"/></svg></div>
         <div>
@@ -137,7 +126,6 @@
         </div>
       </a>
 
-      <!-- KPI -->
       <a class="card" href="kpi.html" data-key="kpi indikator prestasi utama sasaran pencapaian">
         <div class="icowrap"><svg><use href="#i-kpi"/></svg></div>
         <div>
@@ -147,7 +135,6 @@
         </div>
       </a>
 
-      <!-- Workforce -->
       <a class="card" href="workforce.html" data-key="tenaga kerja workforce sumber manusia agihan">
         <div class="icowrap"><svg><use href="#i-work"/></svg></div>
         <div>
@@ -162,21 +149,20 @@
   <footer class="wrap">© Kedah Oral Health Analytics • Antaramuka selari dengan halaman dalaman.</footer>
 
   <script>
-    // Simple client-side filter for the cards
+    // Simple card filter aligned with the search bar above
     const q = document.getElementById('q');
     const btn = document.getElementById('btnSearch');
-    const cards = Array.from(document.querySelectorAll('#cards .card'));
-
-    function filter() {
+    const cards = Array.from(document.querySelectorAll('.card'));
+    function filter(){
       const term = q.value.toLowerCase().trim();
       cards.forEach(c=>{
         const key = (c.textContent + ' ' + (c.dataset.key||'')).toLowerCase();
-        c.style.display = term === '' || key.includes(term) ? '' : 'none';
+        c.style.display = !term || key.includes(term) ? '' : 'none';
       });
     }
     q.addEventListener('input', filter);
+    q.addEventListener('keydown', e=>{ if(e.key==='Enter') filter(); });
     btn.addEventListener('click', filter);
-    q.addEventListener('keydown', e=>{ if(e.key==='Enter'){ filter(); }});
   </script>
 </body>
 </html>
