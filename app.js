@@ -1646,6 +1646,329 @@
   });
   loadT8();
 
+  /* ================== Tile 9: Warga Emas ================== */
+const CSV_WE =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=480846724&single=true&output=csv";
+
+const DIST_WE = [
+  { n: "Kota Setar", L: "D" },
+  { n: "Pendang", L: "E" },
+  { n: "Kuala Muda", L: "F" },
+  { n: "Sik", L: "G" },
+  { n: "Kulim", L: "H" },
+  { n: "Bandar Baru", L: "I" },
+  { n: "Kubang Pasu", L: "J" },
+  { n: "Pdg Terap", L: "K" },
+  { n: "Baling", L: "L" },
+  { n: "Yan", L: "M" },
+  { n: "Langkawi", L: "N" },
+  { n: "Kedah", L: "O" },
+];
+
+// Metrics (with types & targets)
+const MET_WE = [
+  {
+    key: "Peratus pesakit baru warga emas mengikut populasi",
+    row: 8,
+    type: "pct",
+    color: "#0ea5e9",
+    target: 10,
+  },
+  {
+    key: "Data kehadiran pesakit baru warga emas",
+    row: 9,
+    type: "cnt",
+    color: "#8b5cf6",
+  },
+  {
+    key: "Peratus bilangan institusi dilawati di daerah",
+    row: 16,
+    type: "pct",
+    color: "#10b981",
+    target: 100,
+  },
+  {
+    key: "Peratus Warga Emas disaring",
+    row: 22,
+    type: "pct",
+    color: "#f59e0b",
+    target: 75,
+  },
+  {
+    key: "% Warga Emas ≥60 thn dengan ≥20 batang gigi",
+    row: 39,
+    type: "pct",
+    color: "#ef4444",
+    target: 30,
+  },
+  // special multi-series option
+  {
+    key: "PAWE (dalam daerah, dilawati, enrolmen, pesakit baru)",
+    type: "pawe",
+    color: "#14b8a6",
+  },
+];
+
+// PAWE rows (counts)
+const PAWE_ROWS = { dalam: 24, dilawati: 25, enrolmen: 26, baru: 27 };
+
+let RAW_WE = null;
+let CH_WE = null;
+
+function buildDD9() {
+  buildDD(
+    "dd9menu",
+    "dd9all",
+    "dd9none",
+    "dd9close",
+    MET_WE.map((m) => m.key),
+    MET_WE[0].key
+  );
+}
+const chosen9 = () => chosen("dd9menu", MET_WE[0].key);
+
+function computeT9(arr, set) {
+  const labels = ["", ...DIST_WE.map((d) => d.n), ""];
+  const per = [];
+
+  MET_WE.forEach((m) => {
+    if (!set.has(m.key)) return;
+
+    if (m.type === "pawe") {
+      // four sub-series (counts)
+      const sDalam = [0],
+        sDilawati = [0],
+        sEnrol = [0],
+        sBaru = [0];
+      DIST_WE.forEach((d) => {
+        sDalam.push(cellInt(arr, d.L + String(PAWE_ROWS.dalam)));
+        sDilawati.push(cellInt(arr, d.L + String(PAWE_ROWS.dilawati)));
+        sEnrol.push(cellInt(arr, d.L + String(PAWE_ROWS.enrolmen)));
+        sBaru.push(cellInt(arr, d.L + String(PAWE_ROWS.baru)));
+      });
+      sDalam.push(0);
+      sDilawati.push(0);
+      sEnrol.push(0);
+      sBaru.push(0);
+      per.push({
+        key: m.key,
+        type: "pawe",
+        series: [
+          { name: "Bil. PAWE dalam Daerah", color: "#14b8a6", data: sDalam },
+          { name: "Bil. PAWE dilawati", color: "#0ea5e9", data: sDilawati },
+          { name: "Enrolmen", color: "#8b5cf6", data: sEnrol },
+          { name: "Bilangan Pesakit Baru", color: "#f59e0b", data: sBaru },
+        ],
+      });
+    } else {
+      const s = [0];
+      DIST_WE.forEach((d) =>
+        s.push(m.type === "pct" ? cellPct(arr, d.L + String(m.row)) : cellInt(arr, d.L + String(m.row)))
+      );
+      s.push(0);
+      per.push({ key: m.key, type: m.type, color: m.color, target: m.target, data: s });
+    }
+  });
+  return { labels, per };
+}
+
+function drawT9(data, canvas, mode) {
+  if (CH_WE) CH_WE.destroy();
+
+  // gradients (like Tile 8)
+  const ctx = $(canvas).getContext("2d");
+  const gA = ctx.createLinearGradient(0, 0, 0, 260);
+  gA.addColorStop(0, "rgba(14,165,233,.35)");
+  gA.addColorStop(1, "rgba(14,165,233,.03)");
+  const gB = ctx.createLinearGradient(0, 0, 0, 260);
+  gB.addColorStop(0, "rgba(16,185,129,.35)");
+  gB.addColorStop(1, "rgba(16,185,129,.03)");
+
+  const ds = [];
+  data.per.forEach((m, idxMetric) => {
+    if (m.type === "pawe") {
+      m.series.forEach((s, i) => {
+        ds.push({
+          label: s.name,
+          data: s.data,
+          borderColor: s.color,
+          backgroundColor: i < 2 ? (i === 0 ? gB : gA) : "transparent",
+          borderWidth: 3,
+          tension: 0.45,
+          fill: i < 2, // fill first two for nice shaded look
+          yAxisID: "yR", // counts
+        });
+      });
+    } else {
+      ds.push({
+        label: m.key,
+        data: m.data,
+        borderColor: m.color,
+        backgroundColor: idxMetric % 2 === 0 ? gA : gB,
+        borderWidth: 3,
+        tension: 0.45,
+        fill: true,
+        yAxisID: m.type === "cnt" ? "yR" : "yL",
+      });
+      if (m.target != null && m.type !== "cnt") {
+        const flat = new Array(m.data.length).fill(m.target);
+        ds.push({
+          label: "Sasaran " + m.key,
+          data: flat,
+          borderColor: "#475569",
+          borderWidth: 2,
+          borderDash: [4, 4],
+          pointRadius: 0,
+          fill: false,
+          yAxisID: "yL",
+        });
+      }
+    }
+  });
+
+  CH_WE = new Chart($(canvas).getContext("2d"), {
+    type: "line",
+    data: { labels: data.labels, datasets: ds },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          mode: "index",
+          intersect: false,
+          filter: (i) => !(i.dataIndex === 0 || i.dataIndex === data.labels.length - 1),
+        },
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            autoSkip: false,
+            maxRotation: mode === "main" ? 90 : 40,
+            minRotation: mode === "main" ? 90 : 40,
+            callback: (v, i) => (i === 0 || i === data.labels.length - 1 ? "" : data.labels[i]),
+          },
+        },
+        yL: {
+          position: "left",
+          beginAtZero: true,
+          ticks: { callback: (v) => v + "%" },
+        },
+        yR: {
+          position: "right",
+          beginAtZero: true,
+          grid: { display: false },
+          ticks: { callback: (v) => Number(v).toLocaleString() },
+        },
+      },
+    },
+  });
+
+  try {
+    const core = data.per.flatMap((m) =>
+      m.type === "pawe"
+        ? m.series.flatMap((s) => s.data.slice(1, -1))
+        : m.data.slice(1, -1)
+    );
+    if (allZero(core)) {
+      ctx.font = "12px Inter, system-ui";
+      ctx.fillStyle = "#94a3b8";
+      ctx.fillText("Tiada data untuk dipaparkan", 12, 22);
+    }
+  } catch (_) {}
+  return CH_WE;
+}
+
+function refreshT9Tags() {
+  const set = chosen9();
+  const tags = $("dd9tags");
+  const leg = $("t9legend");
+  tags.innerHTML = "";
+  leg.innerHTML = "";
+
+  Array.from(set).forEach((k) => {
+    const m = MET_WE.find((x) => x.key === k);
+    const s = document.createElement("span");
+    s.className = "tag";
+    s.textContent = k;
+    tags.appendChild(s);
+
+    if (m && m.type === "pawe") {
+      const defs = [
+        { n: "Bil. PAWE dalam Daerah", c: "#14b8a6" },
+        { n: "Bil. PAWE dilawati", c: "#0ea5e9" },
+        { n: "Enrolmen", c: "#8b5cf6" },
+        { n: "Bilangan Pesakit Baru", c: "#f59e0b" },
+      ];
+      defs.forEach((d) => {
+        const el = document.createElement("span");
+        el.className = "lg";
+        const dot = document.createElement("span");
+        dot.className = "dot";
+        dot.style.background = d.c;
+        const tx = document.createElement("span");
+        tx.textContent = d.n;
+        el.appendChild(dot);
+        el.appendChild(tx);
+        leg.appendChild(el);
+      });
+    } else {
+      const el = document.createElement("span");
+      el.className = "lg";
+      const dot = document.createElement("span");
+      dot.className = "dot";
+      dot.style.background = m ? m.color : "#64748b";
+      const tx = document.createElement("span");
+      tx.textContent = k;
+      el.appendChild(dot);
+      el.appendChild(tx);
+      leg.appendChild(el);
+    }
+  });
+}
+
+async function loadT9() {
+  const err = $("t9err");
+  err.style.display = "none";
+  try {
+    buildDD9();
+    const csv = await fetchCSV(CSV_WE);
+    RAW_WE = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
+
+    refreshT9Tags();
+    drawT9(computeT9(RAW_WE, chosen9()), "t9", "main");
+
+    $("dd9btn").onclick = () => $("dd9menu").classList.toggle("open");
+    $("dd9menu")
+      .querySelectorAll("input")
+      .forEach((i) =>
+        i.addEventListener("change", () => {
+          refreshT9Tags();
+          drawT9(computeT9(RAW_WE, chosen9()), "t9", "main");
+        })
+      );
+    document.addEventListener("click", (e) => {
+      const box = $("dd9");
+      if (box && !box.contains(e.target)) $("dd9menu").classList.remove("open");
+    });
+
+    $("t9time").textContent = new Date().toLocaleString();
+  } catch (e) {
+    console.error(e);
+    err.textContent = "Gagal memuatkan CSV (Tile 9).";
+    err.style.display = "block";
+  }
+}
+$("t9refresh").addEventListener("click", loadT9);
+$("t9expand").addEventListener("click", () => {
+  if (!RAW_WE) return;
+  openModal("Warga Emas");
+  MCH = drawT9(computeT9(RAW_WE, chosen9()), "mcanvas", "modal");
+});
+loadT9();
+
+
   // ============== Redraw on resize =========
   window.addEventListener("resize", function () {
     if (RAW1) {
@@ -1664,5 +1987,7 @@
     if (RAW_PREG) drawT6(computeT6(RAW_PREG, chosen6()), "t6", "main");
     if (RAW_YA) drawT7(computeT7(RAW_YA, chosen7()), "t7", "main");
     if (RAW_BPE) drawT8(computeT8(RAW_BPE, chosen8()), "t8", "main");
+    if (RAW_WE) drawT9(computeT9(RAW_WE, chosen9()), "t9", "main");
   });
 })();
+
