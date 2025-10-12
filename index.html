@@ -9,46 +9,31 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      /* Blue palette */
-      --hero:#0b63c7;           /* primary */
-      --hero-2:#1e88ff;         /* lighter */
-      --accent:#2563eb;         /* button/icon */
+      --hero:#0b63c7; --hero-2:#1e88ff; --accent:#2563eb;
       --bg:#f7f7fb; --panel:#fff; --ink:#0f172a; --muted:#64748b; --bd:#e5e7eb;
       --shadow-1:0 1px 2px rgba(15,23,42,.06),0 8px 16px rgba(15,23,42,.05);
       --shadow-2:0 8px 22px rgba(2,6,23,.14);
-      --max:1100px; --g:16px;   /* max width & grid gap */
+      --max:1100px; --g:16px;
     }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;display:flex;min-height:100vh;flex-direction:column}
     .wrap{max-width:var(--max);margin:0 auto;padding:0 var(--g)}
 
-    /* HERO (tight to reduce empty space) */
+    /* Shared 2-col grid (used in hero and main) */
+    .grid{display:grid;gap:var(--g);grid-template-columns:1fr}
+    @media (min-width:900px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+
+    /* HERO uses the same grid, so title/subtitle/search align with cards */
     header{
       background:linear-gradient(180deg,var(--hero),var(--hero-2));
-      color:#fff;
-      padding:22px 0 26px;
-      box-shadow:inset 0 -1px 0 rgba(255,255,255,.15);
+      color:#fff; padding:20px 0 18px; box-shadow:inset 0 -1px 0 rgba(255,255,255,.15);
     }
-    header h1{margin:0 0 6px;font-weight:800;line-height:1.2;font-size:28px}
-    header p{margin:0;color:#e9f1ff}
+    .title{grid-column:1 / -1; margin:0; font-weight:800; line-height:1.2; font-size:28px}
+    .subtitle{grid-column:1 / -1; margin:2px 0 4px; color:#e9f1ff}
 
-    /* GRID: 2 columns on desktop, 1 on mobile  */
-    main{flex:1}
-    .grid{
-      display:grid; gap:var(--g);
-      grid-template-columns:1fr; /* mobile */
-      align-items:start;
+    .search{
+      grid-column:1 / -1; display:flex; gap:10px; margin:6px 0 2px;
     }
-    /* desktop/tablet ≥900px -> 2 columns */
-    @media (min-width:900px){
-      .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-    }
-
-    /* Headline / search align to the same grid columns */
-    .title{grid-column:1 / -1; margin:18px 0 0}
-    .subtitle{grid-column:1 / -1; margin:2px 0 10px; color:var(--muted)}
-
-    .search{grid-column:1 / -1; display:flex; gap:10px; margin:6px 0 10px}
     .search input{
       flex:1;height:46px;border-radius:12px;border:1px solid #d1d5db;padding:0 14px;font-size:15px;background:#fff;box-shadow:var(--shadow-1)
     }
@@ -57,7 +42,10 @@
     }
     .search button:hover{filter:brightness(.96)}
 
-    /* Cards */
+    main{flex:1}
+    .cards{margin:14px 0 18px}
+
+    /* Card */
     a.card{
       text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--bd);
       border-radius:16px;padding:16px;display:flex;gap:14px;min-height:140px;
@@ -70,10 +58,10 @@
     .cdesc{margin:0;color:var(--muted);font-size:14px}
     .badge{display:inline-block;margin-top:10px;padding:4px 10px;border-radius:999px;background:#eef4ff;border:1px solid #dbe7ff;font-size:12px;color:#1e40af;font-weight:700}
 
-    footer{margin:14px 0 20px;color:#94a3b8;font-size:12px}
+    footer{margin:8px 0 20px;color:#94a3b8;font-size:12px}
   </style>
 
-  <!-- Simple icons -->
+  <!-- Icons -->
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
     <symbol id="i-access" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/>
@@ -90,24 +78,21 @@
   </svg>
 </head>
 <body>
-  <!-- Top banner -->
+  <!-- HERO on the same 2-col grid -->
   <header>
-    <div class="wrap">
-      <h1>Infographik Data Teknikal Kesihatan Pergigian Negeri Kedah</h1>
-      <p>Sumber: Google Sheets (Publish to Web)</p>
-    </div>
-  </header>
-
-  <!-- Content aligned on a 2-column grid -->
-  <main class="wrap">
-    <div class="grid">
-      <!-- Align search with the same grid width -->
+    <div class="wrap grid">
+      <h1 class="title">Infographik Data Teknikal Kesihatan Pergigian Negeri Kedah</h1>
+      <p class="subtitle">Sumber: Google Sheets (Publish to Web)</p>
       <div class="search" role="search">
         <input id="q" type="search" placeholder="Cari modul… (akses, sekolah, KPI, tenaga kerja)" aria-label="Cari modul">
         <button id="btnSearch" type="button" aria-label="Laksanakan carian">Cari</button>
       </div>
+    </div>
+  </header>
 
-      <!-- 2×2 tiles -->
+  <!-- Cards, same grid = perfect alignment -->
+  <main class="wrap">
+    <div class="grid cards" id="cards">
       <a class="card" href="akses.html" data-key="akses perkhidmatan pergigian capaian utiliti rawatan daerah liputan">
         <div class="icowrap"><svg><use href="#i-access"/></svg></div>
         <div>
@@ -149,7 +134,7 @@
   <footer class="wrap">© Kedah Oral Health Analytics • Antaramuka selari dengan halaman dalaman.</footer>
 
   <script>
-    // Simple card filter aligned with the search bar above
+    // Card filter
     const q = document.getElementById('q');
     const btn = document.getElementById('btnSearch');
     const cards = Array.from(document.querySelectorAll('.card'));
