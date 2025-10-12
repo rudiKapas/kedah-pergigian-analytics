@@ -149,60 +149,11 @@
       </div>
     </section>
 
-    <!-- Tile 4 (NEW) — Pesakit Pakar -->
+    <!-- Tile 4 (NEW) -->
     <section class="tile">
       <div class="th">
         <div>
           <h2 class="ttl">Jumlah Kedatangan Pesakit Pakar</h2>
-          <div class="sub"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span id="t4stime">—</span></div>
-        </div>
-        <div class="act">
-          <button id="t4srefresh" class="btn" title="Kemas Kini"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></button>
-          <button id="t4sexpand" class="btn" title="Perbesar"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M4 4l6 6"/><path d="M20 15v5h-5M20 20l-6-6"/><path d="M15 4h5v5M20 4l-6 6"/><path d="M9 20H4v-5M4 20l6-6"/></svg></button>
-        </div>
-      </div>
-      <div class="tb">
-        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
-          <label style="font-weight:600">Kumpulan Pakar:</label>
-          <select id="t4ssvc" class="b" style="border:1px solid var(--bd);background:#fff;padding:8px 12px;border-radius:10px;font-weight:600">
-            <option value="OMF">OMF</option>
-            <option value="Paeds">Paeds</option>
-            <option value="Ortho">Ortho</option>
-            <option value="Perio">Perio</option>
-            <option value="Resto">Resto</option>
-            <option value="OMOP">OMOP</option>
-            <option value="DPH">DPH</option>
-          </select>
-          <label style="display:inline-flex;align-items:center;gap:6px">
-            <input type="checkbox" id="t4sreten">
-            <span>Guna lajur Reten Negeri</span>
-          </label>
-        </div>
-
-        <div class="dd" id="dd4s">
-          <button class="b" type="button" id="dd4sbtn">Pilih Kategori</button>
-          <div class="tags" id="dd4stags"></div>
-          <div class="menu" id="dd4smenu"><div class="mfoot">
-            <button class="b" type="button" id="dd4sall">Pilih Semua</button>
-            <button class="b" type="button" id="dd4snone">Kosongkan</button>
-            <button class="b" type="button" id="dd4sclose">Tutup</button>
-          </div></div>
-        </div>
-
-        <div class="chart"><canvas id="t4s"></canvas></div>
-        <div class="legend" id="t4slegend"></div>
-        <div class="err" id="t4serr"></div>
-      </div>
-    </section>
-
-
-  </section>
-
-    <!-- Tile 4 -->
-    <section class="tile">
-      <div class="th">
-        <div>
-          <h2 class="ttl">Pencapaian Program Toddler</h2>
           <div class="sub"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span id="t4time">—</span></div>
         </div>
         <div class="act">
@@ -212,7 +163,7 @@
       </div>
       <div class="tb">
         <div class="dd" id="dd4">
-          <button class="b" type="button" id="dd4btn">Pilih Metrik</button>
+          <button class="b" type="button" id="dd4btn">Pilih Kumpulan Pakar</button>
           <div class="tags" id="dd4tags"></div>
           <div class="menu" id="dd4menu"><div class="mfoot">
             <button class="b" type="button" id="dd4all">Pilih Semua</button>
@@ -226,11 +177,11 @@
       </div>
     </section>
 
-    <!-- Tile 5 (below Tile 3) -->
+    <!-- Tile 5 (Toddler; previously Tile 4) -->
     <section class="tile">
       <div class="th">
         <div>
-          <h2 class="ttl">Liputan Ibu Mengandung</h2>
+          <h2 class="ttl">Pencapaian Program Toddler</h2>
           <div class="sub"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span id="t5time">—</span></div>
         </div>
         <div class="act">
@@ -254,7 +205,35 @@
       </div>
     </section>
 
-    <!-- Empty tile (below Tile 4) -->
+    <!-- Tile 6 (Liputan Ibu Mengandung; previously Tile 5) -->
+    <section class="tile">
+      <div class="th">
+        <div>
+          <h2 class="ttl">Liputan Ibu Mengandung</h2>
+          <div class="sub"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span id="t6time">—</span></div>
+        </div>
+        <div class="act">
+          <button id="t6refresh" class="btn" title="Kemas Kini"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></button>
+          <button id="t6expand" class="btn" title="Perbesar"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M4 4l6 6"/><path d="M20 15v5h-5M20 20l-6-6"/><path d="M15 4h5v5M20 4l-6 6"/><path d="M9 20H4v-5M4 20l6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="tb">
+        <div class="dd" id="dd6">
+          <button class="b" type="button" id="dd6btn">Pilih Metrik</button>
+          <div class="tags" id="dd6tags"></div>
+          <div class="menu" id="dd6menu"><div class="mfoot">
+            <button class="b" type="button" id="dd6all">Pilih Semua</button>
+            <button class="b" type="button" id="dd6none">Kosongkan</button>
+            <button class="b" type="button" id="dd6close">Tutup</button>
+          </div></div>
+        </div>
+        <div class="chart"><canvas id="t6"></canvas></div>
+        <div class="legend" id="t6legend"></div>
+        <div class="err" id="t6err"></div>
+      </div>
+    </section>
+
+    <!-- Empty tile (reserve slot) -->
     <section class="tile">
       <div class="th">
         <div>
@@ -280,6 +259,6 @@
     </div>
   </div>
 
-  <script src="app.updated.js?v=13"></script>
+  <script src="app.js?v=13"></script>
 </body>
 </html>
