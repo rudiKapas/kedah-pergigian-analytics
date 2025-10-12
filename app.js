@@ -717,10 +717,18 @@
   }
 
   function drawT7(data, canvas, mode) {
+    const ctx = $(canvas).getContext('2d');
+    const g1 = ctx.createLinearGradient(0, 0, 0, 260); g1.addColorStop(0, 'rgba(14,165,233,.35)'); g1.addColorStop(1, 'rgba(14,165,233,.03)');
+    const g2 = ctx.createLinearGradient(0, 0, 0, 260); g2.addColorStop(0, 'rgba(16,185,129,.35)'); g2.addColorStop(1, 'rgba(16,185,129,.03)');
     if (CH_YA) CH_YA.destroy();
-    const ds = data.per.map(m => ({
-      label: m.key, data: m.data, borderColor: m.color, backgroundColor: "transparent",
-      borderWidth: 3, tension: .45, fill: false
+    const ds = data.per.map((m, idx) => ({
+      label: m.key,
+      data: m.data,
+      borderColor: m.color,
+      backgroundColor: idx === 0 ? g1 : g2,
+      borderWidth: 3,
+      tension: .45,
+      fill: true
     }));
     CH_YA = new Chart($(canvas).getContext("2d"), {
       type: "line",
