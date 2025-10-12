@@ -6,11 +6,22 @@
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   function colIdx(L){ let n=0; for(let i=0;i<L.length;i++) n=n*26+(L.charCodeAt(i)-64); return n-1; }
+
   function cell(data, addr){
     const m=/^([A-Z]+)(\d+)$/.exec(addr); if(!m) return 0;
     const r=parseInt(m[2],10)-1, c=colIdx(m[1]);
     return cleanInt((data[r]||[])[c]);
   }
+
+  // NEW: read a cell as percentage (0–100). Accepts "54.3%" or "0.543" etc.
+  function cellPct(data, addr){
+    const m=/^([A-Z]+)(\d+)$/.exec(addr); if(!m) return 0;
+    const r=parseInt(m[2],10)-1, c=colIdx(m[1]);
+    const raw=(data[r]||[])[c];
+    const p=cleanPct(raw);
+    return p==null ? 0 : p;
+  }
+
   function cleanInt(v){ if(v==null) return 0; const s=String(v).replace(/\u00A0/g,"").replace(/[, ]/g,""); const n=Number(s); return isNaN(n)?0:n; }
   function cleanPct(v){
     if(v==null) return null;
@@ -100,7 +111,7 @@
   loadT1();
 
   // =======================================================
-  // TILE 2 — Primer Kedatangan Baru & Ulangan (kategori)
+  // TILE 2 — Kedatangan Pesakit Primer (kategori umur)
   // =======================================================
   const CSV2 = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1808391684&single=true&output=csv";
   const DIST2 = [
@@ -290,7 +301,6 @@
     return { labels, per };
   }
   function addTargetLine(arrLen, value, color){
-    // arrLen includes the padded endpoints -> create [0, value..., 0]
     const a=[0]; for(let i=1;i<arrLen-1;i++) a.push(value); a.push(0);
     return { data:a, color:color||"#475569" };
   }
@@ -363,7 +373,7 @@
   }
   function computeT5(arr,set){
     const labels=["",...DIST5.map(d=>d.n),""], per=[];
-    MET5.forEach(m=>{ if(!set.has(m.key)) return; const s=[0]; DIST5.forEach(d=>s.push(cell(arr,d.L+String(m.row)))); s.push(0); per.push({key:m.key,color:m.color,target:m.target,data:s}); });
+    MET5.forEach(m=>{ if(!set.has(m.key)) return; const s=[0]; DIST5.forEach(d=>s.push(cellPct(arr,d.L+String(m.row)))); s.push(0); per.push({key:m.key,color:m.color,target:m.target,data:s}); });
     return { labels, per };
   }
   function drawT5(data,canvas,mode){
@@ -372,8 +382,8 @@
     data.per.forEach(m=>{
       ds.push({label:m.key,data:m.data,borderColor:m.color,backgroundColor:"transparent",borderWidth:3,tension:.45,fill:false,yAxisID:"y"});
       if(m.target!=null){
-        const t=addTargetLine(m.data.length, m.target);
-        ds.push({label:`Sasaran ${m.key}`,data:t.data,borderColor:t.color,borderWidth:2,borderDash:[4,4],pointRadius:0,fill:false,yAxisID:"y"});
+        const a=[0]; for(let i=1;i<m.data.length-1;i++) a.push(m.target); a.push(0);
+        ds.push({label:`Sasaran ${m.key}`,data:a,borderColor:"#475569",borderWidth:2,borderDash:[4,4],pointRadius:0,fill:false,yAxisID:"y"});
       }
     });
     CH5=new Chart($(canvas).getContext("2d"),{
