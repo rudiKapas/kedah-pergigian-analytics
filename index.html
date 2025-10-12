@@ -5,290 +5,299 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Analitik Data Teknikal Kesihatan Pergigian Negeri Kedah</title>
 
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="data:," /> <!-- stop 404 favicon -->
+  <!-- Stop 404 favicon error (1x1 transparent PNG) -->
+  <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=">
 
-  <!-- libs -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=5">
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <!-- Inline SVG icon sprite -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <symbol id="i-time" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>
+    </symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/>
+    </symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M4 9V4h5M4 4l6 6"/><path d="M20 15v5h-5M20 20l-6-6"/>
+      <path d="M15 4h5v5M20 4l-6 6"/><path d="M9 20H4v-5M4 20l6-6"/>
+    </symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 5h18l-7 8v6l-4-2v-4L3 5z"/>
+    </symbol>
+    <symbol id="i-checkall" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M9 12l2 2 4-4"/><path d="M3 12l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="3"/>
+    </symbol>
+    <symbol id="i-eraser" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M7 21h13"/><path d="M16 3l5 5-10 10H6L1 13l10-10 5 5"/>
+    </symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M18 6L6 18M6 6l12 12"/>
+    </symbol>
+  </svg>
 </head>
 <body>
-  <header class="page">
+  <header class="ph">
     <h1>Analitik Data Teknikal Kesihatan Pergigian Negeri Kedah</h1>
-    <div class="sub">Sumber: Google Sheets (Publish to Web)</div>
+    <p>Sumber: Google Sheets (Publish to Web)</p>
   </header>
 
   <main class="grid">
-
     <!-- 1 -->
-    <section class="card" id="card1">
-      <header class="card-hd">
+    <section class="tile">
+      <div class="th">
         <div>
-          <h2>1. Akses Kepada Perkhidmatan Kesihatan Pergigian</h2>
-          <div class="time" id="t1time">—</div>
+          <h2 class="ttl">Akses Kepada Perkhidmatan Kesihatan Pergigian</h2>
+          <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="t1time">—</span></div>
         </div>
-        <div class="actions">
-          <button id="t1refresh" class="icon-btn" title="Muat semula"><span class="i i-reload"></span></button>
-          <button id="t1expand"  class="icon-btn" title="Besarkan"><span class="i i-expand"></span></button>
+        <div class="act">
+          <button id="t1refresh" class="btn" title="Kemas Kini"><svg class="ico"><use href="#i-refresh"/></svg></button>
+          <button id="t1expand" class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
         </div>
-      </header>
-      <div class="canvas-wrap"><canvas id="t1"></canvas><div id="t1err" class="err"></div></div>
-      <footer class="legend" id="t1legend"></footer>
+      </div>
+      <div class="tb">
+        <div class="chart"><canvas id="t1"></canvas></div>
+        <div class="legend">
+          <span class="lg"><span class="dot" style="background:#f59e0b"></span>% Menerima Perkhidmatan</span>
+          <span class="lg"><span class="dot" style="background:#6366f1"></span>Anggaran Penduduk</span>
+        </div>
+        <div class="err" id="t1err"></div>
+      </div>
     </section>
 
     <!-- 2 -->
-    <section class="card" id="card2">
-      <header class="card-hd">
+    <section class="tile">
+      <div class="th">
         <div>
-          <h2>2. Kedatangan Pesakit Primer</h2>
-          <div class="time" id="t2time">—</div>
+          <h2 class="ttl">Kedatangan Pesakit Primer</h2>
+          <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="t2time">—</span></div>
         </div>
-        <div class="actions">
+        <div class="act">
           <div class="dd" id="dd2">
-            <button id="dd2btn" class="icon-chip" title="Pilih Kategori"><span class="i i-filter"></span></button>
+            <button class="btn dd-trigger" id="dd2btn" title="Tapis"><svg class="ico"><use href="#i-filter"/></svg></button>
             <div class="menu" id="dd2menu">
-              <div class="menu-hd">Pilih Kategori</div>
               <div class="menu-body"></div>
-              <div class="menu-ft">
-                <button id="dd2all" class="mini">Pilih Semua</button>
-                <button id="dd2none" class="mini">Kosongkan</button>
-                <button id="dd2close" class="mini">Tutup</button>
+              <div class="mfoot">
+                <button class="icbtn" id="dd2all" title="Pilih Semua"><svg class="ico"><use href="#i-checkall"/></svg></button>
+                <button class="icbtn" id="dd2none" title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
+                <button class="icbtn" id="dd2close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
               </div>
             </div>
           </div>
-          <button id="t2refresh" class="icon-btn" title="Muat semula"><span class="i i-reload"></span></button>
-          <button id="t2expand"  class="icon-btn" title="Besarkan"><span class="i i-expand"></span></button>
+          <button id="t2refresh" class="btn" title="Kemas Kini"><svg class="ico"><use href="#i-refresh"/></svg></button>
+          <button id="t2expand" class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
         </div>
-      </header>
-      <div class="card-sub"><div id="dd2tags" class="tags"></div><div id="t2legend" class="legend"></div></div>
-      <div class="canvas-wrap"><canvas id="t2"></canvas><div id="t2err" class="err"></div></div>
+      </div>
+      <div class="tb">
+        <div class="tags" id="dd2tags"></div>
+        <div class="chart"><canvas id="t2"></canvas></div>
+        <div class="legend" id="t2legend"></div>
+        <div class="err" id="t2err"></div>
+      </div>
     </section>
 
     <!-- 3 -->
-    <section class="card" id="card3">
-      <header class="card-hd">
+    <section class="tile">
+      <div class="th">
         <div>
-          <h2>3. Kedatangan Pesakit Outreach</h2>
-          <div class="time" id="t3time">—</div>
+          <h2 class="ttl">Kedatangan Pesakit Outreach</h2>
+          <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="t3time">—</span></div>
         </div>
-        <div class="actions">
+        <div class="act">
           <div class="dd" id="dd3">
-            <button id="dd3btn" class="icon-chip" title="Pilih Kumpulan"><span class="i i-filter"></span></button>
+            <button class="btn dd-trigger" id="dd3btn" title="Tapis"><svg class="ico"><use href="#i-filter"/></svg></button>
             <div class="menu" id="dd3menu">
-              <div class="menu-hd">Pilih Kumpulan</div>
               <div class="menu-body"></div>
-              <div class="menu-ft">
-                <button id="dd3all" class="mini">Pilih Semua</button>
-                <button id="dd3none" class="mini">Kosongkan</button>
-                <button id="dd3close" class="mini">Tutup</button>
+              <div class="mfoot">
+                <button class="icbtn" id="dd3all" title="Pilih Semua"><svg class="ico"><use href="#i-checkall"/></svg></button>
+                <button class="icbtn" id="dd3none" title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
+                <button class="icbtn" id="dd3close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
               </div>
             </div>
           </div>
-          <button id="t3refresh" class="icon-btn" title="Muat semula"><span class="i i-reload"></span></button>
-          <button id="t3expand"  class="icon-btn" title="Besarkan"><span class="i i-expand"></span></button>
+          <button id="t3refresh" class="btn" title="Kemas Kini"><svg class="ico"><use href="#i-refresh"/></svg></button>
+          <button id="t3expand" class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
         </div>
-      </header>
-      <div class="card-sub"><div id="dd3tags" class="tags"></div><div id="t3legend" class="legend"></div></div>
-      <div class="canvas-wrap"><canvas id="t3"></canvas><div id="t3err" class="err"></div></div>
+      </div>
+      <div class="tb">
+        <div class="tags" id="dd3tags"></div>
+        <div class="chart"><canvas id="t3"></canvas></div>
+        <div class="legend" id="t3legend"></div>
+        <div class="err" id="t3err"></div>
+      </div>
     </section>
 
     <!-- 4 -->
-    <section class="card" id="card4">
-      <header class="card-hd">
+    <section class="tile">
+      <div class="th">
         <div>
-          <h2>4. Jumlah Kedatangan Pesakit Pakar</h2>
-          <div class="time" id="t4time">—</div>
+          <h2 class="ttl">Jumlah Kedatangan Pesakit Pakar</h2>
+          <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="t4time">—</span></div>
         </div>
-        <div class="actions">
+        <div class="act">
           <div class="dd" id="dd4">
-            <button id="dd4btn" class="icon-chip" title="Pilih Kumpulan Pakar"><span class="i i-filter"></span></button>
+            <button class="btn dd-trigger" id="dd4btn" title="Tapis"><svg class="ico"><use href="#i-filter"/></svg></button>
             <div class="menu" id="dd4menu">
-              <div class="menu-hd">Pilih Kumpulan Pakar</div>
               <div class="menu-body"></div>
-              <div class="menu-ft">
-                <button id="dd4all" class="mini">Pilih Semua</button>
-                <button id="dd4none" class="mini">Kosongkan</button>
-                <button id="dd4close" class="mini">Tutup</button>
+              <div class="mfoot">
+                <button class="icbtn" id="dd4all" title="Pilih Semua"><svg class="ico"><use href="#i-checkall"/></svg></button>
+                <button class="icbtn" id="dd4none" title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
+                <button class="icbtn" id="dd4close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
               </div>
             </div>
           </div>
-          <button id="t4refresh" class="icon-btn" title="Muat semula"><span class="i i-reload"></span></button>
-          <button id="t4expand"  class="icon-btn" title="Besarkan"><span class="i i-expand"></span></button>
+          <button id="t4refresh" class="btn" title="Kemas Kini"><svg class="ico"><use href="#i-refresh"/></svg></button>
+          <button id="t4expand" class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
         </div>
-      </header>
-      <div class="card-sub"><div id="dd4tags" class="tags"></div><div id="t4legend" class="legend"></div></div>
-      <div class="canvas-wrap"><canvas id="t4"></canvas><div id="t4err" class="err"></div></div>
+      </div>
+      <div class="tb">
+        <div class="tags" id="dd4tags"></div>
+        <div class="chart"><canvas id="t4"></canvas></div>
+        <div class="legend" id="t4legend"></div>
+        <div class="err" id="t4err"></div>
+      </div>
     </section>
 
     <!-- 5 -->
-    <section class="card" id="card5">
-      <header class="card-hd">
+    <section class="tile">
+      <div class="th">
         <div>
-          <h2>5. Pencapaian Program Toddler</h2>
-          <div class="time" id="t5time">—</div>
+          <h2 class="ttl">Pencapaian Program Toddler</h2>
+          <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="t5time">—</span></div>
         </div>
-        <div class="actions">
+        <div class="act">
           <div class="dd" id="dd5">
-            <button id="dd5btn" class="icon-chip" title="Pilih Metrik"><span class="i i-filter"></span></button>
+            <button class="btn dd-trigger" id="dd5btn" title="Tapis"><svg class="ico"><use href="#i-filter"/></svg></button>
             <div class="menu" id="dd5menu">
-              <div class="menu-hd">Pilih Metrik</div>
               <div class="menu-body"></div>
-              <div class="menu-ft">
-                <button id="dd5all" class="mini">Pilih Semua</button>
-                <button id="dd5none" class="mini">Kosongkan</button>
-                <button id="dd5close" class="mini">Tutup</button>
+              <div class="mfoot">
+                <button class="icbtn" id="dd5all" title="Pilih Semua"><svg class="ico"><use href="#i-checkall"/></svg></button>
+                <button class="icbtn" id="dd5none" title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
+                <button class="icbtn" id="dd5close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
               </div>
             </div>
           </div>
-          <button id="t5refresh" class="icon-btn" title="Muat semula"><span class="i i-reload"></span></button>
-          <button id="t5expand"  class="icon-btn" title="Besarkan"><span class="i i-expand"></span></button>
+          <button id="t5refresh" class="btn" title="Kemas Kini"><svg class="ico"><use href="#i-refresh"/></svg></button>
+          <button id="t5expand" class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
         </div>
-      </header>
-      <div class="card-sub"><div id="dd5tags" class="tags"></div><div id="t5legend" class="legend"></div></div>
-      <div class="canvas-wrap"><canvas id="t5"></canvas><div id="t5err" class="err"></div></div>
+      </div>
+      <div class="tb">
+        <div class="tags" id="dd5tags"></div>
+        <div class="chart"><canvas id="t5"></canvas></div>
+        <div class="legend" id="t5legend"></div>
+        <div class="err" id="t5err"></div>
+      </div>
     </section>
 
     <!-- 6 -->
-    <section class="card" id="card6">
-      <header class="card-hd">
+    <section class="tile">
+      <div class="th">
         <div>
-          <h2>6. Liputan Ibu Mengandung</h2>
-          <div class="time" id="t6time">—</div>
+          <h2 class="ttl">Liputan Ibu Mengandung</h2>
+          <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="t6time">—</span></div>
         </div>
-        <div class="actions">
+        <div class="act">
           <div class="dd" id="dd6">
-            <button id="dd6btn" class="icon-chip" title="Pilih Metrik"><span class="i i-filter"></span></button>
+            <button class="btn dd-trigger" id="dd6btn" title="Tapis"><svg class="ico"><use href="#i-filter"/></svg></button>
             <div class="menu" id="dd6menu">
-              <div class="menu-hd">Pilih Metrik</div>
               <div class="menu-body"></div>
-              <div class="menu-ft">
-                <button id="dd6all" class="mini">Pilih Semua</button>
-                <button id="dd6none" class="mini">Kosongkan</button>
-                <button id="dd6close" class="mini">Tutup</button>
+              <div class="mfoot">
+                <button class="icbtn" id="dd6all" title="Pilih Semua"><svg class="ico"><use href="#i-checkall"/></svg></button>
+                <button class="icbtn" id="dd6none" title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
+                <button class="icbtn" id="dd6close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
               </div>
             </div>
           </div>
-          <button id="t6refresh" class="icon-btn" title="Muat semula"><span class="i i-reload"></span></button>
-          <button id="t6expand"  class="icon-btn" title="Besarkan"><span class="i i-expand"></span></button>
+          <button id="t6refresh" class="btn" title="Kemas Kini"><svg class="ico"><use href="#i-refresh"/></svg></button>
+          <button id="t6expand" class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
         </div>
-      </header>
-      <div class="card-sub"><div id="dd6tags" class="tags"></div><div id="t6legend" class="legend"></div></div>
-      <div class="canvas-wrap"><canvas id="t6"></canvas><div id="t6err" class="err"></div></div>
+      </div>
+      <div class="tb">
+        <div class="tags" id="dd6tags"></div>
+        <div class="chart"><canvas id="t6"></canvas></div>
+        <div class="legend" id="t6legend"></div>
+        <div class="err" id="t6err"></div>
+      </div>
     </section>
 
     <!-- 7 -->
-    <section class="card" id="card7">
-      <header class="card-hd">
+    <section class="tile">
+      <div class="th">
         <div>
-          <h2>7. Young Adult</h2>
-          <div class="time" id="t7time">—</div>
+          <h2 class="ttl">Young Adult</h2>
+          <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="t7time">—</span></div>
         </div>
-        <div class="actions">
+        <div class="act">
           <div class="dd" id="dd7">
-            <button id="dd7btn" class="icon-chip" title="Pilih Metrik"><span class="i i-filter"></span></button>
+            <button class="btn dd-trigger" id="dd7btn" title="Tapis"><svg class="ico"><use href="#i-filter"/></svg></button>
             <div class="menu" id="dd7menu">
-              <div class="menu-hd">Pilih Metrik</div>
               <div class="menu-body"></div>
-              <div class="menu-ft">
-                <button id="dd7all" class="mini">Pilih Semua</button>
-                <button id="dd7none" class="mini">Kosongkan</button>
-                <button id="dd7close" class="mini">Tutup</button>
+              <div class="mfoot">
+                <button class="icbtn" id="dd7all" title="Pilih Semua"><svg class="ico"><use href="#i-checkall"/></svg></button>
+                <button class="icbtn" id="dd7none" title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
+                <button class="icbtn" id="dd7close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
               </div>
             </div>
           </div>
-          <button id="t7refresh" class="icon-btn" title="Muat semula"><span class="i i-reload"></span></button>
-          <button id="t7expand"  class="icon-btn" title="Besarkan"><span class="i i-expand"></span></button>
+          <button id="t7refresh" class="btn" title="Kemas Kini"><svg class="ico"><use href="#i-refresh"/></svg></button>
+          <button id="t7expand" class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
         </div>
-      </header>
-      <div class="card-sub"><div id="dd7tags" class="tags"></div><div id="t7legend" class="legend"></div></div>
-      <div class="canvas-wrap"><canvas id="t7"></canvas><div id="t7err" class="err"></div></div>
+      </div>
+      <div class="tb">
+        <div class="tags" id="dd7tags"></div>
+        <div class="chart"><canvas id="t7"></canvas></div>
+        <div class="legend" id="t7legend"></div>
+        <div class="err" id="t7err"></div>
+      </div>
     </section>
 
     <!-- 8 -->
-    <section class="card" id="card8">
-      <header class="card-hd">
+    <section class="tile">
+      <div class="th">
         <div>
-          <h2>8. Basic Periodontal Examination</h2>
-          <div class="time" id="t8time">—</div>
+          <h2 class="ttl">Basic Periodontal Examination</h2>
+          <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="t8time">—</span></div>
         </div>
-        <div class="actions">
+        <div class="act">
           <div class="dd" id="dd8">
-            <button id="dd8btn" class="icon-chip" title="Pilih Metrik"><span class="i i-filter"></span></button>
+            <button class="btn dd-trigger" id="dd8btn" title="Tapis"><svg class="ico"><use href="#i-filter"/></svg></button>
             <div class="menu" id="dd8menu">
-              <div class="menu-hd">Pilih Metrik</div>
               <div class="menu-body"></div>
-              <div class="menu-ft">
-                <button id="dd8all" class="mini">Pilih Semua</button>
-                <button id="dd8none" class="mini">Kosongkan</button>
-                <button id="dd8close" class="mini">Tutup</button>
+              <div class="mfoot">
+                <button class="icbtn" id="dd8all" title="Pilih Semua"><svg class="ico"><use href="#i-checkall"/></svg></button>
+                <button class="icbtn" id="dd8none" title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
+                <button class="icbtn" id="dd8close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
               </div>
             </div>
           </div>
-          <button id="t8refresh" class="icon-btn" title="Muat semula"><span class="i i-reload"></span></button>
-          <button id="t8expand"  class="icon-btn" title="Besarkan"><span class="i i-expand"></span></button>
+          <button id="t8refresh" class="btn" title="Kemas Kini"><svg class="ico"><use href="#i-refresh"/></svg></button>
+          <button id="t8expand" class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
         </div>
-      </header>
-      <div class="card-sub"><div id="dd8tags" class="tags"></div><div id="t8legend" class="legend"></div></div>
-      <div class="canvas-wrap"><canvas id="t8"></canvas><div id="t8err" class="err"></div></div>
+      </div>
+      <div class="tb">
+        <div class="tags" id="dd8tags"></div>
+        <div class="chart"><canvas id="t8"></canvas></div>
+        <div class="legend" id="t8legend"></div>
+        <div class="err" id="t8err"></div>
+      </div>
     </section>
-
-    <!-- 9 -->
-    <section class="card" id="card9">
-      <header class="card-hd">
-        <div>
-          <h2>9. Warga Emas</h2>
-          <div class="time" id="t9time">—</div>
-        </div>
-        <div class="actions">
-          <div class="dd" id="dd9">
-            <button id="dd9btn" class="icon-chip" title="Pilih Metrik"><span class="i i-filter"></span></button>
-            <div class="menu" id="dd9menu">
-              <div class="menu-hd">Pilih Metrik</div>
-              <div class="menu-body"></div>
-              <div class="menu-ft">
-                <button id="dd9all" class="mini">Pilih Semua</button>
-                <button id="dd9none" class="mini">Kosongkan</button>
-                <button id="dd9close" class="mini">Tutup</button>
-              </div>
-            </div>
-          </div>
-          <button id="t9refresh" class="icon-btn" title="Muat semula"><span class="i i-reload"></span></button>
-          <button id="t9expand"  class="icon-btn" title="Besarkan"><span class="i i-expand"></span></button>
-        </div>
-      </header>
-      <div class="card-sub"><div id="dd9tags" class="tags"></div><div id="t9legend" class="legend"></div></div>
-      <div class="canvas-wrap"><canvas id="t9"></canvas><div id="t9err" class="err"></div></div>
-    </section>
-
-    <!-- 10 -->
-    <section class="card" id="card10">
-      <header class="card-hd">
-        <div>
-          <h2>10. Slot Tambahan</h2>
-          <div class="time" id="t10time">—</div>
-        </div>
-        <div class="actions">
-          <button class="icon-btn" title="Muat semula"><span class="i i-reload"></span></button>
-          <button class="icon-btn" title="Besarkan"><span class="i i-expand"></span></button>
-        </div>
-      </header>
-      <div class="canvas-wrap placeholder"><div class="empty">Ruang untuk paparan seterusnya.</div></div>
-    </section>
-
   </main>
 
-  <!-- modal -->
-  <div id="modal" class="modal">
-    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="mtitle">
-      <header class="modal-hd">
-        <h3 id="mtitle">Paparan Besar</h3>
-        <button id="mclose" class="icon-btn"><span class="i i-close"></span></button>
-      </header>
-      <div class="canvas-wrap"><canvas id="mcanvas"></canvas></div>
+  <!-- Fullscreen modal -->
+  <div class="modal" id="modal">
+    <div class="modal-inner">
+      <div class="mh">
+        <h3 id="mtitle" style="margin:0;font-weight:800">Perincian</h3>
+        <button class="close" id="mclose">Tutup</button>
+      </div>
+      <div class="mb"><div class="mchart"><canvas id="mcanvas"></canvas></div></div>
     </div>
   </div>
 
-  <!-- IMPORTANT: use a new filename to dodge cached broken app.js -->
-  <script src="app.fixed.js?v=1" defer></script>
+  <script src="app.js?v=18"></script>
 </body>
 </html>
