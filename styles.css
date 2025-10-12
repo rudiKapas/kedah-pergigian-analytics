@@ -16,8 +16,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,
 .tile{background:#fff;border:1px solid var(--bd);border-radius:16px;
   box-shadow:0 1px 2px rgba(15,23,42,.06),0 8px 16px rgba(15,23,42,.04);
   display:flex;flex-direction:column;min-height:0}
-.tile.span2{grid-column:1 / -1;} /* NEW: make Tile 9 cover both columns */
-
+.tile.wide{grid-column:1 / -1} /* span both columns */
 .th{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start;
   padding:12px 14px;border-bottom:1px solid var(--bd)}
 .ttl{margin:0 0 4px;font-size:var(--title);line-height:1.15;font-weight:800}
@@ -37,7 +36,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,
 .tags{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 8px}
 .tag{border:1px solid var(--bd);background:#f8fafc;padding:3px 8px;border-radius:999px;font-size:12px}
 
-/* Dropdown */
+/* Dropdown panel */
 .dd{position:relative;display:inline-block}
 .menu{
   position:absolute;top:110%;right:0;min-width:280px;background:#fff;border:1px solid var(--bd);border-radius:14px;
@@ -62,3 +61,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,
 .mchart{width:100%;height:100%}
 .close{border:1px solid #d1d5db;background:#fff;border-radius:10px;padding:8px 12px;font-weight:700;cursor:pointer}
 .close:hover{border-color:#ef4444;box-shadow:0 0 0 4px rgba(239,68,68,.15)}
+
+/* Goals box (Tile 9) */
+.goals{display:block;border:1px dashed var(--bd);border-radius:12px;padding:8px 10px;margin:4px 0 8px;background:#fafafa}
+.goals ul{margin:6px 0 0 18px;padding:0;font-size:12px;color:#334155}
+.goals strong{font-size:12px}
