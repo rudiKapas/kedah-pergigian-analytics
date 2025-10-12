@@ -40,32 +40,25 @@
     return +n.toFixed(2);
   }
 
-  function rawCell(data, addr) {
+  // CSV cell -> integer
+  function cellInt(data, addr) {
     const m = /^([A-Z]+)(\d+)$/.exec(addr);
-    if (!m) return null;
+    if (!m) return 0;
     const r = parseInt(m[2], 10) - 1;
     const c = colIdx(m[1]);
-    return (data[r] || [])[c];
-  }
-
-  // CSV cell -> integer (supports plain numbers)
-  function cellInt(data, addr) {
-    return cleanInt(rawCell(data, addr));
-  }
-
-  // CSV cell -> integer with plus support ("12+3")
-  function cellIntPlus(data, addr) {
-    const raw = rawCell(data, addr);
-    if (raw == null) return 0;
-    const s = String(raw).replace(/\u00A0/g, "").trim();
-    return s.split("+").map(x => cleanInt(x)).reduce((a, b) => a + b, 0);
+    return cleanInt((data[r] || [])[c]);
   }
 
   // CSV cell -> percentage (0..100). Fallback to int if needed.
   function cellPct(data, addr) {
-    const raw = rawCell(data, addr);
+    const m = /^([A-Z]+)(\d+)$/.exec(addr);
+    if (!m) return 0;
+    const r = parseInt(m[2], 10) - 1;
+    const c = colIdx(m[1]);
+    const raw = (data[r] || [])[c];
     let p = cleanPct(raw);
     if (p == null) {
+      // last resort: if cell is numeric like 56 but no '%'
       const asInt = cleanInt(raw);
       p = asInt ? asInt : 0;
     }
@@ -101,9 +94,6 @@
   // Modal (full-screen expand)
   const modal = $("modal"), mtitle = $("mtitle"), mclose = $("mclose");
   let MCH = null;
-  
-  function allZero(arr) { return Array.isArray(arr) && arr.every(v => (v ?? 0) === 0); }
-
   function openModal(title) {
     mtitle.textContent = title || "Perincian";
     modal.classList.add("open");
@@ -192,11 +182,6 @@
         }
       }
     });
-    // Show subtle message if everything is zero/invisible
-    try {
-      const core = A.series.slice(1, -1).concat(P.series.slice(1, -1));
-      if (allZero(core)) { ctx.font = "12px Inter, system-ui"; ctx.fillStyle = "#94a3b8"; ctx.fillText("Tiada data untuk dipaparkan", 12, 22); }
-    } catch {}
     return CH1;
   }
 
@@ -206,7 +191,7 @@
       const csv = await fetchCSV(CSV1);
       RAW1 = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
       const popRow = RAW1[9] || [], accRow = RAW1[10] || [];
-      const rows = DIST1.map(d => { const i = colIdx(d.L); let a = cleanPct(accRow[i]); if (a == null) a = cleanInt(accRow[i]) || 0; const p = cleanInt(popRow[i]); return { n: d.n, a, p }; });
+      const rows = DIST1.map(d => { const i = colIdx(d.L); let a = cleanPct(accRow[i]); if (a == null && String(accRow[i] ?? "").trim() === "0") a = 0; const p = cleanInt(popRow[i]); return { n: d.n, a, p }; });
       drawT1(rows, "t1", "main");
       $("t1time").textContent = new Date().toLocaleString();
     } catch (e) { console.error(e); err.textContent = "Gagal memuatkan CSV (Tile 1)."; err.style.display = "block"; }
@@ -277,10 +262,6 @@
         }
       }
     });
-    try {
-      const core = data.per.flatMap(c => c.b.slice(1, -1).concat(c.u.slice(1, -1)));
-      if (allZero(core)) { const ctx = $(canvas).getContext("2d"); ctx.font = "12px Inter, system-ui"; ctx.fillStyle = "#94a3b8"; ctx.fillText("Tiada data untuk dipaparkan", 12, 22); }
-    } catch {}
     return CH2;
   }
 
@@ -360,10 +341,6 @@
         }
       }
     });
-    try {
-      const core = data.per.flatMap(s => s.b.slice(1, -1).concat(s.u.slice(1, -1)));
-      if (allZero(core)) { const ctx = $(canvas).getContext("2d"); ctx.font = "12px Inter, system-ui"; ctx.fillStyle = "#94a3b8"; ctx.fillText("Tiada data untuk dipaparkan", 12, 22); }
-    } catch {}
     return CH3;
   }
 
@@ -394,123 +371,15 @@
   loadT3();
 
   // =========================
-  // TILE 4 — Pesakit Pakar (Jumlah Baru & Ulangan)
+  // TILE 4 — Toddler (with sasaran straight lines)
   // =========================
-  const CSV4_SPEC = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=666852668&single=true&output=csv";
-  // Columns map per specialist group
-  const SPEC = {
-    "OMF": { color: "#0ea5e9", cols: [
-      { n: "Kota Setar", L: "C" }, { n: "Kuala Muda", L: "D" }, { n: "Kulim", L: "E" }, { n: "Kubang Pasu", L: "F" },
-      { n: "Langkawi", L: "G" }, { n: "Yan", L: "H" }, { n: "Baling", L: "I" }, { n: "Pendang", L: "J" },
-      { n: "Jumlah OMF", L: "K" }, { n: "Reten Negeri", L: "L" }
-    ]},
-    "Paeds": { color: "#8b5cf6", cols: [
-      { n: "Kota Setar", L: "M" }, { n: "Kuala Muda", L: "N" }, { n: "Kulim", L: "O" }, { n: "Langkawi", L: "P" },
-      { n: "Baling", L: "Q" }, { n: "Bandar Baru", L: "R" }, { n: "Jumlah Paeds", L: "S" }, { n: "Reten Negeri Paeds", L: "T" }
-    ]},
-    "Ortho": { color: "#ef4444", cols: [
-      { n: "Kota Setar", L: "U" }, { n: "Kuala Muda", L: "V" }, { n: "Kulim", L: "W" }, { n: "Kubang Pasu", L: "X" },
-      { n: "Langkawi", L: "Y" }, { n: "Baling", L: "Z" }, { n: "Jumlah Ortho", L: "AA" }, { n: "Reten Negeri Ortho", L: "AB" }
-    ]},
-    "Perio": { color: "#10b981", cols: [
-      { n: "Kota Setar", L: "AC" }, { n: "Kuala Muda", L: "AD" }, { n: "Baling", L: "AE" },
-      { n: "Langkawi", L: "AG" }, { n: "Padang Terap", L: "AH" }, { n: "Sik", L: "AI" }, { n: "Kulim", L: "AJ" },
-      { n: "Jumlah Perio", L: "AK" }, { n: "Reten Negeri Perio", L: "AL" }
-    ]},
-    "Resto": { color: "#f59e0b", cols: [
-      { n: "Kota Setar", L: "AM" }, { n: "Kuala Muda", L: "AN" }, { n: "Kulim", L: "AO" }, { n: "Baling", L: "AP" },
-      { n: "Kubang Pasu", L: "AQ" }, { n: "Langkawi", L: "AR" }, { n: "Jumlah Resto", L: "AS" }, { n: "Reten Negeri Resto", L: "AT" }
-    ]},
-    "OMOP": { color: "#14b8a6", cols: [
-      { n: "Kota Setar", L: "AV" }, { n: "Kuala Muda", L: "AU" }, { n: "Jumlah OMOP", L: "AW" }, { n: "Reten Negeri OMOP", L: "AX" }
-    ]},
-    "DPH": { color: "#a855f7", cols: [
-      { n: "Kota Setar", L: "AY" }, { n: "Kota Setar Reten Negeri", L: "AZ" }
-    ]}
-  };
-  let RAW4S = null, CH4S = null;
-
-  function buildDD4S() { buildDD("dd4menu", "dd4all", "dd4none", "dd4close", Object.keys(SPEC), "OMF"); }
-  function chosen4S() {
-    // single-choice: pick first checked, or default "OMF"
-    const menu = $("dd4menu");
-    let pick = null;
-    menu.querySelectorAll("input").forEach(i => { if (i.checked && !pick) pick = i.getAttribute("data-k"); });
-    return pick || "OMF";
-  }
-  function refreshT4STags() {
-    const k = chosen4S(), tags = $("dd4tags"), leg = $("t4legend"); tags.innerHTML = ""; leg.innerHTML = "";
-    const s = document.createElement("span"); s.className = "tag"; s.textContent = k; tags.appendChild(s);
-    const el = document.createElement("span"); el.style.display = "inline-flex"; el.style.alignItems = "center"; el.style.gap = "6px";
-    const dot = document.createElement("span"); dot.className = "dot"; dot.style.background = SPEC[k]?.color || "#64748b";
-    const tx = document.createElement("span"); tx.textContent = "Baru • Ulangan"; el.appendChild(dot); el.appendChild(tx); leg.appendChild(el);
-  }
-
-  function computeT4S(arr, key) {
-    const grp = SPEC[key]; if (!grp) return { labels: [], b: [], u: [], color: "#64748b" };
-    const labels = ["", ...grp.cols.map(x => x.n), ""], b = [0], u = [0];
-    grp.cols.forEach(d => {
-      b.push(cellIntPlus(arr, d.L + "28"));
-      u.push(cellIntPlus(arr, d.L + "29"));
-    });
-    b.push(0); u.push(0);
-    return { labels, b, u, color: grp.color };
-  }
-
-  function drawT4S(data, canvas, mode) {
-    if (CH4S) CH4S.destroy();
-    CH4S = new Chart($(canvas).getContext("2d"), {
-      type: "line",
-      data: {
-        labels: data.labels,
-        datasets: [
-          { label: "Baru", data: data.b, borderColor: data.color, backgroundColor: "transparent", borderWidth: 3, tension: .45, fill: false },
-          { label: "Ulangan", data: data.u, borderColor: data.color, backgroundColor: "transparent", borderWidth: 3, tension: .45, fill: false, borderDash: [6,4] }
-        ]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false, filter: (i) => !(i.dataIndex === 0 || i.dataIndex === data.labels.length - 1) } },
-        scales: {
-          x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: mode === "main" ? 90 : 40, minRotation: mode === "main" ? 90 : 40, callback: (v, i) => (i === 0 || i === data.labels.length - 1) ? "" : data.labels[i] } },
-          y: { beginAtZero: true, grid: { color: "rgba(15,23,42,.06)" }, ticks: { callback: (v) => Number(v).toLocaleString() } }
-        }
-      }
-    });
-    try {
-      const core = data.b.slice(1, -1).concat(data.u.slice(1, -1));
-      if (allZero(core)) { const ctx = $(canvas).getContext("2d"); ctx.font = "12px Inter, system-ui"; ctx.fillStyle = "#94a3b8"; ctx.fillText("Tiada data untuk dipaparkan", 12, 22); }
-    } catch {}
-    return CH4S;
-  }
-
-  async function loadT4S() {
-    const err = $("t4err"); err.style.display = "none";
-    try {
-      buildDD4S();
-      const csv = await fetchCSV(CSV4_SPEC); RAW4S = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
-      refreshT4STags();
-      drawT4S(computeT4S(RAW4S, chosen4S()), "t4", "main");
-      $("dd4btn").onclick = () => $("dd4menu").classList.toggle("open");
-      $("dd4menu").querySelectorAll("input").forEach(i => i.addEventListener("change", () => { refreshT4STags(); drawT4S(computeT4S(RAW4S, chosen4S()), "t4", "main"); }));
-      document.addEventListener("click", (e) => { const box = $("dd4"); if (box && !box.contains(e.target)) $("dd4menu").classList.remove("open"); });
-      $("t4time").textContent = new Date().toLocaleString();
-    } catch (e) { console.error(e); err.textContent = "Gagal memuatkan CSV (Tile 4)."; err.style.display = "block"; }
-  }
-  $("t4refresh").addEventListener("click", loadT4S);
-  $("t4expand").addEventListener("click", () => { if (!RAW4S) return; openModal("Jumlah Kedatangan Pesakit Pakar"); MCH = drawT4S(computeT4S(RAW4S, chosen4S()), "mcanvas", "modal"); });
-  loadT4S();
-
-  // =========================
-  // TILE 5 — Toddler (with sasaran straight lines)
-  // =========================
-  const CSV_TOD = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1851801564&single=true&output=csv";
-  const DIST_TOD = [
+  const CSV4 = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1851801564&single=true&output=csv";
+  const DIST4 = [
     { n: "Kota Setar", L: "D" }, { n: "Pendang", L: "E" }, { n: "Kuala Muda", L: "F" }, { n: "Sik", L: "G" },
     { n: "Kulim", L: "H" }, { n: "Bandar Baru", L: "I" }, { n: "Kubang Pasu", L: "J" }, { n: "Padang Terap", L: "K" },
     { n: "Baling", L: "L" }, { n: "Yan", L: "M" }, { n: "Langkawi", L: "N" }, { n: "Kedah", L: "O" }
   ];
-  const MET_TOD = [
+  const MET = [
     { key: "% TASKA dilawati", row: 12, type: "pct", color: "#0ea5e9" },
     { key: "% Liputan Toddler", row: 17, type: "pct", color: "#10b981", target: 25 },
     { key: "% 'Lift the Lip'", row: 22, type: "pct", color: "#f59e0b", target: 50 },
@@ -518,33 +387,42 @@
     { key: "% Sapuan Fluoride Varnish", row: 32, type: "pct", color: "#ef4444", target: 70 },
     { key: "Bil. Ibubapa diberi 'AG'", row: 33, type: "cnt", color: "#22c55e" }
   ];
-  let RAW_TOD = null, CH_TOD = null;
+  let RAW4 = null, CH4 = null;
 
-  function buildDD5() { buildDD("dd5menu", "dd5all", "dd5none", "dd5close", MET_TOD.map(m => m.key), "% TASKA dilawati"); }
-  function chosen5() { return chosen("dd5menu", "% TASKA dilawati"); }
+  function buildDD4() { buildDD("dd4menu", "dd4all", "dd4none", "dd4close", MET.map(m => m.key), "% TASKA dilawati"); }
+  function chosen4() { return chosen("dd4menu", "% TASKA dilawati"); }
 
-  function computeT5(arr, set) {
-    const labels = ["", ...DIST_TOD.map(d => d.n), ""], per = [];
-    MET_TOD.forEach(m => {
+  function computeT4(arr, set) {
+    const labels = ["", ...DIST4.map(d => d.n), ""], per = [];
+    MET.forEach(m => {
       if (!set.has(m.key)) return;
-      const s = [0]; DIST_TOD.forEach(d => s.push(m.type === "pct" ? cellPct(arr, d.L + String(m.row)) : cellInt(arr, d.L + String(m.row)))); s.push(0);
+      const s = [0]; DIST4.forEach(d => s.push(m.type === "pct" ? cellPct(arr, d.L + String(m.row)) : cellInt(arr, d.L + String(m.row)))); s.push(0);
       per.push({ key: m.key, type: m.type, color: m.color, target: m.target, data: s });
     });
     return { labels, per };
   }
 
-  function straightLine(len, value) { return new Array(len).fill(value); }
+  function straightLine(len, value) {
+    // a flat straight line *without* forcing 0 at ends
+    const a = new Array(len).fill(value);
+    return a;
+  }
 
-  function drawT5(data, canvas, mode) {
-    if (CH_TOD) CH_TOD.destroy();
+  function drawT4(data, canvas, mode) {
+    if (CH4) CH4.destroy();
     const ds = [];
     data.per.forEach(m => {
+      // Actual metric (with padded endpoints so curved line doesn't "drop")
       ds.push({
         label: m.key, data: m.data, borderColor: m.color, backgroundColor: "transparent",
         borderWidth: 3, tension: .45, fill: false, yAxisID: m.type === "cnt" ? "yR" : "yL",
         borderDash: m.key.includes("Lift") ? [6, 4] : undefined
       });
+
+      // Sasaran (straight line, same number of labels as chart)
       if (m.target != null && m.type !== "cnt") {
+        // Chart labels length equals m.data.length (we padded two zeros). For straight line we want the same amount,
+        // but without zeros: use a constant array of that length.
         const flat = straightLine(m.data.length, m.target);
         ds.push({
           label: `Sasaran ${m.key.split("%").pop().trim()}`,
@@ -553,7 +431,7 @@
       }
     });
 
-    CH_TOD = new Chart($(canvas).getContext("2d"), {
+    CH4 = new Chart($(canvas).getContext("2d"), {
       type: "line",
       data: { labels: data.labels, datasets: ds },
       options: {
@@ -566,30 +444,110 @@
         }
       }
     });
+    return CH4;
+  }
+
+  async function loadT4() {
+    const err = $("t4err"); err.style.display = "none";
     try {
-      const core = data.per.flatMap(m => m.data.slice(1, -1));
-      if (allZero(core)) { const ctx = $(canvas).getContext("2d"); ctx.font = "12px Inter, system-ui"; ctx.fillStyle = "#94a3b8"; ctx.fillText("Tiada data untuk dipaparkan", 12, 22); }
-    } catch {}
-    return CH_TOD;
+      buildDD4();
+      const csv = await fetchCSV(CSV4); RAW4 = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
+      // default tags & draw
+      refreshT4Tags(); drawT4(computeT4(RAW4, chosen4()), "t4", "main");
+      // menu wiring
+      $("dd4btn").onclick = () => $("dd4menu").classList.toggle("open");
+      $("dd4menu").querySelectorAll("input").forEach(i => i.addEventListener("change", () => { refreshT4Tags(); drawT4(computeT4(RAW4, chosen4()), "t4", "main"); }));
+      document.addEventListener("click", (e) => { const box = $("dd4"); if (box && !box.contains(e.target)) $("dd4menu").classList.remove("open"); });
+      $("t4time").textContent = new Date().toLocaleString();
+    } catch (e) { console.error(e); err.textContent = "Gagal memuatkan CSV (Tile 4)."; err.style.display = "block"; }
+  }
+  function refreshT4Tags() {
+    const set = chosen4(), tags = $("dd4tags"), leg = $("t4legend"); tags.innerHTML = ""; leg.innerHTML = "";
+    Array.from(set).forEach(k => {
+      const m = MET.find(x => x.key === k); const c = m ? m.color : "#64748b";
+      const s = document.createElement("span"); s.className = "tag"; s.textContent = k; tags.appendChild(s);
+      const el = document.createElement("span"); el.style.display = "inline-flex"; el.style.alignItems = "center"; el.style.gap = "6px";
+      const dot = document.createElement("span"); dot.className = "dot"; dot.style.background = c;
+      const tx = document.createElement("span"); tx.textContent = k; el.appendChild(dot); el.appendChild(tx); leg.appendChild(el);
+    });
+  }
+  $("t4refresh").addEventListener("click", loadT4);
+  $("t4expand").addEventListener("click", () => { if (!RAW4) return; openModal("Pencapaian Program Toddler"); MCH = drawT4(computeT4(RAW4, chosen4()), "mcanvas", "modal"); });
+  loadT4();
+
+  // =========================
+  // TILE 5 — Liputan Ibu Mengandung (robust % + sasaran straight)
+  // =========================
+  const CSV5 = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=205423549&single=true&output=csv";
+  const DIST5 = [
+    { n: "Kota Setar", L: "D" }, { n: "Pendang", L: "E" }, { n: "Kuala Muda", L: "F" }, { n: "Sik", L: "G" },
+    { n: "Kulim", L: "H" }, { n: "Bandar Baru", L: "I" }, { n: "Kubang Pasu", L: "J" }, { n: "Padang Terap", L: "K" },
+    { n: "Baling", L: "L" }, { n: "Yan", L: "M" }, { n: "Langkawi", L: "N" }, { n: "Kedah", L: "O" }, { n: "G-RET NEGERI", L: "P" }
+  ];
+  const MET5 = [
+    { key: "% Liputan Ibu Mengandung", row: 8, color: "#0ea5e9", target: 70 },
+    { key: "% Liputan Ibu Mengandung diberi PKP", row: 14, color: "#8b5cf6", target: 90 },
+    { key: "% Ibu Mengandung mencapai status Orally Fit", row: 19, color: "#10b981", target: 25 }
+  ];
+  let RAW5 = null, CH5 = null;
+
+  function buildDD5() { buildDD("dd5menu", "dd5all", "dd5none", "dd5close", MET5.map(m => m.key), MET5[0].key); }
+  function chosen5() { return chosen("dd5menu", MET5[0].key); }
+
+  function computeT5(arr, set) {
+    const labels = ["", ...DIST5.map(d => d.n), ""], per = [];
+    MET5.forEach(m => {
+      if (!set.has(m.key)) return;
+      const s = [0];
+      DIST5.forEach(d => s.push(cellPct(arr, d.L + String(m.row))));
+      s.push(0);
+      per.push({ key: m.key, color: m.color, target: m.target, data: s });
+    });
+    return { labels, per };
+  }
+
+  function drawT5(data, canvas, mode) {
+    if (CH5) CH5.destroy();
+    const ds = [];
+    data.per.forEach(m => {
+      ds.push({ label: m.key, data: m.data, borderColor: m.color, backgroundColor: "transparent", borderWidth: 3, tension: .45, fill: false, yAxisID: "y" });
+      if (m.target != null) {
+        // straight line (no 0 at ends)
+        const flat = new Array(m.data.length).fill(m.target);
+        ds.push({ label: `Sasaran ${m.key}`, data: flat, borderColor: "#475569", borderWidth: 2, borderDash: [4, 4], pointRadius: 0, fill: false, yAxisID: "y" });
+      }
+    });
+    CH5 = new Chart($(canvas).getContext("2d"), {
+      type: "line",
+      data: { labels: data.labels, datasets: ds },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false, filter: (i) => !(i.dataIndex === 0 || i.dataIndex === data.labels.length - 1) } },
+        scales: {
+          x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: mode === "main" ? 90 : 40, minRotation: mode === "main" ? 90 : 40, callback: (v, i) => (i === 0 || i === data.labels.length - 1) ? "" : data.labels[i] } },
+          y: { beginAtZero: true, ticks: { callback: (v) => v + "%" } }
+        }
+      }
+    });
+    return CH5;
   }
 
   async function loadT5() {
     const err = $("t5err"); err.style.display = "none";
     try {
-      buildDD5();
-      const csv = await fetchCSV(CSV_TOD); RAW_TOD = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
+      buildDD5(); const csv = await fetchCSV(CSV5); RAW5 = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
+      refreshT5Tags(); drawT5(computeT5(RAW5, chosen5()), "t5", "main");
       $("dd5btn").onclick = () => $("dd5menu").classList.toggle("open");
-      $("dd5menu").querySelectorAll("input").forEach(i => i.addEventListener("change", () => { refreshT5Tags(); drawT5(computeT5(RAW_TOD, chosen5()), "t5", "main"); }));
+      $("dd5menu").querySelectorAll("input").forEach(i => i.addEventListener("change", () => { refreshT5Tags(); drawT5(computeT5(RAW5, chosen5()), "t5", "main"); }));
       document.addEventListener("click", (e) => { const box = $("dd5"); if (box && !box.contains(e.target)) $("dd5menu").classList.remove("open"); });
-
-      refreshT5Tags(); drawT5(computeT5(RAW_TOD, chosen5()), "t5", "main");
       $("t5time").textContent = new Date().toLocaleString();
     } catch (e) { console.error(e); err.textContent = "Gagal memuatkan CSV (Tile 5)."; err.style.display = "block"; }
   }
+
   function refreshT5Tags() {
     const set = chosen5(), tags = $("dd5tags"), leg = $("t5legend"); tags.innerHTML = ""; leg.innerHTML = "";
     Array.from(set).forEach(k => {
-      const m = MET_TOD.find(x => x.key === k); const c = m ? m.color : "#64748b";
+      const m = MET5.find(x => x.key === k); const c = m ? m.color : "#64748b";
       const s = document.createElement("span"); s.className = "tag"; s.textContent = k; tags.appendChild(s);
       const el = document.createElement("span"); el.style.display = "inline-flex"; el.style.alignItems = "center"; el.style.gap = "6px";
       const dot = document.createElement("span"); dot.className = "dot"; dot.style.background = c;
@@ -597,184 +555,8 @@
     });
   }
   $("t5refresh").addEventListener("click", loadT5);
-  $("t5expand").addEventListener("click", () => { if (!RAW_TOD) return; openModal("Pencapaian Program Toddler"); MCH = drawT5(computeT5(RAW_TOD, chosen5()), "mcanvas", "modal"); });
+  $("t5expand").addEventListener("click", () => { if (!RAW5) return; openModal("Liputan Ibu Mengandung"); MCH = drawT5(computeT5(RAW5, chosen5()), "mcanvas", "modal"); });
   loadT5();
-
-  // =========================
-  // TILE 6 — Liputan Ibu Mengandung (robust % + sasaran straight)
-  // =========================
-  const CSV_PREG = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=205423549&single=true&output=csv";
-  const DIST_PREG = [
-    { n: "Kota Setar", L: "D" }, { n: "Pendang", L: "E" }, { n: "Kuala Muda", L: "F" }, { n: "Sik", L: "G" },
-    { n: "Kulim", L: "H" }, { n: "Bandar Baru", L: "I" }, { n: "Kubang Pasu", L: "J" }, { n: "Padang Terap", L: "K" },
-    { n: "Baling", L: "L" }, { n: "Yan", L: "M" }, { n: "Langkawi", L: "N" }, { n: "Kedah", L: "O" }, { n: "G-RET NEGERI", L: "P" }
-  ];
-  const MET_PREG = [
-    { key: "% Liputan Ibu Mengandung", row: 8, color: "#0ea5e9", target: 70 },
-    { key: "% Liputan Ibu Mengandung diberi PKP", row: 14, color: "#8b5cf6", target: 90 },
-    { key: "% Ibu Mengandung mencapai status Orally Fit", row: 19, color: "#10b981", target: 25 }
-  ];
-  let RAW_PREG = null, CH_PREG = null;
-
-  function buildDD6() { buildDD("dd6menu", "dd6all", "dd6none", "dd6close", MET_PREG.map(m => m.key), MET_PREG[0].key); }
-  function chosen6() { return chosen("dd6menu", MET_PREG[0].key); }
-
-  function computeT6(arr, set) {
-    const labels = ["", ...DIST_PREG.map(d => d.n), ""], per = [];
-    MET_PREG.forEach(m => {
-      if (!set.has(m.key)) return;
-      const s = [0];
-      DIST_PREG.forEach(d => s.push(cellPct(arr, d.L + String(m.row))));
-      s.push(0);
-      per.push({ key: m.key, color: m.color, target: m.target, data: s });
-    });
-    return { labels, per };
-  }
-
-  function drawT6(data, canvas, mode) {
-    if (CH_PREG) CH_PREG.destroy();
-    const ds = [];
-    data.per.forEach(m => {
-      ds.push({ label: m.key, data: m.data, borderColor: m.color, backgroundColor: "transparent", borderWidth: 3, tension: .45, fill: false, yAxisID: "y" });
-      if (m.target != null) {
-        const flat = new Array(m.data.length).fill(m.target);
-        ds.push({ label: `Sasaran ${m.key}`, data: flat, borderColor: "#475569", borderWidth: 2, borderDash: [4, 4], pointRadius: 0, fill: false, yAxisID: "y" });
-      }
-    });
-    CH_PREG = new Chart($(canvas).getContext("2d"), {
-      type: "line",
-      data: { labels: data.labels, datasets: ds },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false, filter: (i) => !(i.dataIndex === 0 || i.dataIndex === data.labels.length - 1) } },
-        scales: {
-          x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: mode === "main" ? 90 : 40, minRotation: mode === "main" ? 90 : 40, callback: (v, i) => (i === 0 || i === data.labels.length - 1) ? "" : data.labels[i] } },
-          y: { beginAtZero: true, ticks: { callback: (v) => v + "%" } }
-        }
-      }
-    });
-    try {
-      const core = data.per.flatMap(m => m.data.slice(1, -1));
-      if (allZero(core)) { const ctx = $(canvas).getContext("2d"); ctx.font = "12px Inter, system-ui"; ctx.fillStyle = "#94a3b8"; ctx.fillText("Tiada data untuk dipaparkan", 12, 22); }
-    } catch {}
-    return CH_PREG;
-  }
-
-  async function loadT6() {
-    const err = $("t6err"); err.style.display = "none";
-    try {
-      buildDD6(); const csv = await fetchCSV(CSV_PREG); RAW_PREG = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
-      refreshT6Tags(); drawT6(computeT6(RAW_PREG, chosen6()), "t6", "main");
-      $("dd6btn").onclick = () => $("dd6menu").classList.toggle("open");
-      $("dd6menu").querySelectorAll("input").forEach(i => i.addEventListener("change", () => { refreshT6Tags(); drawT6(computeT6(RAW_PREG, chosen6()), "t6", "main"); }));
-      document.addEventListener("click", (e) => { const box = $("dd6"); if (box && !box.contains(e.target)) $("dd6menu").classList.remove("open"); });
-      $("t6time").textContent = new Date().toLocaleString();
-    } catch (e) { console.error(e); err.textContent = "Gagal memuatkan CSV (Tile 6)."; err.style.display = "block"; }
-  }
-
-  function refreshT6Tags() {
-    const set = chosen6(), tags = $("dd6tags"), leg = $("t6legend"); tags.innerHTML = ""; leg.innerHTML = "";
-    Array.from(set).forEach(k => {
-      const m = MET_PREG.find(x => x.key === k); const c = m ? m.color : "#64748b";
-      const s = document.createElement("span"); s.className = "tag"; s.textContent = k; tags.appendChild(s);
-      const el = document.createElement("span"); el.style.display = "inline-flex"; el.style.alignItems = "center"; el.style.gap = "6px";
-      const dot = document.createElement("span"); dot.className = "dot"; dot.style.background = c;
-      const tx = document.createElement("span"); tx.textContent = k; el.appendChild(dot); el.appendChild(tx); leg.appendChild(el);
-    });
-  }
-  $("t6refresh").addEventListener("click", loadT6);
-  $("t6expand").addEventListener("click", () => { if (!RAW_PREG) return; openModal("Liputan Ibu Mengandung"); MCH = drawT6(computeT6(RAW_PREG, chosen6()), "mcanvas", "modal"); });
-  loadT6();
-
-  // =========================
-  // TILE 7 — Young Adult (YA)
-  // =========================
-  const CSV_YA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=543945307&single=true&output=csv";
-  const DIST_YA = [
-    { n: "Kota Setar", L: "D" }, { n: "Pendang", L: "E" }, { n: "Kuala Muda", L: "F" }, { n: "Sik", L: "G" },
-    { n: "Kulim", L: "H" }, { n: "Bandar Baru", L: "I" }, { n: "Kubang Pasu", L: "J" }, { n: "Pdg Terap", L: "K" },
-    { n: "Baling", L: "L" }, { n: "Yan", L: "M" }, { n: "Langkawi", L: "N" }, { n: "Kedah", L: "O" }
-  ];
-  const MET_YA = [
-    { key: "Peratus tidak perlu rawatan", row: 8, color: "#0ea5e9" },
-    { key: "Peratus kes selesai (Orally Fit)", row: 14, color: "#10b981" }
-  ];
-  let RAW_YA = null, CH_YA = null;
-
-  function buildDD7() { buildDD("dd7menu", "dd7all", "dd7none", "dd7close", MET_YA.map(m => m.key), MET_YA[0].key); }
-  function chosen7() { return chosen("dd7menu", MET_YA[0].key); }
-
-  function computeT7(arr, set) {
-    const labels = ["", ...DIST_YA.map(d => d.n), ""], per = [];
-    MET_YA.forEach(m => {
-      if (!set.has(m.key)) return;
-      const s = [0];
-      DIST_YA.forEach(d => s.push(cellPct(arr, d.L + String(m.row))));
-      s.push(0);
-      per.push({ key: m.key, color: m.color, data: s });
-    });
-    return { labels, per };
-  }
-
-  function drawT7(data, canvas, mode) {
-    const ctx = $(canvas).getContext('2d');
-    const g1 = ctx.createLinearGradient(0, 0, 0, 260); g1.addColorStop(0, 'rgba(14,165,233,.35)'); g1.addColorStop(1, 'rgba(14,165,233,.03)');
-    const g2 = ctx.createLinearGradient(0, 0, 0, 260); g2.addColorStop(0, 'rgba(16,185,129,.35)'); g2.addColorStop(1, 'rgba(16,185,129,.03)');
-    if (CH_YA) CH_YA.destroy();
-    const ds = data.per.map((m, idx) => ({
-      label: m.key,
-      data: m.data,
-      borderColor: m.color,
-      backgroundColor: idx === 0 ? g1 : g2,
-      borderWidth: 3,
-      tension: .45,
-      fill: true
-    }));
-    CH_YA = new Chart($(canvas).getContext("2d"), {
-      type: "line",
-      data: { labels: data.labels, datasets: ds },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false, filter: (i) => !(i.dataIndex === 0 || i.dataIndex === data.labels.length - 1) } },
-        scales: {
-          x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: mode === "main" ? 90 : 40, minRotation: mode === "main" ? 90 : 40, callback: (v, i) => (i === 0 || i === data.labels.length - 1) ? "" : data.labels[i] } },
-          y: { beginAtZero: true, ticks: { callback: (v) => v + "%" } }
-        }
-      }
-    });
-    try {
-      const core = data.per.flatMap(m => m.data.slice(1, -1));
-      if (allZero(core)) { const ctx = $(canvas).getContext("2d"); ctx.font = "12px Inter, system-ui"; ctx.fillStyle = "#94a3b8"; ctx.fillText("Tiada data untuk dipaparkan", 12, 22); }
-    } catch {}
-    return CH_YA;
-  }
-
-  async function loadT7() {
-    const err = $("t7err"); err.style.display = "none";
-    try {
-      buildDD7();
-      const csv = await fetchCSV(CSV_YA); RAW_YA = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
-      refreshT7Tags(); drawT7(computeT7(RAW_YA, chosen7()), "t7", "main");
-      $("dd7btn").onclick = () => $("dd7menu").classList.toggle("open");
-      $("dd7menu").querySelectorAll("input").forEach(i => i.addEventListener("change", () => { refreshT7Tags(); drawT7(computeT7(RAW_YA, chosen7()), "t7", "main"); }));
-      document.addEventListener("click", (e) => { const box = $("dd7"); if (box && !box.contains(e.target)) $("dd7menu").classList.remove("open"); });
-      $("t7time").textContent = new Date().toLocaleString();
-    } catch (e) { console.error(e); err.textContent = "Gagal memuatkan CSV (Tile 7)."; err.style.display = "block"; }
-  }
-  function refreshT7Tags() {
-    const set = chosen7(), tags = $("dd7tags"), leg = $("t7legend"); tags.innerHTML = ""; leg.innerHTML = "";
-    Array.from(set).forEach(k => {
-      const m = MET_YA.find(x => x.key === k); const c = m ? m.color : "#64748b";
-      const s = document.createElement("span"); s.className = "tag"; s.textContent = k; tags.appendChild(s);
-      const el = document.createElement("span"); el.style.display = "inline-flex"; el.style.alignItems = "center"; el.style.gap = "6px";
-      const dot = document.createElement("span"); dot.className = "dot"; dot.style.background = c;
-      const tx = document.createElement("span"); tx.textContent = k; el.appendChild(dot); el.appendChild(tx); leg.appendChild(el);
-    });
-  }
-  $("t7refresh").addEventListener("click", loadT7);
-  $("t7expand").addEventListener("click", () => { if (!RAW_YA) return; openModal("Young Adult"); MCH = drawT7(computeT7(RAW_YA, chosen7()), "mcanvas", "modal"); });
-  loadT7();
-
 
   // Reflow on resize (keeps look crisp)
   window.addEventListener("resize", () => {
@@ -784,10 +566,8 @@
       drawT1(rows, "t1", "main");
     }
     if (RAW2) drawT2(computeT2(RAW2, chosen("dd2menu", "<5 tahun")), "t2", "main");
-    if (RAW3) drawT3(computeT3(RAW3, chosen("dd3menu", "Primer")), "t3", "main");
-    if (RAW4S) drawT4S(computeT4S(RAW4S, chosen4S()), "t4", "main");
-    if (RAW_TOD) drawT5(computeT5(RAW_TOD, chosen5()), "t5", "main");
-    if (RAW_PREG) drawT6(computeT6(RAW_PREG, chosen6()), "t6", "main");
-    if (RAW_YA) drawT7(computeT7(RAW_YA, chosen7()), "t7", "main");
+    if (RAW3) drawT3(computeT3(RAW3, chosen3()), "t3", "main");
+    if (RAW4) drawT4(computeT4(RAW4, chosen4()), "t4", "main");
+    if (RAW5) drawT5(computeT5(RAW5, chosen5()), "t5", "main");
   });
 })();
