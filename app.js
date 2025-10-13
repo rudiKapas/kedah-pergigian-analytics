@@ -2,6 +2,31 @@
 (function () {
   "use strict";
 
+  // ---- Make x-axis district labels readable on all charts ----
+if (typeof Chart !== "undefined") {
+  // Give more room under the chart so labels don't get cut off
+  Chart.defaults.layout ||= {};
+  Chart.defaults.layout.padding = Object.assign({}, Chart.defaults.layout.padding, { bottom: 56 });
+
+  // Category axis tweaks (apply to every chart)
+  const cat = Chart.defaults.scales?.category || (Chart.defaults.scales = { category: {} }).category;
+  cat.ticks = Object.assign({}, cat.ticks, {
+    autoSkip: false,        // show every district
+    maxRotation: 55,        // tilt a bit instead of 90°
+    minRotation: 0,
+    // Put long names on 2 lines (returns array = multi-line tick)
+    callback: function (value) {
+      const label = (this && this.getLabelForValue) ? this.getLabelForValue(value) : value;
+      const words = String(label).split(/\s+/);
+      if (words.length <= 1) return label;
+      const mid = Math.ceil(words.length / 2);
+      return [words.slice(0, mid).join(" "), words.slice(mid).join(" ")];
+    }
+  });
+}
+
+
+  
   // ============== Helpers =================
   const $ = (id) => document.getElementById(id);
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -2016,5 +2041,6 @@ try{
 }catch(e){}
 
 })();
+
 
 
