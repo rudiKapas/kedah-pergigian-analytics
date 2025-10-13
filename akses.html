@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Analitik Data Teknikal Kesihatan Pergigian Negeri Kedah</title>
+  <title>Akses Kesihatan Pergigian Negeri Kedah</title>
 
   <!-- Stop 404 favicon error (1x1 transparent PNG) -->
   <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=">
@@ -38,15 +38,36 @@
     <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M18 6L6 18M6 6l12 12"/>
     </symbol>
+    <!-- NEW: back icon for the header -->
+    <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M15 18l-6-6 6-6"/><path d="M21 12H9"/>
+    </symbol>
   </svg>
 </head>
 <body>
   <header class="ph">
-    <h1>Analitik Data Teknikal Kesihatan Pergigian Negeri Kedah</h1>
-    <p>Sumber: Google Sheets (Publish to Web)</p>
+    <!-- NEW: back + search bar (same rail as title) -->
+    <div class="topnav">
+      <a class="backlink" href="index.html" title="Kembali ke halaman utama">
+        <svg class="ico"><use href="#i-back"/></svg><span>Kembali</span>
+      </a>
+      <div class="searchbar" role="search">
+        <input id="globalSearch" list="akses-suggestions" type="search"
+               placeholder="Cari di halaman ini… (kategori, tajuk graf)">
+        <button id="globalSearchBtn" type="button">Cari</button>
+      </div>
+    </div>
+
+    <!-- UPDATED title & subtitle only -->
+    <h1>Akses Kesihatan Pergigian Negeri Kedah</h1>
+    <p>Analisis Data klinikal dan Prestasi Perkhidmatan Pergigian Negeri Kedah</p>
+
+    <!-- NEW: datalist populated by app.js -->
+    <datalist id="akses-suggestions"></datalist>
   </header>
 
   <main class="grid">
+    <!-- (Everything below is IDENTICAL to your current file) -->
     <!-- 1 -->
     <section class="tile">
       <div class="th">
