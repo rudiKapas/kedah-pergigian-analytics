@@ -188,7 +188,7 @@ body{
 .tile .chart,
 .chart,
 .canvas-wrap {           /* include any class you use for the chart box */
-  height: 420px;         /* try 420–460px for very long labels */
+  height: 340px;         /* try 420–460px for very long labels */
 }
 
 /* Optional: a little more bottom space on very small screens */
@@ -196,7 +196,7 @@ body{
   .tile .chart,
   .chart,
   .canvas-wrap {
-    height: 480px;
+    height: 380px;
   }
 }
 
