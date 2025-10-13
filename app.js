@@ -277,6 +277,7 @@ function layoutFor(labels) {
         ],
       },
       options: {
+        ...layoutFor(X), 
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -299,10 +300,9 @@ function layoutFor(labels) {
             grid: { display: false },
             ticks: {
               autoSkip: false,
-              maxRotation: 55,
-              minRotation: 0,
-              callback: (v, i) =>
-                i === 0 || i === X.length - 1 ? "" : wrapLabel(X[i]),
+              maxRotation: 90,
+              minRotation: 90,
+              callback: (v, i) => (i === 0 || i === X.length - 1 ? "" : X[i]),
             },
           },
           y1: {
@@ -2050,5 +2050,6 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
