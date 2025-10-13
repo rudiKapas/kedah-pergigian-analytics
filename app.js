@@ -2,34 +2,36 @@
 (function () {
   "use strict";
 
-  // ---- Make x-axis district labels readable on all charts ----
-if (typeof Chart !== "undefined") {
-  // Give more room under the chart so labels don't get cut off
-  Chart.defaults.layout ||= {};
-  Chart.defaults.layout.padding = Object.assign({}, Chart.defaults.layout.padding, { bottom: 56 });
+  // ---- Global: extra room + safer defaults for labels on every chart ----
+  if (typeof Chart !== "undefined") {
+    Chart.defaults.layout = Chart.defaults.layout || {};
+    const existingPad = Chart.defaults.layout.padding || {};
+    Chart.defaults.layout.padding = Object.assign(
+      { top: 8, right: 8, bottom: 88, left: 8 }, // <- key to stop clipping
+      existingPad
+    );
 
-  // Category axis tweaks (apply to every chart)
-  const cat = Chart.defaults.scales?.category || (Chart.defaults.scales = { category: {} }).category;
-  cat.ticks = Object.assign({}, cat.ticks, {
-    autoSkip: false,        // show every district
-    maxRotation: 55,        // tilt a bit instead of 90°
-    minRotation: 0,
-    // Put long names on 2 lines (returns array = multi-line tick)
-    callback: function (value) {
-      const label = (this && this.getLabelForValue) ? this.getLabelForValue(value) : value;
-      const words = String(label).split(/\s+/);
-      if (words.length <= 1) return label;
-      const mid = Math.ceil(words.length / 2);
-      return [words.slice(0, mid).join(" "), words.slice(mid).join(" ")];
-    }
-  });
-}
+    Chart.defaults.scales = Chart.defaults.scales || {};
+    Chart.defaults.scales.category = Chart.defaults.scales.category || {};
+    const cat = Chart.defaults.scales.category;
+    cat.ticks = Object.assign({}, cat.ticks, {
+      autoSkip: false,
+      maxRotation: 55,
+      minRotation: 0
+    });
+  }
 
-
-  
   // ============== Helpers =================
   const $ = (id) => document.getElementById(id);
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  // Wrap multi-word district labels into two lines
+  function wrapLabel(text) {
+    const parts = String(text).split(/\s+/);
+    if (parts.length <= 1) return text;
+    const mid = Math.ceil(parts.length / 2);
+    return [parts.slice(0, mid).join(" "), parts.slice(mid).join(" ")];
+  }
 
   function colIdx(L) {
     let n = 0;
@@ -179,13 +181,6 @@ if (typeof Chart !== "undefined") {
     return s;
   }
 
-  // ================== Tile 1..8 (unchanged) ==================
-  // (Content unchanged from your current version)
-  // --- BEGIN copy of your existing tiles 1..8 ---
-  // (For brevity: this block is your exact current code from Tile 1 to Tile 8)
-  // ❗ Paste your existing Tile 1..8 code here exactly as-is.
-  // --- END copy ---
-
   // ============== Tile 1 ===================
   const CSV1 =
     "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1057141723&single=true&output=csv";
@@ -281,9 +276,10 @@ if (typeof Chart !== "undefined") {
             grid: { display: false },
             ticks: {
               autoSkip: false,
-              maxRotation: mode === "main" ? 90 : 40,
-              minRotation: mode === "main" ? 90 : 40,
-              callback: (v, i) => (i === 0 || i === X.length - 1 ? "" : X[i]),
+              maxRotation: 55,
+              minRotation: 0,
+              callback: (v, i) =>
+                i === 0 || i === X.length - 1 ? "" : wrapLabel(X[i]),
             },
           },
           y1: {
@@ -353,10 +349,6 @@ if (typeof Chart !== "undefined") {
     MCH = drawT1(rows, "mcanvas", "modal");
   });
   loadT1();
-
-  // ======= Tile 2..8 (unchanged from your file) =======
-  // (Keeping your current code exactly as-is)
-  // ... (Your Tiles 2-8 from your current file go here unchanged) ...
 
   // ============== Tile 2 (Primer) =========
   const CSV2 =
@@ -476,10 +468,10 @@ if (typeof Chart !== "undefined") {
             grid: { display: false },
             ticks: {
               autoSkip: false,
-              maxRotation: mode === "main" ? 90 : 40,
-              minRotation: mode === "main" ? 90 : 40,
+              maxRotation: 55,
+              minRotation: 0,
               callback: (v, i) =>
-                i === 0 || i === data.labels.length - 1 ? "" : data.labels[i],
+                i === 0 || i === data.labels.length - 1 ? "" : wrapLabel(data.labels[i]),
             },
           },
           y: {
@@ -650,10 +642,10 @@ if (typeof Chart !== "undefined") {
             grid: { display: false },
             ticks: {
               autoSkip: false,
-              maxRotation: mode === "main" ? 90 : 40,
-              minRotation: mode === "main" ? 90 : 40,
+              maxRotation: 55,
+              minRotation: 0,
               callback: (v, i) =>
-                i === 0 || i === data.labels.length - 1 ? "" : data.labels[i],
+                i === 0 || i === data.labels.length - 1 ? "" : wrapLabel(data.labels[i]),
             },
           },
           y: {
@@ -921,10 +913,10 @@ if (typeof Chart !== "undefined") {
             grid: { display: false },
             ticks: {
               autoSkip: false,
-              maxRotation: mode === "main" ? 90 : 40,
-              minRotation: mode === "main" ? 90 : 40,
+              maxRotation: 55,
+              minRotation: 0,
               callback: (v, i) =>
-                i === 0 || i === data.labels.length - 1 ? "" : data.labels[i],
+                i === 0 || i === data.labels.length - 1 ? "" : wrapLabel(data.labels[i]),
             },
           },
           y: {
@@ -1076,10 +1068,10 @@ if (typeof Chart !== "undefined") {
             grid: { display: false },
             ticks: {
               autoSkip: false,
-              maxRotation: mode === "main" ? 90 : 40,
-              minRotation: mode === "main" ? 90 : 40,
+              maxRotation: 55,
+              minRotation: 0,
               callback: (v, i) =>
-                i === 0 || i === data.labels.length - 1 ? "" : data.labels[i],
+                i === 0 || i === data.labels.length - 1 ? "" : wrapLabel(data.labels[i]),
             },
           },
           yL: {
@@ -1265,10 +1257,10 @@ if (typeof Chart !== "undefined") {
             grid: { display: false },
             ticks: {
               autoSkip: false,
-              maxRotation: mode === "main" ? 90 : 40,
-              minRotation: mode === "main" ? 90 : 40,
+              maxRotation: 55,
+              minRotation: 0,
               callback: (v, i) =>
-                i === 0 || i === data.labels.length - 1 ? "" : data.labels[i],
+                i === 0 || i === data.labels.length - 1 ? "" : wrapLabel(data.labels[i]),
             },
           },
           y: {
@@ -1438,10 +1430,10 @@ if (typeof Chart !== "undefined") {
             grid: { display: false },
             ticks: {
               autoSkip: false,
-              maxRotation: mode === "main" ? 90 : 40,
-              minRotation: mode === "main" ? 90 : 40,
+              maxRotation: 55,
+              minRotation: 0,
               callback: (v, i) =>
-                i === 0 || i === data.labels.length - 1 ? "" : data.labels[i],
+                i === 0 || i === data.labels.length - 1 ? "" : wrapLabel(data.labels[i]),
             },
           },
           y: {
@@ -1596,10 +1588,10 @@ if (typeof Chart !== "undefined") {
             grid: { display: false },
             ticks: {
               autoSkip: false,
-              maxRotation: mode === "main" ? 90 : 40,
-              minRotation: mode === "main" ? 90 : 40,
+              maxRotation: 55,
+              minRotation: 0,
               callback: (v, i) =>
-                i === 0 || i === data.labels.length - 1 ? "" : data.labels[i],
+                i === 0 || i === data.labels.length - 1 ? "" : wrapLabel(data.labels[i]),
             },
           },
           y: {
@@ -1700,22 +1692,15 @@ if (typeof Chart !== "undefined") {
     { n: "Kedah", L: "O" },
   ];
   const MET_WE = [
-    // Title: Peratus pesakit baru warga emas mengikut populasi (row 8)
     { key: "Peratus pesakit baru warga emas mengikut populasi", row: 8, type: "pct", color: "#0ea5e9", target: 10 },
-    // Title: Data kehadiran pesakit baru warga Emas di klinik pergigian di semua daerah (row 9)
     { key: "Bil. pesakit baru warga emas di klinik pergigian", row: 9, type: "cnt", color: "#4f46e5" },
-    // Title: Peratus bilangan institusi dilawati di daerah (row 16)
     { key: "Peratus bilangan institusi dilawati di daerah", row: 16, type: "pct", color: "#10b981", target: 100 },
-    // Title: Peratus Warga Emas disaring (liputan) (row 22)
     { key: "Peratus Warga Emas disaring (liputan)", row: 22, type: "pct", color: "#f59e0b", target: 75 },
-    // PAWE block (rows 24–27)
     { key: "PAWE • Bil. PAWE dalam Daerah", row: 24, type: "cnt", color: "#ef4444" },
     { key: "PAWE • Bil. PAWE dilawati", row: 25, type: "cnt", color: "#8b5cf6" },
     { key: "PAWE • Enrolmen", row: 26, type: "cnt", color: "#14b8a6" },
     { key: "PAWE • Bilangan Pesakit Baru", row: 27, type: "cnt", color: "#22c55e" },
-    // Denture KPI (row 33)
     { key: "Peratus dentur siap ≤ 8 minggu (KPI 11)", row: 33, type: "pct", color: "#a855f7" },
-    // ≥20 teeth (row 39)
     { key: "% Warga Emas ≥60 thn ada ≥20 batang gigi", row: 39, type: "pct", color: "#475569", target: 30 },
   ];
   let RAW_WE = null;
@@ -1795,10 +1780,10 @@ if (typeof Chart !== "undefined") {
             grid: { display: false },
             ticks: {
               autoSkip: false,
-              maxRotation: mode === "main" ? 90 : 40,
-              minRotation: mode === "main" ? 90 : 40,
+              maxRotation: 55,
+              minRotation: 0,
               callback: (v, i) =>
-                i === 0 || i === data.labels.length - 1 ? "" : data.labels[i],
+                i === 0 || i === data.labels.length - 1 ? "" : wrapLabel(data.labels[i]),
             },
           },
           yL: {
@@ -1898,7 +1883,7 @@ if (typeof Chart !== "undefined") {
       const rows = DIST1.map(function (d) {
         const i = colIdx(d.L);
         return { n: d.n, a: cleanPct(accRow[i]) || 0, p: cleanInt(popRow[i]) };
-        });
+      });
       drawT1(rows, "t1", "main");
     }
     if (RAW2) drawT2(computeT2(RAW2, chosen2()), "t2", "main");
@@ -1910,137 +1895,135 @@ if (typeof Chart !== "undefined") {
     if (RAW_BPE) drawT8(computeT8(RAW_BPE, chosen8()), "t8", "main");
     if (RAW_WE) drawT9(computeT9(RAW_WE, chosen9()), "t9", "main");
   });
-/* ===== Global search: build source + live autocomplete + jump ===== */
-let _AKES_SUG = [];   // unified suggestion source
-let _AKES_ACTIVE = -1;
 
-function buildAksesSuggestions(){
-  const set = new Set();
+  /* ===== Global search: build source + live autocomplete + jump ===== */
+  let _AKES_SUG = [];   // unified suggestion source
+  let _AKES_ACTIVE = -1;
 
-  // Tile titles
-  document.querySelectorAll('.ttl').forEach(el=>{
-    const t = el.textContent.trim();
-    if(t) set.add(t);
-  });
+  function buildAksesSuggestions(){
+    const set = new Set();
 
-  // Filter labels (category lists inside each tile's menu)
-  document.querySelectorAll('.menu .menu-body .row').forEach(el=>{
-    const t = el.textContent.trim();
-    if(t) set.add(t);
-  });
-
-  // Normalise to array
-  _AKES_SUG = Array.from(set).filter(Boolean).sort((a,b)=>a.localeCompare(b,'ms'));
-}
-
-function hookGlobalSearch(){
-  const ip  = document.getElementById('globalSearch');
-  const btn = document.getElementById('globalSearchBtn');
-  const box = document.getElementById('gs-suggest');
-  if(!ip || !btn || !box) return;
-
-  function highlightMatch(text, q){
-    const i = text.toLowerCase().indexOf(q.toLowerCase());
-    if(i < 0) return text;
-    return text.slice(0,i) + '<em>' + text.slice(i, i+q.length) + '</em>' + text.slice(i+q.length);
-  }
-
-  function renderSuggest(list, q){
-    if(!q || list.length === 0){ box.hidden = true; box.innerHTML = ''; _AKES_ACTIVE = -1; return; }
-    const max = 8;
-
-    // prioritize: startsWith first, then contains
-    const starts = list.filter(t => t.toLowerCase().startsWith(q.toLowerCase()));
-    const mids   = list.filter(t => !t.toLowerCase().startsWith(q.toLowerCase()) && t.toLowerCase().includes(q.toLowerCase()));
-    const merged = [...starts, ...mids].slice(0, max);
-
-    box.innerHTML = merged.map((t,i)=>`<div class="opt${i===0?' active':''}" data-v="${t}">${highlightMatch(t,q)}</div>`).join('');
-    box.hidden = merged.length === 0;
-    _AKES_ACTIVE = merged.length ? 0 : -1;
-  }
-
-  function pickCurrent(){
-    const el = box.querySelector('.opt.active');
-    if(el){
-      ip.value = el.getAttribute('data-v');
-      box.hidden = true;
-      runJump();
-    }
-  }
-
-  function runJump(){
-    const q = ip.value.trim().toLowerCase();
-    if(!q) return;
-
-    let targetTile = null;
-
-    // Match tile titles (middle or start)
+    // Tile titles
     document.querySelectorAll('.ttl').forEach(el=>{
-      if(!targetTile && el.textContent.toLowerCase().includes(q)){
-        targetTile = el.closest('.tile');
-      }
+      const t = el.textContent.trim();
+      if(t) set.add(t);
     });
 
-    // Or any filter label (middle or start)
-    if(!targetTile){
-      document.querySelectorAll('.menu .menu-body .row').forEach(el=>{
+    // Filter labels (category lists inside each tile's menu)
+    document.querySelectorAll('.menu .menu-body .row').forEach(el=>{
+      const t = el.textContent.trim();
+      if(t) set.add(t);
+    });
+
+    // Normalise to array
+    _AKES_SUG = Array.from(set).filter(Boolean).sort((a,b)=>a.localeCompare(b,'ms'));
+  }
+
+  function hookGlobalSearch(){
+    const ip  = document.getElementById('globalSearch');
+    const btn = document.getElementById('globalSearchBtn');
+    const box = document.getElementById('gs-suggest');
+    if(!ip || !btn || !box) return;
+
+    function highlightMatch(text, q){
+      const i = text.toLowerCase().indexOf(q.toLowerCase());
+      if(i < 0) return text;
+      return text.slice(0,i) + '<em>' + text.slice(i, i+q.length) + '</em>' + text.slice(i+q.length);
+    }
+
+    function renderSuggest(list, q){
+      if(!q || list.length === 0){ box.hidden = true; box.innerHTML = ''; _AKES_ACTIVE = -1; return; }
+      const max = 8;
+
+      // prioritize: startsWith first, then contains
+      const starts = list.filter(t => t.toLowerCase().startsWith(q.toLowerCase()));
+      const mids   = list.filter(t => !t.toLowerCase().startsWith(q.toLowerCase()) && t.toLowerCase().includes(q.toLowerCase()));
+      const merged = [...starts, ...mids].slice(0, max);
+
+      box.innerHTML = merged.map((t,i)=>`<div class="opt${i===0?' active':''}" data-v="${t}">${highlightMatch(t,q)}</div>`).join('');
+      box.hidden = merged.length === 0;
+      _AKES_ACTIVE = merged.length ? 0 : -1;
+    }
+
+    function pickCurrent(){
+      const el = box.querySelector('.opt.active');
+      if(el){
+        ip.value = el.getAttribute('data-v');
+        box.hidden = true;
+        runJump();
+      }
+    }
+
+    function runJump(){
+      const q = ip.value.trim().toLowerCase();
+      if(!q) return;
+
+      let targetTile = null;
+
+      // Match tile titles (middle or start)
+      document.querySelectorAll('.ttl').forEach(el=>{
         if(!targetTile && el.textContent.toLowerCase().includes(q)){
           targetTile = el.closest('.tile');
         }
       });
+
+      // Or any filter label (middle or start)
+      if(!targetTile){
+        document.querySelectorAll('.menu .menu-body .row').forEach(el=>{
+          if(!targetTile && el.textContent.toLowerCase().includes(q)){
+            targetTile = el.closest('.tile');
+          }
+        });
+      }
+
+      if(targetTile){
+        targetTile.classList.add('flash');
+        targetTile.scrollIntoView({behavior:'smooth', block:'start'});
+        setTimeout(()=>targetTile.classList.remove('flash'), 1500);
+      }
     }
 
-    if(targetTile){
-      targetTile.classList.add('flash');
-      targetTile.scrollIntoView({behavior:'smooth', block:'start'});
-      setTimeout(()=>targetTile.classList.remove('flash'), 1500);
-    }
+    // Wire events
+    ip.addEventListener('input', () => {
+      const q = ip.value.trim();
+      renderSuggest(_AKES_SUG, q);
+    });
+
+    ip.addEventListener('keydown', (e) => {
+      if(box.hidden) { if(e.key==='Enter') runJump(); return; }
+      const opts = Array.from(box.querySelectorAll('.opt'));
+      if(e.key === 'ArrowDown'){
+        _AKES_ACTIVE = Math.min(_AKES_ACTIVE + 1, opts.length - 1);
+        opts.forEach((o,i)=>o.classList.toggle('active', i===_AKES_ACTIVE));
+        e.preventDefault();
+      }else if(e.key === 'ArrowUp'){
+        _AKES_ACTIVE = Math.max(_AKES_ACTIVE - 1, 0);
+        opts.forEach((o,i)=>o.classList.toggle('active', i===_AKES_ACTIVE));
+        e.preventDefault();
+      }else if(e.key === 'Enter'){
+        pickCurrent();
+        e.preventDefault();
+      }else if(e.key === 'Escape'){
+        box.hidden = true;
+      }
+    });
+
+    box.addEventListener('mousedown', (e)=>{
+      const it = e.target.closest('.opt');
+      if(!it) return;
+      ip.value = it.getAttribute('data-v');
+      box.hidden = true;
+      runJump();
+    });
+
+    btn.addEventListener('click', runJump);
   }
 
-  // Wire events
-  ip.addEventListener('input', () => {
-    const q = ip.value.trim();
-    renderSuggest(_AKES_SUG, q);
-  });
-
-  ip.addEventListener('keydown', (e) => {
-    if(box.hidden) { if(e.key==='Enter') runJump(); return; }
-    const opts = Array.from(box.querySelectorAll('.opt'));
-    if(e.key === 'ArrowDown'){
-      _AKES_ACTIVE = Math.min(_AKES_ACTIVE + 1, opts.length - 1);
-      opts.forEach((o,i)=>o.classList.toggle('active', i===_AKES_ACTIVE));
-      e.preventDefault();
-    }else if(e.key === 'ArrowUp'){
-      _AKES_ACTIVE = Math.max(_AKES_ACTIVE - 1, 0);
-      opts.forEach((o,i)=>o.classList.toggle('active', i===_AKES_ACTIVE));
-      e.preventDefault();
-    }else if(e.key === 'Enter'){
-      pickCurrent();
-      e.preventDefault();
-    }else if(e.key === 'Escape'){
-      box.hidden = true;
-    }
-  });
-
-  box.addEventListener('mousedown', (e)=>{
-    const it = e.target.closest('.opt');
-    if(!it) return;
-    ip.value = it.getAttribute('data-v');
-    box.hidden = true;
-    runJump();
-  });
-
-  btn.addEventListener('click', runJump);
-}
-
-// Attach after UI is present
-try{
-  hookGlobalSearch();
-  // Delay ensures filter menus are built before we scan labels
-  setTimeout(buildAksesSuggestions, 1200);
-}catch(e){}
+  // Attach after UI is present
+  try{
+    hookGlobalSearch();
+    // Delay ensures filter menus are built before we scan labels
+    setTimeout(buildAksesSuggestions, 1200);
+  }catch(e){}
 
 })();
-
-
-
