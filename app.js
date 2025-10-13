@@ -7,7 +7,7 @@
     Chart.defaults.layout = Chart.defaults.layout || {};
     const existingPad = Chart.defaults.layout.padding || {};
     Chart.defaults.layout.padding = Object.assign(
-      { top: 8, right: 8, bottom: 88, left: 8 }, // <- key to stop clipping
+      { top: 8, right: 8, bottom: 140, left: 8 }, // <- key to stop clipping
       existingPad
     );
 
@@ -16,8 +16,8 @@
     const cat = Chart.defaults.scales.category;
     cat.ticks = Object.assign({}, cat.ticks, {
       autoSkip: false,
-      maxRotation: 55,
-      minRotation: 0
+      maxRotation: 90,
+      minRotation: 90
     });
   }
 
@@ -2027,3 +2027,4 @@
   }catch(e){}
 
 })();
+
