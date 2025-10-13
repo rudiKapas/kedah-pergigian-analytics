@@ -9,13 +9,13 @@
   <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=">
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="styles.css?v=8">
 
   <!-- Libraries already used on page -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <!-- SVG sprite (only symbols used on this page) -->
+  <!-- SVG sprite -->
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
     <symbol id="i-time" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>
@@ -71,7 +71,7 @@
     <p>Analisis Data klinikal dan Prestasi Perkhidmatan Pergigian Negeri Kedah</p>
   </header>
 
-  <!-- GRID OF TILES (structure preserved for JS) -->
+  <!-- GRID OF TILES -->
   <main class="grid">
 
     <!-- Tile 1 -->
@@ -282,7 +282,7 @@
       </div>
     </section>
 
-    <!-- Tile 8 -->
+    <!-- Tile 8 (FIX: add dd8tags) -->
     <section class="tile">
       <div class="th">
         <div>
@@ -306,6 +306,7 @@
         </div>
       </div>
       <div class="tb">
+        <div class="tags" id="dd8tags"></div><!-- ← added to satisfy app.js -->
         <div class="chart"><canvas id="t8"></canvas></div>
         <div class="legend" id="t8legend"></div>
         <div class="err" id="t8err"></div>
@@ -366,7 +367,6 @@
     </div>
   </div>
 
-  <!-- Your existing JS (kept the same; make sure it contains the search functions) -->
   <script src="app.js?v=19"></script>
 </body>
 </html>
