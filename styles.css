@@ -68,6 +68,36 @@ body{
   padding:0 14px; font-size:15px; background:#fff;
   box-shadow:var(--shadow-1)
 }
+
+/* Ghost back button inside the searchbar — same size as search button */
+.searchbar .btn-ghost{
+  background:#fff;                 /* stay light */
+  color:#0f172a;                   /* dark icon */
+  border:1px solid #d1d5db;        /* subtle grey border */
+  box-shadow:var(--shadow-1);      /* same base shadow as tiles */
+}
+
+/* Hover: teal halo ring (like akses.html .backlink:hover), keep fill grey */
+.searchbar .btn-ghost:hover{
+  background:#fff;                 /* DO NOT turn teal */
+  border-color:#d1d5db;
+  box-shadow:0 0 0 4px rgba(16,185,129,.15), var(--shadow-1);
+}
+
+/* Focus-visible: keyboard users get the same halo */
+.searchbar .btn-ghost:focus-visible{
+  outline:none;
+  box-shadow:0 0 0 4px rgba(16,185,129,.15), var(--shadow-1);
+}
+
+/* Make the arrow weight pop on light bg */
+.searchbar .btn-ghost .ico{
+  color:#0f172a;
+  width:18px; height:18px;
+  stroke-width:2.25;
+}
+
+
 .searchbar button{
   height:var(--ctl); width:44px; padding:0; display:grid; place-items:center;
   border-radius:12px; border:1px solid #0ea5a0; background:#0ea5a0;
