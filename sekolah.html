@@ -58,19 +58,24 @@
 
     <!-- Search bar: LEFT = Back button, RIGHT = Search -->
     <div class="searchbar" role="search" style="margin-top:10px">
-      <!-- LEFT: Back button (same element type as right button so styles match) -->
-      <button id="schoolBackLeft" type="button" aria-label="Kembali ke halaman utama">
+      <button id="schoolBackLeft" type="button" class="btn btn-ghost" aria-label="Kembali ke halaman utama">
         <svg class="ico"><use href="#i-back"/></svg>
       </button>
     
       <input id="schoolSearch" type="search" placeholder="Cari di halaman ini… (kategori, tajuk graf)" autocomplete="off" />
       <div id="gs-suggest" class="gs-suggest" hidden></div>
     
-      <!-- RIGHT: Search button -->
-      <button id="schoolSearchRight" type="button" aria-label="Cari">
+      <button id="schoolSearchRight" type="button" class="btn" aria-label="Cari">
         <svg class="ico"><use href="#i-search"/></svg>
       </button>
     </div>
+    
+    <script>
+      document.getElementById('schoolBackLeft')?.addEventListener('click', () => {
+        location.href = 'index.html';
+      });
+    </script>
+
   </header>
 
   <!-- GRID -->
