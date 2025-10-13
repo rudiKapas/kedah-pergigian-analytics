@@ -1885,4 +1885,86 @@
     if (RAW_BPE) drawT8(computeT8(RAW_BPE, chosen8()), "t8", "main");
     if (RAW_WE) drawT9(computeT9(RAW_WE, chosen9()), "t9", "main");
   });
+// ===== Global search suggestions for Akses page =====
+function buildAksesSuggestions(){
+  const dl = document.getElementById('akses-suggestions');
+  if(!dl) return;
+  const set = new Set();
+
+  // Tile titles
+  document.querySelectorAll('.ttl').forEach(el=>{
+    const t = el.textContent.trim();
+    if(t) set.add(t);
+  });
+
+  // Filter menu labels
+  document.querySelectorAll('.menu .menu-body .row').forEach(el=>{
+    const t = el.textContent.trim();
+    if(t) set.add(t);
+  });
+
+  // Common chart/tile names
+  [
+    'Akses Kepada Perkhidmatan Kesihatan Pergigian',
+    'Kedatangan Pesakit Primer',
+    'Kedatangan Pesakit Outreach',
+    'Jumlah Kedatangan Pesakit Pakar',
+    'Pencapaian Program Toddler',
+    'Liputan Ibu Mengandung',
+    'Young Adult',
+    'Basic Periodontal Examination',
+    'Warga Emas'
+  ].forEach(t=>set.add(t));
+
+  dl.innerHTML = Array.from(set)
+    .sort((a,b)=>a.localeCompare(b,'ms'))
+    .map(t=>`<option value="${t}"></option>`)
+    .join('');
+}
+
+function hookGlobalSearch(){
+  const ip = document.getElementById('globalSearch');
+  const btn = document.getElementById('globalSearchBtn');
+  if(!ip || !btn) return;
+
+  function run(){
+    const q = ip.value.trim().toLowerCase();
+    if(!q) return;
+
+    let targetTile = null;
+
+    // Match tile titles
+    document.querySelectorAll('.ttl').forEach(el=>{
+      if(!targetTile && el.textContent.toLowerCase().includes(q)){
+        targetTile = el.closest('.tile');
+      }
+    });
+
+    // Otherwise any filter label
+    if(!targetTile){
+      document.querySelectorAll('.menu .menu-body .row').forEach(el=>{
+        if(!targetTile && el.textContent.toLowerCase().includes(q)){
+          targetTile = el.closest('.tile');
+        }
+      });
+    }
+
+    if(targetTile){
+      targetTile.classList.add('flash');
+      targetTile.scrollIntoView({behavior:'smooth', block:'start'});
+      setTimeout(()=>targetTile.classList.remove('flash'), 1500);
+    }
+  }
+
+  btn.addEventListener('click', run);
+  ip.addEventListener('keydown', (e)=>{ if(e.key==='Enter') run(); });
+}
+
+// Attach after UI is present
+try{
+  hookGlobalSearch();
+  setTimeout(buildAksesSuggestions, 1200);
+}catch(e){}
+
 })();
+
