@@ -1885,10 +1885,11 @@
     if (RAW_BPE) drawT8(computeT8(RAW_BPE, chosen8()), "t8", "main");
     if (RAW_WE) drawT9(computeT9(RAW_WE, chosen9()), "t9", "main");
   });
-// ===== Global search suggestions for Akses page =====
+/* ===== Global search: build source + live autocomplete + jump ===== */
+let _AKES_SUG = [];   // unified suggestion source
+let _AKES_ACTIVE = -1;
+
 function buildAksesSuggestions(){
-  const dl = document.getElementById('akses-suggestions');
-  if(!dl) return;
   const set = new Set();
 
   // Tile titles
@@ -1897,50 +1898,65 @@ function buildAksesSuggestions(){
     if(t) set.add(t);
   });
 
-  // Filter menu labels
+  // Filter labels (category lists inside each tile's menu)
   document.querySelectorAll('.menu .menu-body .row').forEach(el=>{
     const t = el.textContent.trim();
     if(t) set.add(t);
   });
 
-  // Common chart/tile names
-  [
-    'Akses Kepada Perkhidmatan Kesihatan Pergigian',
-    'Kedatangan Pesakit Primer',
-    'Kedatangan Pesakit Outreach',
-    'Jumlah Kedatangan Pesakit Pakar',
-    'Pencapaian Program Toddler',
-    'Liputan Ibu Mengandung',
-    'Young Adult',
-    'Basic Periodontal Examination',
-    'Warga Emas'
-  ].forEach(t=>set.add(t));
-
-  dl.innerHTML = Array.from(set)
-    .sort((a,b)=>a.localeCompare(b,'ms'))
-    .map(t=>`<option value="${t}"></option>`)
-    .join('');
+  // Normalise to array
+  _AKES_SUG = Array.from(set).filter(Boolean).sort((a,b)=>a.localeCompare(b,'ms'));
 }
 
 function hookGlobalSearch(){
-  const ip = document.getElementById('globalSearch');
+  const ip  = document.getElementById('globalSearch');
   const btn = document.getElementById('globalSearchBtn');
-  if(!ip || !btn) return;
+  const box = document.getElementById('gs-suggest');
+  if(!ip || !btn || !box) return;
 
-  function run(){
+  function highlightMatch(text, q){
+    const i = text.toLowerCase().indexOf(q.toLowerCase());
+    if(i < 0) return text;
+    return text.slice(0,i) + '<em>' + text.slice(i, i+q.length) + '</em>' + text.slice(i+q.length);
+  }
+
+  function renderSuggest(list, q){
+    if(!q || list.length === 0){ box.hidden = true; box.innerHTML = ''; _AKES_ACTIVE = -1; return; }
+    const max = 8;
+
+    // prioritize: startsWith first, then contains
+    const starts = list.filter(t => t.toLowerCase().startsWith(q.toLowerCase()));
+    const mids   = list.filter(t => !t.toLowerCase().startsWith(q.toLowerCase()) && t.toLowerCase().includes(q.toLowerCase()));
+    const merged = [...starts, ...mids].slice(0, max);
+
+    box.innerHTML = merged.map((t,i)=>`<div class="opt${i===0?' active':''}" data-v="${t}">${highlightMatch(t,q)}</div>`).join('');
+    box.hidden = merged.length === 0;
+    _AKES_ACTIVE = merged.length ? 0 : -1;
+  }
+
+  function pickCurrent(){
+    const el = box.querySelector('.opt.active');
+    if(el){
+      ip.value = el.getAttribute('data-v');
+      box.hidden = true;
+      runJump();
+    }
+  }
+
+  function runJump(){
     const q = ip.value.trim().toLowerCase();
     if(!q) return;
 
     let targetTile = null;
 
-    // Match tile titles
+    // Match tile titles (middle or start)
     document.querySelectorAll('.ttl').forEach(el=>{
       if(!targetTile && el.textContent.toLowerCase().includes(q)){
         targetTile = el.closest('.tile');
       }
     });
 
-    // Otherwise any filter label
+    // Or any filter label (middle or start)
     if(!targetTile){
       document.querySelectorAll('.menu .menu-body .row').forEach(el=>{
         if(!targetTile && el.textContent.toLowerCase().includes(q)){
@@ -1956,15 +1972,49 @@ function hookGlobalSearch(){
     }
   }
 
-  btn.addEventListener('click', run);
-  ip.addEventListener('keydown', (e)=>{ if(e.key==='Enter') run(); });
+  // Wire events
+  ip.addEventListener('input', () => {
+    const q = ip.value.trim();
+    renderSuggest(_AKES_SUG, q);
+  });
+
+  ip.addEventListener('keydown', (e) => {
+    if(box.hidden) { if(e.key==='Enter') runJump(); return; }
+    const opts = Array.from(box.querySelectorAll('.opt'));
+    if(e.key === 'ArrowDown'){
+      _AKES_ACTIVE = Math.min(_AKES_ACTIVE + 1, opts.length - 1);
+      opts.forEach((o,i)=>o.classList.toggle('active', i===_AKES_ACTIVE));
+      e.preventDefault();
+    }else if(e.key === 'ArrowUp'){
+      _AKES_ACTIVE = Math.max(_AKES_ACTIVE - 1, 0);
+      opts.forEach((o,i)=>o.classList.toggle('active', i===_AKES_ACTIVE));
+      e.preventDefault();
+    }else if(e.key === 'Enter'){
+      pickCurrent();
+      e.preventDefault();
+    }else if(e.key === 'Escape'){
+      box.hidden = true;
+    }
+  });
+
+  box.addEventListener('mousedown', (e)=>{
+    const it = e.target.closest('.opt');
+    if(!it) return;
+    ip.value = it.getAttribute('data-v');
+    box.hidden = true;
+    runJump();
+  });
+
+  btn.addEventListener('click', runJump);
 }
 
 // Attach after UI is present
 try{
   hookGlobalSearch();
+  // Delay ensures filter menus are built before we scan labels
   setTimeout(buildAksesSuggestions, 1200);
 }catch(e){}
 
 })();
+
 
