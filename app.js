@@ -51,6 +51,29 @@
     const n = Number(s);
     return isNaN(n) ? 0 : n;
   }
+  /* ===== Dynamic bottom padding for 90° labels (keep labels visible at 90°) ===== */
+const __measureCanvas = document.createElement('canvas');
+const __mctx = __measureCanvas.getContext('2d');
+
+function maxLabelPx(labels) {
+  __mctx.font = '12px Inter, system-ui, -apple-system, "Segoe UI", Roboto';
+  let max = 0;
+  labels.forEach(l => {
+    if (!l) return;
+    const t = Array.isArray(l) ? l.join(' ') : String(l);
+    const w = __mctx.measureText(t).width;
+    if (w > max) max = w;
+  });
+  return max;
+}
+
+function layoutFor(labels) {
+  const bottom = Math.ceil(maxLabelPx(labels.filter(Boolean)) + 28); // space for 90° labels
+  return {
+    padding: () => ({ top: 8, right: 8, bottom, left: 8 })
+  };
+}
+
   function cleanPct(v) {
     if (v == null) return null;
     let s = String(v).replace(/\u00A0/g, "").trim();
@@ -2027,4 +2050,5 @@
   }catch(e){}
 
 })();
+
 
