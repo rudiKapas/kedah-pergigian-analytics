@@ -5,15 +5,83 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Kesihatan Pergigian Sekolah</title>
 
-  <!-- Prevent favicon 404 -->
   <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=">
-
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=1">
 
-  <!-- Libraries (ready if you add charts/search JS later) -->
+  <!-- Chart/Papa for future use -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <!-- Page-scoped styling to ensure searchbar matches screenshot -->
+  <style>
+    /* layout of the searchbar row (btn, input, btn) */
+    .ph .searchbar{
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      align-items:center;
+      gap:12px;
+      margin-top:10px;
+    }
+    /* make left/right buttons same size */
+    .ph .searchbar button.btn,
+    .ph .searchbar .btn{
+      height:44px;
+      width:44px;
+      border-radius:12px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border:none;
+      cursor:pointer;
+    }
+    /* right search button (inherits your teal from styles.css if set) */
+    .ph .searchbar #schoolSearchRight{
+      background:#12a39a; /* fallback teal if not defined globally */
+      color:#fff;
+      box-shadow:0 4px 14px rgba(18,163,154,.25);
+    }
+    .ph .searchbar #schoolSearchRight:hover{ filter:brightness(0.95); }
+
+    /* ghost variant for the back button to match your image */
+    .ph .searchbar .btn-ghost{
+      background:#fff;
+      color:#0f1b2d;
+      border:1px solid #d8dee8;
+      box-shadow:0 4px 14px rgba(15,27,45,.06);
+    }
+    .ph .searchbar .btn-ghost:hover{ background:#f6f8fc; border-color:#cfd6e3; }
+    .ph .searchbar .btn-ghost .ico{ stroke-width:2.25; }
+
+    /* input look */
+    .ph .searchbar input[type="search"]{
+      height:44px;
+      border-radius:12px;
+      border:1px solid #e3e8f0;
+      padding:0 16px;
+      outline:none;
+      box-shadow:0 4px 14px rgba(15,27,45,.06) inset, 0 6px 18px rgba(15,27,45,.04);
+      font:400 15px/1.2 "Inter", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background:#fff;
+      color:#111827;
+    }
+    .ph .searchbar input[type="search"]::placeholder{ color:#8391a7; }
+    .ph .searchbar input[type="search"]:focus{
+      border-color:#cfd6e3;
+      box-shadow:0 0 0 3px rgba(18,163,154,.15);
+    }
+
+    /* ensure the first tile spans two columns (like akses) */
+    .grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
+    .tile.wide{ grid-column:1 / span 2; }
+    @media (max-width: 900px){
+      .grid{ grid-template-columns:1fr; }
+      .tile.wide{ grid-column:1 / span 1; }
+    }
+    /* tiny fix so the subtitle sits snugly under the H1 */
+    header.ph h1{ margin:0 0 4px; }
+    header.ph p{ margin:0 0 8px; color:#5b6b83; }
+  </style>
 
   <!-- SVG sprite -->
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
@@ -49,39 +117,31 @@
 </head>
 <body>
 
-  <!-- PAGE HEADER (title + subtitle at top, search bar below) -->
+  <!-- HEADER: title + subtitle + searchbar -->
   <header class="ph">
-    <!-- Removed top back button per request -->
-
     <h1>Kesihatan Pergigian Sekolah</h1>
     <p>Analisis proses dan sasaran kesihatan pergigian pelajar sekolah negeri Kedah.</p>
 
-    <!-- Search bar: LEFT = Back button, RIGHT = Search -->
-    <div class="searchbar" role="search" style="margin-top:10px">
+    <div class="searchbar" role="search">
+      <!-- LEFT: ghost back button -->
       <button id="schoolBackLeft" type="button" class="btn btn-ghost" aria-label="Kembali ke halaman utama">
-        <svg class="ico"><use href="#i-back"/></svg>
+        <svg class="ico" width="20" height="20"><use href="#i-back"/></svg>
       </button>
-    
+
+      <!-- Center: input -->
       <input id="schoolSearch" type="search" placeholder="Cari di halaman ini… (kategori, tajuk graf)" autocomplete="off" />
       <div id="gs-suggest" class="gs-suggest" hidden></div>
-    
+
+      <!-- RIGHT: teal search button -->
       <button id="schoolSearchRight" type="button" class="btn" aria-label="Cari">
-        <svg class="ico"><use href="#i-search"/></svg>
+        <svg class="ico" width="20" height="20"><use href="#i-search"/></svg>
       </button>
     </div>
-    
-    <script>
-      document.getElementById('schoolBackLeft')?.addEventListener('click', () => {
-        location.href = 'index.html';
-      });
-    </script>
-
   </header>
 
-  <!-- GRID -->
+  <!-- GRID (same pattern as akses.html) -->
   <main class="grid">
-
-    <!-- Tile 1 — WIDE (merges two columns) -->
+    <!-- Tile 1 — wide -->
     <section class="tile wide">
       <div class="th">
         <div>
@@ -112,7 +172,7 @@
       </div>
     </section>
 
-    <!-- Tile 2 — normal -->
+    <!-- Tile 2 -->
     <section class="tile">
       <div class="th">
         <div>
@@ -143,7 +203,7 @@
       </div>
     </section>
 
-    <!-- Tile 3 — normal -->
+    <!-- Tile 3 -->
     <section class="tile">
       <div class="th">
         <div>
@@ -173,10 +233,9 @@
         <div class="err" id="s3err"></div>
       </div>
     </section>
-
   </main>
 
-  <!-- Modal -->
+  <!-- Modal (same pattern as akses.html) -->
   <div class="modal" id="modal">
     <div class="modal-inner">
       <div class="mh">
@@ -187,13 +246,12 @@
     </div>
   </div>
 
+  <!-- Minimal JS: back button -->
   <script>
-  document.getElementById('schoolBackLeft')?.addEventListener('click', () => {
-    location.href = 'index.html';
-  });
-</script>
-
-
-  <!-- Add sekolah.js later to populate s1/s2/s3 -->
+    document.getElementById('schoolBackLeft')?.addEventListener('click', () => {
+      location.href = 'index.html';
+    });
+  </script>
+  <!-- When ready, include sekolah.js to populate s1/s2/s3 -->
 </body>
 </html>
