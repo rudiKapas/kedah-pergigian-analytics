@@ -58,11 +58,15 @@
 
     <!-- Search bar: LEFT = Back button, RIGHT = Search -->
     <div class="searchbar" role="search" style="margin-top:10px">
-      <a id="schoolBackLeft" class="btn" href="index.html" aria-label="Kembali ke halaman utama">
+      <!-- LEFT: Back button (same element type as right button so styles match) -->
+      <button id="schoolBackLeft" type="button" aria-label="Kembali ke halaman utama">
         <svg class="ico"><use href="#i-back"/></svg>
-      </a>
+      </button>
+    
       <input id="schoolSearch" type="search" placeholder="Cari di halaman ini… (kategori, tajuk graf)" autocomplete="off" />
       <div id="gs-suggest" class="gs-suggest" hidden></div>
+    
+      <!-- RIGHT: Search button -->
       <button id="schoolSearchRight" type="button" aria-label="Cari">
         <svg class="ico"><use href="#i-search"/></svg>
       </button>
@@ -177,6 +181,13 @@
       <div class="mb"><div class="mchart"><canvas id="mcanvas"></canvas></div></div>
     </div>
   </div>
+
+  <script>
+  document.getElementById('schoolBackLeft')?.addEventListener('click', () => {
+    location.href = 'index.html';
+  });
+</script>
+
 
   <!-- Add sekolah.js later to populate s1/s2/s3 -->
 </body>
