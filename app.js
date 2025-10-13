@@ -475,6 +475,7 @@ function layoutFor(labels) {
       type: "line",
       data: { labels: data.labels, datasets: sets },
       options: {
+        ...layoutFor(data.labels),
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -491,8 +492,8 @@ function layoutFor(labels) {
             grid: { display: false },
             ticks: {
               autoSkip: false,
-              maxRotation: 55,
-              minRotation: 0,
+              maxRotation: 90,
+              minRotation: 90,
               callback: (v, i) =>
                 i === 0 || i === data.labels.length - 1 ? "" : wrapLabel(data.labels[i]),
             },
@@ -649,6 +650,7 @@ function layoutFor(labels) {
       type: "line",
       data: { labels: data.labels, datasets: sets },
       options: {
+        ...layoutFor(data.labels),
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -665,8 +667,8 @@ function layoutFor(labels) {
             grid: { display: false },
             ticks: {
               autoSkip: false,
-              maxRotation: 55,
-              minRotation: 0,
+              maxRotation: 90,
+              minRotation: 90,
               callback: (v, i) =>
                 i === 0 || i === data.labels.length - 1 ? "" : wrapLabel(data.labels[i]),
             },
@@ -920,6 +922,7 @@ function layoutFor(labels) {
         ],
       },
       options: {
+        ...layoutFor(data.labels),
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -936,8 +939,8 @@ function layoutFor(labels) {
             grid: { display: false },
             ticks: {
               autoSkip: false,
-              maxRotation: 55,
-              minRotation: 0,
+              maxRotation: 90,
+              minRotation: 90,
               callback: (v, i) =>
                 i === 0 || i === data.labels.length - 1 ? "" : wrapLabel(data.labels[i]),
             },
@@ -1075,6 +1078,7 @@ function layoutFor(labels) {
       type: "line",
       data: { labels: data.labels, datasets: ds },
       options: {
+        ...layoutFor(data.labels),
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -1091,8 +1095,8 @@ function layoutFor(labels) {
             grid: { display: false },
             ticks: {
               autoSkip: false,
-              maxRotation: 55,
-              minRotation: 0,
+              maxRotation: 90,
+              minRotation: 90,
               callback: (v, i) =>
                 i === 0 || i === data.labels.length - 1 ? "" : wrapLabel(data.labels[i]),
             },
@@ -1264,6 +1268,7 @@ function layoutFor(labels) {
       type: "line",
       data: { labels: data.labels, datasets: ds },
       options: {
+        ...layoutFor(data.labels),
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -1280,8 +1285,8 @@ function layoutFor(labels) {
             grid: { display: false },
             ticks: {
               autoSkip: false,
-              maxRotation: 55,
-              minRotation: 0,
+              maxRotation: 90,
+              minRotation: 90,
               callback: (v, i) =>
                 i === 0 || i === data.labels.length - 1 ? "" : wrapLabel(data.labels[i]),
             },
@@ -1437,6 +1442,7 @@ function layoutFor(labels) {
       type: "line",
       data: { labels: data.labels, datasets: ds },
       options: {
+        ...layoutFor(data.labels),
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -1453,8 +1459,8 @@ function layoutFor(labels) {
             grid: { display: false },
             ticks: {
               autoSkip: false,
-              maxRotation: 55,
-              minRotation: 0,
+              maxRotation: 90,
+              minRotation: 90,
               callback: (v, i) =>
                 i === 0 || i === data.labels.length - 1 ? "" : wrapLabel(data.labels[i]),
             },
@@ -1595,6 +1601,7 @@ function layoutFor(labels) {
       type: "line",
       data: { labels: data.labels, datasets: ds },
       options: {
+        ...layoutFor(data.labels),
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -1611,8 +1618,8 @@ function layoutFor(labels) {
             grid: { display: false },
             ticks: {
               autoSkip: false,
-              maxRotation: 55,
-              minRotation: 0,
+              maxRotation: 90,
+              minRotation: 90,
               callback: (v, i) =>
                 i === 0 || i === data.labels.length - 1 ? "" : wrapLabel(data.labels[i]),
             },
@@ -1787,6 +1794,7 @@ function layoutFor(labels) {
       type: "line",
       data: { labels: data.labels, datasets: ds },
       options: {
+        ...layoutFor(data.labels),
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -1803,8 +1811,8 @@ function layoutFor(labels) {
             grid: { display: false },
             ticks: {
               autoSkip: false,
-              maxRotation: 55,
-              minRotation: 0,
+              maxRotation: 90,
+              minRotation: 90,
               callback: (v, i) =>
                 i === 0 || i === data.labels.length - 1 ? "" : wrapLabel(data.labels[i]),
             },
@@ -2050,6 +2058,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
