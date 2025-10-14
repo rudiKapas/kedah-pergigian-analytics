@@ -254,4 +254,41 @@ main, .grid{ flex: 1; }
 /* Footer look */
 footer{ margin: 8px 0 20px; color:#94a3b8; font-size:12px; }
 
+/* ---------- Shared page width ---------- */
+:root{
+  --page-max: 1200px;   /* same width you want for the first tile row */
+  --gap: 20px;
+}
+
+/* Header and grid use the SAME container width & side padding */
+header.ph,
+.grid{
+  max-width: var(--page-max);
+  margin: 0 auto;          /* center the container block itself */
+  padding: 0 var(--gap);   /* same side gutters as tiles */
+  width: 100%;
+}
+
+/* Header layout: left-aligned, not centered */
+header.ph{
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;     /* so content spans full container width */
+  gap: 8px;
+  text-align: left;
+}
+
+header.ph h1{ margin: 0 0 4px; }
+header.ph p{ margin: 0 0 8px; color:#5b6b83; }
+
+/* Search bar stretches to both edges of the header container */
+.ph .searchbar{
+  width: 100%;
+}
+
+/* Footer remains centered (keep this if you added earlier) */
+footer.wrap{ max-width: var(--page-max); margin: 8px auto 20px; padding: 0 var(--gap); }
+footer.wrap .content{ text-align:center; }
+
+
 
