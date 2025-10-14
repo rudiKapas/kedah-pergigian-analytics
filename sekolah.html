@@ -9,78 +9,41 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=1">
 
-  <!-- Chart/Papa for future use -->
+  <!-- Chart/Papa -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <!-- Page-scoped styling to ensure searchbar matches screenshot -->
+  <!-- Page-scoped tweaks -->
   <style>
-    /* layout of the searchbar row (btn, input, btn) */
-    .ph .searchbar{
-      display:grid;
-      grid-template-columns:auto 1fr auto;
-      align-items:center;
-      gap:12px;
-      margin-top:10px;
+    /* header + grid share same max width as tiles */
+    header.ph, .grid{ max-width:1200px; margin:0 auto; padding:0 20px; width:100%; }
+    header.ph{
+      display:flex; flex-direction:column; align-items:stretch; text-align:left;
+      padding-top:28px;
     }
-    /* make left/right buttons same size */
-    .ph .searchbar button.btn,
-    .ph .searchbar .btn{
-      height:44px;
-      width:44px;
-      border-radius:12px;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      border:none;
-      cursor:pointer;
-    }
-    /* right search button (inherits your teal from styles.css if set) */
-    .ph .searchbar #schoolSearchRight{
-      background:#12a39a; /* fallback teal if not defined globally */
-      color:#fff;
-      box-shadow:0 4px 14px rgba(18,163,154,.25);
-    }
-    .ph .searchbar #schoolSearchRight:hover{ filter:brightness(0.95); }
+    header.ph h1{ margin:0 0 2px; }
+    header.ph p{ margin:0 0 8px; color:#5b6b83; }
 
-    /* ghost variant for the back button to match your image */
-    .ph .searchbar .btn-ghost{
-      background:#fff;
-      color:#0f1b2d;
-      border:1px solid #d8dee8;
-      box-shadow:0 4px 14px rgba(15,27,45,.06);
-    }
-    .ph .searchbar .btn-ghost:hover{ background:#f6f8fc; border-color:#cfd6e3; }
-    .ph .searchbar .btn-ghost .ico{ stroke-width:2.25; }
+    /* searchbar row */
+    .ph .searchbar{ display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:12px; margin-top:6px; }
+    .ph .searchbar .btn{ height:44px; width:44px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; border:none; cursor:pointer; }
+    .ph .searchbar #schoolSearchRight{ background:#12a39a; color:#fff; box-shadow:0 4px 14px rgba(18,163,154,.25); }
+    .ph .btn-ghost{ background:#fff; color:#0f172a; border:1px solid #d8dee8; box-shadow:0 4px 14px rgba(15,27,45,.06); }
+    .ph .btn-ghost:hover{ background:#fff; border-color:#d8dee8; box-shadow:0 0 0 4px rgba(16,185,129,.15), 0 4px 14px rgba(15,27,45,.06); }
+    .ph input[type="search"]{ height:44px; border-radius:12px; border:1px solid #e3e8f0; padding:0 16px; box-shadow:0 4px 14px rgba(15,27,45,.06) inset, 0 6px 18px rgba(15,27,45,.04); background:#fff; }
 
-    /* input look */
-    .ph .searchbar input[type="search"]{
-      height:44px;
-      border-radius:12px;
-      border:1px solid #e3e8f0;
-      padding:0 16px;
-      outline:none;
-      box-shadow:0 4px 14px rgba(15,27,45,.06) inset, 0 6px 18px rgba(15,27,45,.04);
-      font:400 15px/1.2 "Inter", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      background:#fff;
-      color:#111827;
-    }
-    .ph .searchbar input[type="search"]::placeholder{ color:#8391a7; }
-    .ph .searchbar input[type="search"]:focus{
-      border-color:#cfd6e3;
-      box-shadow:0 0 0 3px rgba(18,163,154,.15);
-    }
-
-    /* ensure the first tile spans two columns (like akses) */
+    /* grid like akses */
     .grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
     .tile.wide{ grid-column:1 / span 2; }
-    @media (max-width: 900px){
-      .grid{ grid-template-columns:1fr; }
-      .tile.wide{ grid-column:1 / span 1; }
+    @media (max-width: 900px){ .grid{ grid-template-columns:1fr; } .tile.wide{ grid-column:1 / span 1; } }
+
+    /* small tag pills used as view switcher */
+    .tags .pill{
+      display:inline-flex; align-items:center; gap:6px; padding:6px 10px;
+      border-radius:999px; border:1px solid #e5e7eb; background:#fff;
+      color:#334155; font-size:12px; cursor:pointer; margin:0 6px 6px 0;
     }
-    /* tiny fix so the subtitle sits snugly under the H1 */
-    header.ph h1{ margin:0 0 4px; }
-    header.ph p{ margin:0 0 8px; color:#5b6b83; }
+    .tags .pill.active{ border-color:#12a39a; box-shadow:0 0 0 3px rgba(18,163,154,.15); color:#0f172a; }
   </style>
 
   <!-- SVG sprite -->
@@ -97,12 +60,6 @@
     </symbol>
     <symbol id="i-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M3 5h18l-7 8v6l-4-2v-4L3 5z"/>
-    </symbol>
-    <symbol id="i-checkall" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M9 12l2 2 4-4"/><path d="M3 12l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="3"/>
-    </symbol>
-    <symbol id="i-eraser" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M7 21h13"/><path d="M16 3l5 5-10 10H6L1 13l10-10 5 5"/>
     </symbol>
     <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M18 6L6 18M6 6l12 12"/>
@@ -139,34 +96,30 @@
     </div>
   </header>
 
-  <!-- GRID (same pattern as akses.html) -->
+  <!-- GRID -->
   <main class="grid">
-    <!-- Tile 1 — wide -->
-    <section class="tile wide">
+    <!-- Tile 1 — WIDE -->
+    <section class="tile wide" id="tile1">
       <div class="th">
         <div>
-          <h2 class="ttl">Liputan & Status Pergigian Murid (Ringkasan Negeri)</h2>
-          <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="s1time">—</span></div>
+          <h2 class="ttl">Pra Sekolah, Tadika &amp; Tadika Swasta</h2>
+          <div class="sub">
+            <svg class="ico"><use href="#i-time"/></svg>
+            <span id="s1time">Memuatkan…</span>
+          </div>
         </div>
         <div class="act">
-          <div class="dd" id="dds1" hidden>
-            <button class="btn dd-trigger" id="dds1btn" title="Tapis"><svg class="ico"><use href="#i-filter"/></svg></button>
-            <div class="menu" id="dds1menu">
-              <div class="menu-body"></div>
-              <div class="mfoot">
-                <button class="icbtn" id="dds1all" title="Pilih Semua"><svg class="ico"><use href="#i-checkall"/></svg></button>
-                <button class="icbtn" id="dds1none" title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
-                <button class="icbtn" id="dds1close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
-              </div>
-            </div>
-          </div>
           <button id="s1refresh" class="btn" title="Kemas Kini"><svg class="ico"><use href="#i-refresh"/></svg></button>
           <button id="s1expand" class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
         </div>
       </div>
       <div class="tb">
-        <div class="tags" id="dds1tags"></div>
+        <!-- view switcher tags -->
+        <div class="tags" id="s1views"></div>
+
+        <!-- chart -->
         <div class="chart"><canvas id="s1"></canvas></div>
+
         <div class="legend" id="s1legend"></div>
         <div class="err" id="s1err"></div>
       </div>
@@ -185,8 +138,8 @@
             <div class="menu" id="dds2menu">
               <div class="menu-body"></div>
               <div class="mfoot">
-                <button class="icbtn" id="dds2all" title="Pilih Semua"><svg class="ico"><use href="#i-checkall"/></svg></button>
-                <button class="icbtn" id="dds2none" title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
+                <button class="icbtn" id="dds2all" title="Pilih Semua"><svg class="ico"><use href="#i-x"/></svg></button>
+                <button class="icbtn" id="dds2none" title="Kosongkan"><svg class="ico"><use href="#i-x"/></svg></button>
                 <button class="icbtn" id="dds2close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
               </div>
             </div>
@@ -216,8 +169,8 @@
             <div class="menu" id="dds3menu">
               <div class="menu-body"></div>
               <div class="mfoot">
-                <button class="icbtn" id="dds3all" title="Pilih Semua"><svg class="ico"><use href="#i-checkall"/></svg></button>
-                <button class="icbtn" id="dds3none" title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
+                <button class="icbtn" id="dds3all" title="Pilih Semua"><svg class="ico"><use href="#i-x"/></svg></button>
+                <button class="icbtn" id="dds3none" title="Kosongkan"><svg class="ico"><use href="#i-x"/></svg></button>
                 <button class="icbtn" id="dds3close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
               </div>
             </div>
@@ -235,7 +188,7 @@
     </section>
   </main>
 
-  <!-- Modal (same pattern as akses.html) -->
+  <!-- Modal -->
   <div class="modal" id="modal">
     <div class="modal-inner">
       <div class="mh">
@@ -246,17 +199,224 @@
     </div>
   </div>
 
-  <!-- Minimal JS: back button -->
+  <!-- Back -->
   <script>
     document.getElementById('schoolBackLeft')?.addEventListener('click', () => {
       location.href = 'index.html';
     });
   </script>
-  <!-- When ready, include sekolah.js to populate s1/s2/s3 -->
+
+  <!-- Tile 1: fetch sheet & draw chart -->
+  <script>
+  (function(){
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1190173258&single=true&output=csv';
+    const views = [
+      {id:'bilangan',  label:'Bilangan',           kind:'count'},
+      {id:'enrol',     label:'Enrolmen',          kind:'count'},
+      {id:'liputan',   label:'Liputan (%)',       kind:'pct_inst'},
+      {id:'liputanM',  label:'Liputan Murid (%)', kind:'pct_murid'},
+      {id:'tpr',       label:'TPR (%)',           kind:'pct_other'},
+      {id:'mbk',       label:'MBK (%)',           kind:'pct_other'},
+      {id:'selesai',   label:'Kes Selesai (%)',   kind:'pct_other'},
+    ];
+    const labels = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
+
+    // Map each view to 3 cell coordinates per daerah (Pra sekolah di sekolah, Tadika kerajaan, Tadika swasta)
+    const coords = {
+      bilangan: {
+        // D5..O7 by category rows (5/6/7)
+        A:['D5','E5','F5','G5','H5','I5','J5','K5','L5','M5','N5','O5'],
+        B:['D6','E6','F6','G6','H6','I6','J6','K6','L6','M6','N6','O6'],
+        C:['D7','E7','F7','G7','H7','I7','J7','K7','L7','M7','N7','O7']
+      },
+      enrol: {
+        // D8..O10
+        A:['D8','E8','F8','G8','H8','I8','J8','K8','L8','M8','N8','O8'],
+        B:['D9','E9','F9','G9','H9','I9','J9','K9','L9','M9','N9','O9'],
+        C:['D10','E10','F10','G10','H10','I10','J10','K10','L10','M10','N10','O10']
+      },
+      liputan: {
+        // institusi %: rows 14/17/20
+        A:['D14','E14','F14','G14','H14','I14','J14','K14','L14','M14','N14','O14'],
+        B:['D17','E17','F17','G17','H17','I17','J17','K17','L17','M17','N17','O17'],
+        C:['D20','E20','F20','G20','H20','I20','J20','K20','L20','M20','N20','O20']
+      },
+      liputanM: {
+        // murid %: rows 24/27/30
+        A:['D24','E24','F24','G24','H24','I24','J24','K24','L24','M24','N24','O24'],
+        B:['D27','E27','F27','G27','H27','I27','J27','K27','L27','M27','N27','O27'],
+        C:['D30','E30','F30','G30','H30','I30','J30','K30','L30','M30','N30','O30']
+      },
+      tpr: {
+        // TPR %: rows 34/37/40  (note: your Pendang row shows E27 – assuming it should be E37; using 37 here)
+        A:['D34','E34','F34','G34','H34','I34','J34','K34','L34','M34','N34','O34'],
+        B:['D37','E37','F37','G37','H37','I37','J37','K37','L37','M37','N37','O37'],
+        C:['D40','E40','F40','G40','H40','I40','J40','K40','L40','M40','N40','O40']
+      },
+      mbk: {
+        // MBK %: rows 44/47/50
+        A:['D44','E44','F44','G44','H44','I44','J44','K44','L44','M44','N44','O44'],
+        B:['D47','E47','F47','G47','H47','I47','J47','K47','L47','M47','N47','O47'],
+        C:['D50','E50','F50','G50','H50','I50','J50','K50','L50','M50','N50','O50']
+      },
+      selesai: {
+        // Kes selesai %: rows 54/57/61
+        A:['D54','E54','F54','G54','H54','I54','J54','K54','L54','M54','N54','O54'],
+        B:['D57','E57','F57','G57','H57','I57','J57','K57','L57','M57','N57','O57'],
+        C:['D61','E61','F61','G61','H61','I61','J61','K61','L61','M61','N61','O61']
+      }
+    };
+
+    // Sasaran lines (percent-based); shown only for % views
+    const targets = [
+      {value:10,  label:'% Pesakit baru warga emas mengikut populasi'},
+      {value:100, label:'% Bilangan institusi dilawati di daerah'},
+      {value:75,  label:'% Warga Emas disaring'},
+      {value:80,  label:'% Rehabilitasi fungsi Warga Emas'},
+      {value:30,  label:'% Warga emas ≥20 batang gigi'}
+    ];
+
+    const catNames = ['Pra sekolah di sekolah','Tadika kerajaan','Tadika swasta'];
+    const palette = ['#0ea5e9','#22c55e','#a78bfa']; // nice, readable triad
+
+    // helpers
+    const colIndex = c => c.toUpperCase().charCodeAt(0) - 65; // 'A' -> 0
+    function getCell(table, A1){
+      const m = /^([A-Z]+)(\d+)$/.exec(A1);
+      if(!m) return null;
+      const col = m[1], row = parseInt(m[2],10);
+      // supports multi-letter columns just in case
+      let idx = 0;
+      for (let i=0; i<col.length; i++){
+        idx = idx*26 + (col.charCodeAt(i)-64);
+      }
+      const ci = idx-1;
+      const ri = row-1;
+      return (table[ri] && table[ri][ci] != null) ? table[ri][ci] : null;
+    }
+
+    function buildSeries(table, viewKey){
+      const map = coords[viewKey];
+      const A = map.A.map(a1=>Number(getCell(table,a1)||0));
+      const B = map.B.map(a1=>Number(getCell(table,a1)||0));
+      const C = map.C.map(a1=>Number(getCell(table,a1)||0));
+      return [A,B,C];
+    }
+
+    function makeTargetDataset(value,label,count){
+      const data = new Array(count).fill(value);
+      return {
+        type:'line',
+        label:`Sasaran: ${label}`,
+        data,
+        borderColor:'rgba(15,27,45,0.25)',
+        borderDash:[6,6],
+        pointRadius:0,
+        borderWidth:1.5,
+        tension:0
+      };
+    }
+
+    // UI: view tags
+    function renderViewTags(active){
+      const wrap = document.getElementById('s1views');
+      wrap.innerHTML = '';
+      views.forEach(v=>{
+        const el = document.createElement('button');
+        el.className = 'pill' + (v.id===active?' active':'');
+        el.textContent = v.label;
+        el.dataset.view = v.id;
+        el.onclick = ()=>{ draw(v.id); document.querySelectorAll('#s1views .pill').forEach(p=>p.classList.remove('active')); el.classList.add('active'); };
+        wrap.appendChild(el);
+      });
+    }
+
+    let CHART;
+    function draw(viewId){
+      if(!window.__table){ return; }
+      const [A,B,C] = buildSeries(window.__table, viewId);
+      const isPct = ['liputan','liputanM','tpr','mbk','selesai'].includes(viewId);
+
+      const ds = [
+        { type:'bar', label:catNames[0], data:A, backgroundColor:palette[0], borderRadius:8, barPercentage:0.8, categoryPercentage:0.7 },
+        { type:'bar', label:catNames[1], data:B, backgroundColor:palette[1], borderRadius:8, barPercentage:0.8, categoryPercentage:0.7 },
+        { type:'bar', label:catNames[2], data:C, backgroundColor:palette[2], borderRadius:8, barPercentage:0.8, categoryPercentage:0.7 }
+      ];
+
+      if(isPct){
+        targets.forEach(t=> ds.push( makeTargetDataset(t.value, t.label, labels.length) ));
+      }
+
+      const yMaxGuess = isPct ? 105 : undefined;
+
+      const cfg = {
+        type:'bar',
+        data:{ labels, datasets: ds },
+        options:{
+          responsive:true,
+          plugins:{
+            legend:{ position:'bottom' },
+            tooltip:{ mode:'index', intersect:false }
+          },
+          scales:{
+            x:{ stacked:false, ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } },
+            y:{ beginAtZero:true, max:yMaxGuess, ticks:{ callback:v=> isPct? v+'%': v } }
+          }
+        }
+      };
+
+      const ctx = document.getElementById('s1').getContext('2d');
+      if(CHART){ CHART.destroy(); }
+      CHART = new Chart(ctx, cfg);
+      document.getElementById('s1time').textContent = 'Dikemas kini: ' + new Date().toLocaleString();
+    }
+
+    // refresh & expand buttons
+    document.getElementById('s1refresh')?.addEventListener('click', ()=> draw(document.querySelector('#s1views .pill.active')?.dataset.view || 'liputan'));
+    document.getElementById('s1expand')?.addEventListener('click', ()=>{
+      // simple “expand” modal reuse (same pattern as akses)
+      const modal = document.getElementById('modal');
+      const mCanvas = document.getElementById('mcanvas').getContext('2d');
+      modal.classList.add('open');
+      const activeView = document.querySelector('#s1views .pill.active')?.dataset.view || 'liputan';
+      const [A,B,C] = buildSeries(window.__table, activeView);
+      const isPct = ['liputan','liputanM','tpr','mbk','selesai'].includes(activeView);
+      const ds = [
+        { type:'bar', label:catNames[0], data:A, backgroundColor:palette[0], borderRadius:8, barPercentage:0.8, categoryPercentage:0.7 },
+        { type:'bar', label:catNames[1], data:B, backgroundColor:palette[1], borderRadius:8, barPercentage:0.8, categoryPercentage:0.7 },
+        { type:'bar', label:catNames[2], data:C, backgroundColor:palette[2], borderRadius:8, barPercentage:0.8, categoryPercentage:0.7 }
+      ];
+      if(isPct){ targets.forEach(t=> ds.push( makeTargetDataset(t.value, t.label, labels.length) )); }
+      if(window.__mchart){ window.__mchart.destroy(); }
+      window.__mchart = new Chart(mCanvas, {
+        type:'bar',
+        data:{ labels, datasets: ds },
+        options:{
+          plugins:{ legend:{ position:'bottom' } },
+          scales:{ y:{ beginAtZero:true, max: isPct?105:undefined, ticks:{ callback:v=> isPct? v+'%': v } } }
+        }
+      });
+      document.getElementById('mclose').onclick = ()=>{ modal.classList.remove('open'); window.__mchart?.destroy(); };
+    });
+
+    // Fetch CSV
+    Papa.parse(CSV_URL, {
+      download:true,
+      skipEmptyLines:true,
+      complete: (res)=>{
+        window.__table = res.data;
+        renderViewTags('liputan');   // default to a % view so sasaran lines make sense
+        draw('liputan');
+      },
+      error: (e)=>{
+        document.getElementById('s1err').textContent = 'Ralat memuatkan data: ' + e;
+      }
+    });
+  })();
+  </script>
 
   <footer class="wrap">
-    <div class="content">© Kedah Oral Health Analytics • Optimum viewing recommended via desktop web browser.</div>
+    <div class="content">© Kedah Oral Health Analytics • Data Kesihatan Pergigian yang disahkan dan dikemas kini.</div>
   </footer>
-
 </body>
 </html>
