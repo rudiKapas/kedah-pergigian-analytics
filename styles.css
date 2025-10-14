@@ -345,5 +345,23 @@ header.ph .searchbar{
 
 .icbtn .ico{ width:18px; height:18px; display:block; }
 
+/* Dropdown menu must sit above everything and accept clicks */
+.dd{ position:relative; }
+.dd .menu{
+  position:absolute; right:0; top:44px;
+  display:none;
+  z-index: 1000;           /* <-- higher than headers/cards */
+  width:280px; background:#fff;
+  border:1px solid #e3e8f0; border-radius:12px;
+  box-shadow:0 16px 36px rgba(15,27,45,.14);
+  pointer-events: auto;    /* ensure clicks register */
+}
+.dd.open .menu{ display:block; }
+
+/* (optional) keep it comfy to click */
+.dd .menu .menu-body{ max-height:320px; overflow:auto; padding:10px 12px; }
+.dd .menu .menu-body .opt{ display:flex; align-items:center; gap:.6rem; padding:.4rem .2rem; cursor:pointer; user-select:none; }
+.dd .menu .menu-body .opt:hover{ background:#f7fafc; border-radius:8px; }
+
 
 
