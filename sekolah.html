@@ -12,11 +12,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=1">
 
-  <!-- Libraries (same as akses) -->
+  <!-- Libs (same as akses) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <!-- Page-scoped tweaks so header spans same width as tiles -->
+  <!-- Page tweaks so header spans same width as tiles -->
   <style>
     header.ph, .grid{ max-width:1200px; margin:0 auto; padding:0 20px; width:100%; }
     header.ph{ display:flex; flex-direction:column; align-items:stretch; text-align:left; padding-top:24px; }
@@ -35,6 +35,10 @@
     .grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
     .tile.wide{ grid-column:1 / span 2; }
     @media (max-width: 900px){ .grid{ grid-template-columns:1fr; } .tile.wide{ grid-column:1 / span 1; } }
+
+    /* ensure chart fills the tile exactly like akses */
+    .tile .chart{ height:420px; }
+    .tile .chart canvas{ width:100% !important; height:100% !important; }
   </style>
 
   <!-- SVG sprite (same icons as akses) -->
@@ -65,7 +69,7 @@
 </head>
 <body>
 
-  <!-- HEADER (title + subtitle + searchbar) -->
+  <!-- HEADER -->
   <header class="ph">
     <h1>Kesihatan Pergigian Sekolah</h1>
     <p>Analisis proses dan sasaran kesihatan pergigian pelajar sekolah negeri Kedah.</p>
@@ -86,7 +90,8 @@
 
   <!-- GRID -->
   <main class="grid">
-    <!-- TILE 1 (akses-style) -->
+
+    <!-- TILE 1: akses-style + FILTER -->
     <section class="tile wide" id="ps1-tile">
       <div class="th">
         <div>
@@ -94,19 +99,38 @@
           <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="ps1time">—</span></div>
         </div>
         <div class="act">
+          <!-- filter dropdown, just like akses -->
+          <div class="dd" id="dds1">
+            <button class="btn dd-trigger" id="dds1btn" title="Tapis"><svg class="ico"><use href="#i-filter"/></svg></button>
+            <div class="menu" id="dds1menu">
+              <div class="menu-body"></div>
+              <div class="mfoot">
+                <button class="icbtn" id="dds1all" title="Pilih Semua" aria-label="Pilih Semua">
+                  <img class="ico" src="assets/icons/selectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dds1none" title="Kosongkan" aria-label="Kosongkan">
+                  <img class="ico" src="assets/icons/unselectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dds1close" title="Tutup" aria-label="Tutup">
+                  <svg class="ico"><use href="#i-x"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
           <button id="ps1refresh" class="btn" title="Kemas Kini"><svg class="ico"><use href="#i-refresh"/></svg></button>
           <button id="ps1expand" class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
         </div>
       </div>
 
       <div class="tb">
+        <div class="tags" id="dds1tags"></div>
         <div class="chart"><canvas id="ps1"></canvas></div>
         <div class="legend" id="ps1legend"></div>
         <div class="err" id="ps1err"></div>
       </div>
     </section>
 
-    <!-- TILE 2 (placeholder; keep structure like akses) -->
+    <!-- TILE 2 placeholder -->
     <section class="tile">
       <div class="th">
         <div>
@@ -125,7 +149,7 @@
       </div>
     </section>
 
-    <!-- TILE 3 (placeholder) -->
+    <!-- TILE 3 placeholder -->
     <section class="tile">
       <div class="th">
         <div>
@@ -156,28 +180,25 @@
     </div>
   </div>
 
-  <!-- NAV: back to index -->
+  <!-- NAV -->
   <script>
     document.getElementById('schoolBackLeft')?.addEventListener('click', ()=>{ location.href='index.html'; });
   </script>
 
-  <!-- TILE 1 logic (copy of akses look & feel) -->
+  <!-- TILE 1 logic -->
   <script>
   (function(){
-    // Published CSV (sheet "10. PRA SEKOLAH")
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1190173258&single=true&output=csv';
 
-    // Labels (daerah)
-    const DAERAH = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
+    const AREAS = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
 
-    // Cells to read (Bilangan institusi)
+    // Cells (Bilangan institusi)
     const CELLS = {
       A: ['D5','E5','F5','G5','H5','I5','J5','K5','L5','M5','N5','O5'], // Pra sekolah di sekolah
       B: ['D6','E6','F6','G6','H6','I6','J6','K6','L6','M6','N6','O6'], // Tadika kerajaan
       C: ['D7','E7','F7','G7','H7','I7','J7','K7','L7','M7','N7','O7']  // Tadika swasta
     };
 
-    // Sasaran lines (you asked to show these as dashed horizontals with tooltip labels)
     const TARGETS = [
       {value:10,  label:'% Pesakit baru warga emas mengikut populasi'},
       {value:100, label:'% Bilangan institusi dilawati di daerah'},
@@ -186,14 +207,13 @@
       {value:30,  label:'% Warga emas ≥ 20 batang gigi'}
     ];
 
-    // Series palette (same vibe as akses)
     const SERIES = [
       { name:'Pra sekolah di sekolah', color:'#0ea5e9' }, // blue
       { name:'Tadika kerajaan',        color:'#22c55e' }, // green
       { name:'Tadika swasta',          color:'#a78bfa' }  // purple
     ];
 
-    // --- helpers like akses ---
+    // --- helpers ---
     function colIndex(A){ let i=0, n=0; for(; i<A.length; i++) n=n*26+(A.charCodeAt(i)-64); return n-1; }
     function getCell(table, A1){
       const m = /^([A-Z]+)(\d+)$/.exec(A1); if(!m) return null;
@@ -216,11 +236,66 @@
       };
     }
 
+    // Filter state
+    let selected = new Set(AREAS);  // default: all selected
+    function rebuildTags(){
+      const host = document.getElementById('dds1tags');
+      host.innerHTML = '';
+      [...selected].forEach(name=>{
+        const b = document.createElement('span');
+        b.className = 'tag';
+        b.textContent = name;
+        host.appendChild(b);
+      });
+      if(selected.size === AREAS.length){ host.innerHTML = '<span class="tag">Semua daerah</span>'; }
+    }
+    function buildFilterMenu(){
+      const body = document.querySelector('#dds1menu .menu-body');
+      body.innerHTML = '';
+      AREAS.forEach(name=>{
+        const id = 's1opt-'+name.replace(/\s+/g,'-');
+        const row = document.createElement('label');
+        row.className = 'opt';
+        row.innerHTML = `
+          <input type="checkbox" id="${id}" ${selected.has(name)?'checked':''}>
+          <span>${name}</span>
+        `;
+        row.querySelector('input').addEventListener('change', (e)=>{
+          if(e.target.checked) selected.add(name); else selected.delete(name);
+          rebuildTags();
+          if(window.__ps1table) draw(window.__ps1table);
+        });
+        body.appendChild(row);
+      });
+    }
+
+    // Dropdown show/hide (like akses)
+    document.getElementById('dds1btn')?.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      document.getElementById('dds1').classList.toggle('open');
+    });
+    document.getElementById('dds1close')?.addEventListener('click', ()=>{
+      document.getElementById('dds1').classList.remove('open');
+    });
+    document.addEventListener('click', (e)=>{
+      const dd = document.getElementById('dds1');
+      if(!dd.contains(e.target)) dd.classList.remove('open');
+    });
+
+    // Select all / none
+    document.getElementById('dds1all')?.addEventListener('click', ()=>{
+      selected = new Set(AREAS); buildFilterMenu(); rebuildTags(); if(window.__ps1table) draw(window.__ps1table);
+    });
+    document.getElementById('dds1none')?.addEventListener('click', ()=>{
+      selected = new Set(); buildFilterMenu(); rebuildTags(); if(window.__ps1table) draw(window.__ps1table);
+    });
+
     let chartPS1;
 
     function draw(table){
       const ctx = document.getElementById('ps1').getContext('2d');
 
+      // gradient like akses
       function gradient(hex){
         const g = ctx.createLinearGradient(0,0,0,300);
         const c = parseInt(hex.slice(1),16), r=(c>>16)&255, g1=(c>>8)&255, b=c&255;
@@ -230,22 +305,32 @@
         return g;
       }
 
-      const dataA = seriesFrom(table, CELLS.A);
-      const dataB = seriesFrom(table, CELLS.B);
-      const dataC = seriesFrom(table, CELLS.C);
+      // Build series and apply daerah filter
+      const A = seriesFrom(table, CELLS.A);
+      const B = seriesFrom(table, CELLS.B);
+      const C = seriesFrom(table, CELLS.C);
+
+      const labels = [];
+      const aData = [], bData = [], cData = [];
+      AREAS.forEach((name, i)=>{
+        if(selected.has(name)){ labels.push(name); aData.push(A[i]); bData.push(B[i]); cData.push(C[i]); }
+      });
 
       const datasets = [
-        { type:'line', label:SERIES[0].name, data:dataA, borderColor:SERIES[0].color, backgroundColor:gradient(SERIES[0].color), borderWidth:3, tension:.45, fill:true, pointRadius:3 },
-        { type:'line', label:SERIES[1].name, data:dataB, borderColor:SERIES[1].color, backgroundColor:gradient(SERIES[1].color), borderWidth:3, tension:.45, fill:true, pointRadius:3 },
-        { type:'line', label:SERIES[2].name, data:dataC, borderColor:SERIES[2].color, backgroundColor:gradient(SERIES[2].color), borderWidth:3, tension:.45, fill:true, pointRadius:3 },
-        ...TARGETS.map(t => makeTargetDataset(t.value, t.label, DAERAH.length))
+        { type:'line', label:SERIES[0].name, data:aData, borderColor:SERIES[0].color, backgroundColor:gradient(SERIES[0].color), borderWidth:3, tension:.45, fill:true, pointRadius:3 },
+        { type:'line', label:SERIES[1].name, data:bData, borderColor:SERIES[1].color, backgroundColor:gradient(SERIES[1].color), borderWidth:3, tension:.45, fill:true, pointRadius:3 },
+        { type:'line', label:SERIES[2].name, data:cData, borderColor:SERIES[2].color, backgroundColor:gradient(SERIES[2].color), borderWidth:3, tension:.45, fill:true, pointRadius:3 },
+        ...TARGETS.map(t => ({
+          ...makeTargetDataset(t.value, t.label, labels.length)
+        }))
       ];
 
       const cfg = {
         type:'line',
-        data:{ labels:DAERAH, datasets },
+        data:{ labels, datasets },
         options:{
           responsive:true,
+          maintainAspectRatio:false,
           plugins:{
             legend:{ position:'bottom' },
             tooltip:{ mode:'index', intersect:false,
@@ -273,6 +358,7 @@
 
     function drawInModal(table){
       const mctx = document.getElementById('mcanvas').getContext('2d');
+
       function gradient(hex){
         const g = mctx.createLinearGradient(0,0,0,360);
         const c = parseInt(hex.slice(1),16), r=(c>>16)&255, g1=(c>>8)&255, b=c&255;
@@ -282,21 +368,30 @@
         return g;
       }
 
-      const dataA = seriesFrom(table, CELLS.A);
-      const dataB = seriesFrom(table, CELLS.B);
-      const dataC = seriesFrom(table, CELLS.C);
+      const A = seriesFrom(table, CELLS.A);
+      const B = seriesFrom(table, CELLS.B);
+      const C = seriesFrom(table, CELLS.C);
+
+      // apply filter in modal too
+      const labels = [];
+      const aData = [], bData = [], cData = [];
+      AREAS.forEach((name, i)=>{
+        if(selected.has(name)){ labels.push(name); aData.push(A[i]); bData.push(B[i]); cData.push(C[i]); }
+      });
 
       const datasets = [
-        { type:'line', label:SERIES[0].name, data:dataA, borderColor:SERIES[0].color, backgroundColor:gradient(SERIES[0].color), borderWidth:3, tension:.45, fill:true, pointRadius:2 },
-        { type:'line', label:SERIES[1].name, data:dataB, borderColor:SERIES[1].color, backgroundColor:gradient(SERIES[1].color), borderWidth:3, tension:.45, fill:true, pointRadius:2 },
-        { type:'line', label:SERIES[2].name, data:dataC, borderColor:SERIES[2].color, backgroundColor:gradient(SERIES[2].color), borderWidth:3, tension:.45, fill:true, pointRadius:2 },
-        ...TARGETS.map(t => makeTargetDataset(t.value, t.label, DAERAH.length))
+        { type:'line', label:SERIES[0].name, data:aData, borderColor:SERIES[0].color, backgroundColor:gradient(SERIES[0].color), borderWidth:3, tension:.45, fill:true, pointRadius:2 },
+        { type:'line', label:SERIES[1].name, data:bData, borderColor:SERIES[1].color, backgroundColor:gradient(SERIES[1].color), borderWidth:3, tension:.45, fill:true, pointRadius:2 },
+        { type:'line', label:SERIES[2].name, data:cData, borderColor:SERIES[2].color, backgroundColor:gradient(SERIES[2].color), borderWidth:3, tension:.45, fill:true, pointRadius:2 },
+        ...TARGETS.map(t => ({
+          ...makeTargetDataset(t.value, t.label, labels.length)
+        }))
       ];
 
       if(window.__mchart) window.__mchart.destroy();
       window.__mchart = new Chart(mctx, {
         type:'line',
-        data:{ labels:DAERAH, datasets },
+        data:{ labels, datasets },
         options:{
           plugins:{ legend:{ position:'bottom' } },
           scales:{ y:{ beginAtZero:true, ticks:{ callback:v=> v.toLocaleString() } } }
@@ -304,20 +399,18 @@
       });
     }
 
-    // Buttons (akses behavior)
+    // Buttons
     document.getElementById('ps1refresh')?.addEventListener('click', ()=> window.__ps1table && draw(window.__ps1table));
     document.getElementById('ps1expand')?.addEventListener('click', ()=>{
-      const modal = document.getElementById('modal');
-      modal.classList.add('open');
+      const modal = document.getElementById('modal'); modal.classList.add('open');
       drawInModal(window.__ps1table);
       document.getElementById('mclose').onclick = ()=>{ modal.classList.remove('open'); window.__mchart?.destroy(); };
     });
 
-    // Load CSV
+    // Load data
     Papa.parse(CSV_URL, {
-      download:true,
-      skipEmptyLines:true,
-      complete:(res)=>{ window.__ps1table = res.data; draw(res.data); },
+      download:true, skipEmptyLines:true,
+      complete:(res)=>{ window.__ps1table = res.data; buildFilterMenu(); rebuildTags(); draw(res.data); },
       error:(e)=>{ document.getElementById('ps1err').textContent = 'Ralat memuatkan data: ' + e; }
     });
   })();
