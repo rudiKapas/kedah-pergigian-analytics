@@ -323,5 +323,7 @@ header.ph .searchbar{
 /* If you still see tiles hugging the header, add a tiny buffer on the grid */
 .ph + .grid{ margin-top: 4px; }
 
+.icbtn .ico{ width:18px; height:18px; display:block; }
+
 
 
