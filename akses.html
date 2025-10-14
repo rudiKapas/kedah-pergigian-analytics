@@ -51,25 +51,30 @@
 
   <!-- PAGE HEADER -->
   <header class="ph">
-    <div class="topnav">
-      <a class="backlink" href="index.html" title="Kembali ke halaman utama">
-        <svg class="ico"><use href="#i-back"/></svg>
-        <span class="lbl">Kembali</span>
-      </a>
-
-      <div class="searchbar" role="search">
-        <input id="globalSearch" type="search" placeholder="Cari di halaman ini… (kategori, tajuk graf)" autocomplete="off" />
-        <div id="gs-suggest" class="gs-suggest" hidden></div>
-        <button id="globalSearchBtn" type="button" aria-label="Cari">
-          <svg class="ico"><use href="#i-search"/></svg>
-          <span class="lbl">Cari</span>
-        </button>
-      </div>
-    </div>
-
     <h1>Akses Kesihatan Pergigian Negeri Kedah</h1>
     <p>Analisis Data klinikal dan Prestasi Perkhidmatan Pergigian Negeri Kedah</p>
+  
+    <!-- Search bar row (Back • Input • Search) -->
+    <div class="searchbar" role="search">
+      <!-- Back (ghost) -->
+      <a class="btn btn-ghost" href="index.html" aria-label="Kembali ke halaman utama">
+        <svg class="ico" width="20" height="20"><use href="#i-back"/></svg>
+      </a>
+  
+      <!-- Input -->
+      <input id="globalSearch" type="search"
+             placeholder="Cari di halaman ini… (kategori, tajuk graf)"
+             autocomplete="off" />
+      <div id="gs-suggest" class="gs-suggest" hidden></div>
+  
+      <!-- Search (teal) -->
+      <button id="globalSearchBtn" type="button" class="btn" aria-label="Cari">
+        <svg class="ico" width="20" height="20"><use href="#i-search"/></svg>
+        <span class="lbl" hidden>Cari</span>
+      </button>
+    </div>
   </header>
+
 
   <!-- GRID OF TILES -->
   <main class="grid">
@@ -374,6 +379,7 @@
   <script src="app.js?v=19"></script>
 </body>
 </html>
+
 
 
 
