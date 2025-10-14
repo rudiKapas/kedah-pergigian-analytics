@@ -230,3 +230,28 @@ body{
   }
 }
 
+/* --- Global page + footer layout (match index.html) --- */
+:root{
+  --page-max: 1200px;
+  --content-max: 1100px;
+  --gap: 20px;
+}
+
+/* Make pages use flex so footer sits at the bottom */
+body{
+  display:flex;
+  min-height:100vh;
+  flex-direction:column;
+}
+
+/* Let <main> (or your grid) take the available height */
+main, .grid{ flex: 1; }
+
+/* Same containers index.html used */
+.wrap{ max-width: var(--page-max); margin: 0 auto; padding: 0 var(--gap); width:100%; }
+.wrap .content{ max-width: var(--content-max); margin: 0 auto; text-align: center; }
+
+/* Footer look */
+footer{ margin: 8px 0 20px; color:#94a3b8; font-size:12px; }
+
+
