@@ -277,6 +277,11 @@
         g.addColorStop(0, rgba(.35)); g.addColorStop(1, rgba(.03)); return g;
       }
 
+      <script>
+      // Prevent clicks *inside* the menu from reaching the document listener
+      document.getElementById('dds1menu').addEventListener('click', (e)=> e.stopPropagation());
+      </script>
+
       const datasets = [
         { key:'A', type:'line', label:CATEGORIES[0].name, data:dataA, borderColor:CATEGORIES[0].color, backgroundColor:gradient(CATEGORIES[0].color), borderWidth:3, tension:.45, fill:true, pointRadius:3 },
         { key:'B', type:'line', label:CATEGORIES[1].name, data:dataB, borderColor:CATEGORIES[1].color, backgroundColor:gradient(CATEGORIES[1].color), borderWidth:3, tension:.45, fill:true, pointRadius:3 },
