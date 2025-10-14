@@ -15,7 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <!-- SVG sprite -->
+  <!-- SVG sprite (other icons) -->
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
     <symbol id="i-time" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>
@@ -29,12 +29,6 @@
     </symbol>
     <symbol id="i-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M3 5h18l-7 8v6l-4-2v-4L3 5z"/>
-    </symbol>
-    <symbol id="i-checkall" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M9 12l2 2 4-4"/><path d="M3 12l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="3"/>
-    </symbol>
-    <symbol id="i-eraser" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M7 21h13"/><path d="M16 3l5 5-10 10H6L1 13l10-10 5 5"/>
     </symbol>
     <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M18 6L6 18M6 6l12 12"/>
@@ -53,20 +47,20 @@
   <header class="ph">
     <h1>Akses Kesihatan Pergigian Negeri Kedah</h1>
     <p>Analisis Data klinikal dan Prestasi Perkhidmatan Pergigian Negeri Kedah</p>
-  
+
     <!-- Search bar row (Back • Input • Search) -->
     <div class="searchbar" role="search">
       <!-- Back (ghost) -->
       <a class="btn btn-ghost" href="index.html" aria-label="Kembali ke halaman utama">
         <svg class="ico" width="20" height="20"><use href="#i-back"/></svg>
       </a>
-  
+
       <!-- Input -->
       <input id="globalSearch" type="search"
              placeholder="Cari di halaman ini… (kategori, tajuk graf)"
              autocomplete="off" />
       <div id="gs-suggest" class="gs-suggest" hidden></div>
-  
+
       <!-- Search (teal) -->
       <button id="globalSearchBtn" type="button" class="btn" aria-label="Cari">
         <svg class="ico" width="20" height="20"><use href="#i-search"/></svg>
@@ -74,7 +68,6 @@
       </button>
     </div>
   </header>
-
 
   <!-- GRID OF TILES -->
   <main class="grid">
@@ -114,9 +107,15 @@
             <div class="menu" id="dd2menu">
               <div class="menu-body"></div>
               <div class="mfoot">
-                <button class="icbtn" id="dd2all" title="Pilih Semua"><svg class="ico"><use href="#i-checkall"/></svg></button>
-                <button class="icbtn" id="dd2none" title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
-                <button class="icbtn" id="dd2close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
+                <button class="icbtn" id="dd2all" title="Pilih semua" aria-label="Pilih semua">
+                  <img class="ico" src="assets/icons/selectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dd2none" title="Kosongkan" aria-label="Kosongkan">
+                  <img class="ico" src="assets/icons/unselectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dd2close" title="Tutup" aria-label="Tutup">
+                  <svg class="ico"><use href="#i-x"/></svg>
+                </button>
               </div>
             </div>
           </div>
@@ -145,9 +144,15 @@
             <div class="menu" id="dd3menu">
               <div class="menu-body"></div>
               <div class="mfoot">
-                <button class="icbtn" id="dd3all" title="Pilih Semua"><svg class="ico"><use href="#i-checkall"/></svg></button>
-                <button class="icbtn" id="dd3none" title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
-                <button class="icbtn" id="dd3close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
+                <button class="icbtn" id="dd3all" title="Pilih semua" aria-label="Pilih semua">
+                  <img class="ico" src="assets/icons/selectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dd3none" title="Kosongkan" aria-label="Kosongkan">
+                  <img class="ico" src="assets/icons/unselectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dd3close" title="Tutup" aria-label="Tutup">
+                  <svg class="ico"><use href="#i-x"/></svg>
+                </button>
               </div>
             </div>
           </div>
@@ -176,9 +181,15 @@
             <div class="menu" id="dd4menu">
               <div class="menu-body"></div>
               <div class="mfoot">
-                <button class="icbtn" id="dd4all" title="Pilih Semua"><svg class="ico"><use href="#i-checkall"/></svg></button>
-                <button class="icbtn" id="dd4none" title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
-                <button class="icbtn" id="dd4close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
+                <button class="icbtn" id="dd4all" title="Pilih semua" aria-label="Pilih semua">
+                  <img class="ico" src="assets/icons/selectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dd4none" title="Kosongkan" aria-label="Kosongkan">
+                  <img class="ico" src="assets/icons/unselectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dd4close" title="Tutup" aria-label="Tutup">
+                  <svg class="ico"><use href="#i-x"/></svg>
+                </button>
               </div>
             </div>
           </div>
@@ -207,9 +218,15 @@
             <div class="menu" id="dd5menu">
               <div class="menu-body"></div>
               <div class="mfoot">
-                <button class="icbtn" id="dd5all" title="Pilih Semua"><svg class="ico"><use href="#i-checkall"/></svg></button>
-                <button class="icbtn" id="dd5none" title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
-                <button class="icbtn" id="dd5close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
+                <button class="icbtn" id="dd5all" title="Pilih semua" aria-label="Pilih semua">
+                  <img class="ico" src="assets/icons/selectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dd5none" title="Kosongkan" aria-label="Kosongkan">
+                  <img class="ico" src="assets/icons/unselectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dd5close" title="Tutup" aria-label="Tutup">
+                  <svg class="ico"><use href="#i-x"/></svg>
+                </button>
               </div>
             </div>
           </div>
@@ -238,9 +255,15 @@
             <div class="menu" id="dd6menu">
               <div class="menu-body"></div>
               <div class="mfoot">
-                <button class="icbtn" id="dd6all" title="Pilih Semua"><svg class="ico"><use href="#i-checkall"/></svg></button>
-                <button class="icbtn" id="dd6none" title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
-                <button class="icbtn" id="dd6close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
+                <button class="icbtn" id="dd6all" title="Pilih semua" aria-label="Pilih semua">
+                  <img class="ico" src="assets/icons/selectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dd6none" title="Kosongkan" aria-label="Kosongkan">
+                  <img class="ico" src="assets/icons/unselectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dd6close" title="Tutup" aria-label="Tutup">
+                  <svg class="ico"><use href="#i-x"/></svg>
+                </button>
               </div>
             </div>
           </div>
@@ -269,9 +292,15 @@
             <div class="menu" id="dd7menu">
               <div class="menu-body"></div>
               <div class="mfoot">
-                <button class="icbtn" id="dd7all" title="Pilih Semua"><svg class="ico"><use href="#i-checkall"/></svg></button>
-                <button class="icbtn" id="dd7none" title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
-                <button class="icbtn" id="dd7close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
+                <button class="icbtn" id="dd7all" title="Pilih semua" aria-label="Pilih semua">
+                  <img class="ico" src="assets/icons/selectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dd7none" title="Kosongkan" aria-label="Kosongkan">
+                  <img class="ico" src="assets/icons/unselectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dd7close" title="Tutup" aria-label="Tutup">
+                  <svg class="ico"><use href="#i-x"/></svg>
+                </button>
               </div>
             </div>
           </div>
@@ -287,7 +316,7 @@
       </div>
     </section>
 
-    <!-- Tile 8 (FIX: add dd8tags) -->
+    <!-- Tile 8 -->
     <section class="tile">
       <div class="th">
         <div>
@@ -300,9 +329,15 @@
             <div class="menu" id="dd8menu">
               <div class="menu-body"></div>
               <div class="mfoot">
-                <button class="icbtn" id="dd8all" title="Pilih Semua"><svg class="ico"><use href="#i-checkall"/></svg></button>
-                <button class="icbtn" id="dd8none" title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
-                <button class="icbtn" id="dd8close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
+                <button class="icbtn" id="dd8all" title="Pilih semua" aria-label="Pilih semua">
+                  <img class="ico" src="assets/icons/selectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dd8none" title="Kosongkan" aria-label="Kosongkan">
+                  <img class="ico" src="assets/icons/unselectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dd8close" title="Tutup" aria-label="Tutup">
+                  <svg class="ico"><use href="#i-x"/></svg>
+                </button>
               </div>
             </div>
           </div>
@@ -311,7 +346,7 @@
         </div>
       </div>
       <div class="tb">
-        <div class="tags" id="dd8tags"></div><!-- ← added to satisfy app.js -->
+        <div class="tags" id="dd8tags"></div>
         <div class="chart"><canvas id="t8"></canvas></div>
         <div class="legend" id="t8legend"></div>
         <div class="err" id="t8err"></div>
@@ -331,9 +366,15 @@
             <div class="menu" id="dd9menu">
               <div class="menu-body"></div>
               <div class="mfoot">
-                <button class="icbtn" id="dd9all" title="Pilih Semua"><svg class="ico"><use href="#i-checkall"/></svg></button>
-                <button class="icbtn" id="dd9none" title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
-                <button class="icbtn" id="dd9close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
+                <button class="icbtn" id="dd9all" title="Pilih semua" aria-label="Pilih semua">
+                  <img class="ico" src="assets/icons/selectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dd9none" title="Kosongkan" aria-label="Kosongkan">
+                  <img class="ico" src="assets/icons/unselectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dd9close" title="Tutup" aria-label="Tutup">
+                  <svg class="ico"><use href="#i-x"/></svg>
+                </button>
               </div>
             </div>
           </div>
@@ -379,7 +420,3 @@
   <script src="app.js?v=19"></script>
 </body>
 </html>
-
-
-
-
