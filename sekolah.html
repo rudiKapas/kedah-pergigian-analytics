@@ -16,7 +16,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <!-- Layout tweaks to match Akses -->
+  <!-- Page tweaks to match Akses and ensure dropdown works -->
   <style>
     header.ph, .grid{ max-width:1200px; margin:0 auto; padding:0 20px; width:100%; }
     header.ph{ display:flex; flex-direction:column; align-items:stretch; text-align:left; padding-top:24px; }
@@ -40,12 +40,30 @@
     .tile .chart{ height:420px; }
     .tile .chart canvas{ width:100% !important; height:100% !important; }
 
-    /* dropdown usability */
-    .dd .menu .menu-body .opt{ cursor:pointer; user-select:none; }
-    .dd .menu .menu-body .opt input{ margin-right:.5rem; }
+    /* --- Dropdown (filter) --- */
+    .dd{ position:relative; }
+    .dd .menu{
+      position:absolute; right:0; top:44px;
+      display:none; z-index:1000; /* stay on top */
+      width:280px; background:#fff;
+      border:1px solid #e3e8f0; border-radius:12px;
+      box-shadow:0 16px 36px rgba(15,27,45,.14);
+      pointer-events:auto;
+    }
+    .dd.open .menu{ display:block; }
+    .dd .menu .menu-body{ max-height:320px; overflow:auto; padding:10px 12px; }
+    .dd .menu .mfoot{
+      display:flex; gap:8px; justify-content:flex-end;
+      padding:10px 12px; border-top:1px solid #eef2f7;
+    }
+    .dd .menu .menu-body .opt{
+      display:flex; align-items:center; gap:.6rem;
+      padding:.4rem .2rem; cursor:pointer; user-select:none;
+    }
+    .dd .menu .menu-body .opt:hover{ background:#f7fafc; border-radius:8px; }
   </style>
 
-  <!-- SVG sprite -->
+  <!-- SVG sprite (same icon set used in akses) -->
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
     <symbol id="i-time" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>
@@ -103,6 +121,7 @@
           <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="ps1time">—</span></div>
         </div>
         <div class="act">
+          <!-- Filter dropdown -->
           <div class="dd" id="dds1">
             <button class="btn dd-trigger" id="dds1btn" title="Tapis"><svg class="ico"><use href="#i-filter"/></svg></button>
             <div class="menu" id="dds1menu">
@@ -133,10 +152,11 @@
       </div>
     </section>
 
-    <!-- Tile 2 & 3 placeholders -->
+    <!-- Placeholders for future tiles -->
     <section class="tile">
       <div class="th">
-        <div><h2 class="ttl">Saringan Pergigian Sekolah</h2>
+        <div>
+          <h2 class="ttl">Saringan Pergigian Sekolah</h2>
           <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="s2time">—</span></div>
         </div>
         <div class="act">
@@ -144,12 +164,17 @@
           <button id="s2expand" class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
         </div>
       </div>
-      <div class="tb"><div class="chart"><canvas id="s2"></canvas></div><div class="legend" id="s2legend"></div><div class="err" id="s2err"></div></div>
+      <div class="tb">
+        <div class="chart"><canvas id="s2"></canvas></div>
+        <div class="legend" id="s2legend"></div>
+        <div class="err" id="s2err"></div>
+      </div>
     </section>
 
     <section class="tile">
       <div class="th">
-        <div><h2 class="ttl">Intervensi Sekolah</h2>
+        <div>
+          <h2 class="ttl">Intervensi Sekolah</h2>
           <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="s3time">—</span></div>
         </div>
         <div class="act">
@@ -157,7 +182,11 @@
           <button id="s3expand" class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
         </div>
       </div>
-      <div class="tb"><div class="chart"><canvas id="s3"></canvas></div><div class="legend" id="s3legend"></div><div class="err" id="s3err"></div></div>
+      <div class="tb">
+        <div class="chart"><canvas id="s3"></canvas></div>
+        <div class="legend" id="s3legend"></div>
+        <div class="err" id="s3err"></div>
+      </div>
     </section>
   </main>
 
@@ -184,7 +213,7 @@
 
     const AREAS = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
 
-    // A1 cells for Bilangan institusi
+    // A1 cells: Bilangan institusi
     const CELLS = {
       A: ['D5','E5','F5','G5','H5','I5','J5','K5','L5','M5','N5','O5'], // Pra sekolah di sekolah
       B: ['D6','E6','F6','G6','H6','I6','J6','K6','L6','M6','N6','O6'], // Tadika kerajaan
@@ -197,7 +226,7 @@
       { key:'C', name:'Tadika swasta',          color:'#a78bfa' }
     ];
 
-    // Correct sasaran
+    // sasaran (dashed)
     const TARGETS = [
       {value:100, label:'% Liputan Tadika'},
       {value:80,  label:'% Liputan Murid'},
@@ -215,14 +244,13 @@
     }
     const toNum = v => Number(String(v).replace(/\u00A0/g,'').replace(/[, ]/g,'').replace(/%/g,'').trim()) || 0;
     const seriesFrom = (table, cells) => cells.map(a1 => toNum(getCell(table,a1)));
-
     function makeTargetDataset(value,label,count){
       return { type:'line', label:`Sasaran: ${label}`, data:new Array(count).fill(value),
         borderColor:'rgba(15,27,45,0.25)', borderDash:[6,6], pointRadius:0, borderWidth:1.5, tension:0 };
     }
 
-    // Filter state (by category)
-    let selectedCats = new Set(CATEGORIES.map(c=>c.key)); // all visible
+    // Filter state
+    let selectedCats = new Set(CATEGORIES.map(c=>c.key));
 
     function rebuildTags(){
       const host = document.getElementById('dds1tags');
@@ -233,6 +261,7 @@
             return `<span class="tag">${name}</span>`;
           }).join('');
     }
+
     function buildFilterMenu(){
       const body = document.querySelector('#dds1menu .menu-body');
       body.innerHTML = '';
@@ -241,15 +270,30 @@
         const row = document.createElement('label');
         row.className = 'opt';
         row.innerHTML = `<input type="checkbox" id="${id}" ${selectedCats.has(cat.key)?'checked':''}><span>${cat.name}</span>`;
+
         const cb = row.querySelector('input');
+
+        // stop bubbling so document's click handler doesn't close the menu first
         cb.addEventListener('click', ev => ev.stopPropagation());
-        cb.addEventListener('change', () => { cb.checked ? selectedCats.add(cat.key) : selectedCats.delete(cat.key); applyCategoryFilter(); });
-        row.addEventListener('click', () => { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); });
+        row.addEventListener('click', ev=>{
+          ev.stopPropagation();
+          cb.checked = !cb.checked;
+          cb.dispatchEvent(new Event('change'));
+        });
+
+        cb.addEventListener('change', ()=>{
+          cb.checked ? selectedCats.add(cat.key) : selectedCats.delete(cat.key);
+          applyCategoryFilter();
+        });
+
         body.appendChild(row);
       });
+
+      // keep all clicks inside the menu from closing it
+      document.getElementById('dds1menu').addEventListener('click', (e)=> e.stopPropagation());
     }
 
-    // Dropdown behavior
+    // Dropdown open/close
     document.getElementById('dds1btn')?.addEventListener('click', (e)=>{
       e.stopPropagation(); document.getElementById('dds1').classList.toggle('open');
     });
@@ -257,7 +301,7 @@
       document.getElementById('dds1').classList.remove('open');
     });
     document.addEventListener('click', e=>{
-      const dd = document.getElementById('dds1'); if(!dd.contains(e.target)) dd.classList.remove('open');
+      const dd = document.getElementById('dds1'); if(dd && !dd.contains(e.target)) dd.classList.remove('open');
     });
     document.getElementById('dds1all')?.addEventListener('click', (e)=>{
       e.stopPropagation(); selectedCats = new Set(CATEGORIES.map(c=>c.key)); buildFilterMenu(); applyCategoryFilter();
@@ -266,6 +310,7 @@
       e.stopPropagation(); selectedCats = new Set(); buildFilterMenu(); applyCategoryFilter();
     });
 
+    // Chart state
     let chartPS1, dataA=[], dataB=[], dataC=[];
 
     function createChart(){
@@ -276,11 +321,6 @@
         const rgba = a=>`rgba(${r},${g1},${b},${a})`;
         g.addColorStop(0, rgba(.35)); g.addColorStop(1, rgba(.03)); return g;
       }
-
-      <script>
-      // Prevent clicks *inside* the menu from reaching the document listener
-      document.getElementById('dds1menu').addEventListener('click', (e)=> e.stopPropagation());
-      </script>
 
       const datasets = [
         { key:'A', type:'line', label:CATEGORIES[0].name, data:dataA, borderColor:CATEGORIES[0].color, backgroundColor:gradient(CATEGORIES[0].color), borderWidth:3, tension:.45, fill:true, pointRadius:3 },
@@ -315,16 +355,15 @@
         }
       });
 
-      applyCategoryFilter(); // apply initial visibility
+      applyCategoryFilter(); // apply current selection
+      document.getElementById('ps1time').textContent = new Date().toLocaleString();
     }
 
     function applyCategoryFilter(){
       rebuildTags();
       if(!chartPS1) return;
       chartPS1.data.datasets.forEach(ds=>{
-        if(ds.key){ // only for the 3 series; targets have no "key"
-          ds.hidden = !selectedCats.has(ds.key);
-        }
+        if(ds.key){ ds.hidden = !selectedCats.has(ds.key); } // only for data series
       });
       chartPS1.update();
     }
@@ -337,25 +376,28 @@
         const rgba = a=>`rgba(${r},${g1},${b},${a})`;
         g.addColorStop(0, rgba(.35)); g.addColorStop(1, rgba(.03)); return g;
       }
-
       if(window.__mchart) window.__mchart.destroy();
-      const md = [
-        { key:'A', type:'line', label:CATEGORIES[0].name, data:dataA, borderColor:CATEGORIES[0].color, backgroundColor:gradient(CATEGORIES[0].color), borderWidth:3, tension:.45, fill:true, pointRadius:2, hidden:!selectedCats.has('A') },
-        { key:'B', type:'line', label:CATEGORIES[1].name, data:dataB, borderColor:CATEGORIES[1].color, backgroundColor:gradient(CATEGORIES[1].color), borderWidth:3, tension:.45, fill:true, pointRadius:2, hidden:!selectedCats.has('B') },
-        { key:'C', type:'line', label:CATEGORIES[2].name, data:dataC, borderColor:CATEGORIES[2].color, backgroundColor:gradient(CATEGORIES[2].color), borderWidth:3, tension:.45, fill:true, pointRadius:2, hidden:!selectedCats.has('C') },
-        ...TARGETS.map(t => makeTargetDataset(t.value, t.label, AREAS.length))
-      ];
-
       window.__mchart = new Chart(mctx, {
         type:'line',
-        data:{ labels:AREAS, datasets:md },
+        data:{
+          labels:AREAS,
+          datasets:[
+            { key:'A', type:'line', label:CATEGORIES[0].name, data:dataA, borderColor:CATEGORIES[0].color, backgroundColor:gradient(CATEGORIES[0].color), borderWidth:3, tension:.45, fill:true, pointRadius:2, hidden:!selectedCats.has('A') },
+            { key:'B', type:'line', label:CATEGORIES[1].name, data:dataB, borderColor:CATEGORIES[1].color, backgroundColor:gradient(CATEGORIES[1].color), borderWidth:3, tension:.45, fill:true, pointRadius:2, hidden:!selectedCats.has('B') },
+            { key:'C', type:'line', label:CATEGORIES[2].name, data:dataC, borderColor:CATEGORIES[2].color, backgroundColor:gradient(CATEGORIES[2].color), borderWidth:3, tension:.45, fill:true, pointRadius:2, hidden:!selectedCats.has('C') },
+            ...TARGETS.map(t => makeTargetDataset(t.value, t.label, AREAS.length))
+          ]
+        },
         options:{ plugins:{ legend:{ position:'bottom' } },
           scales:{ y:{ beginAtZero:true, ticks:{ callback:v=> v.toLocaleString() } } } }
       });
     }
 
     // Buttons
-    document.getElementById('ps1refresh')?.addEventListener('click', ()=>{ document.getElementById('ps1time').textContent = new Date().toLocaleString(); chartPS1?.update(); });
+    document.getElementById('ps1refresh')?.addEventListener('click', ()=>{
+      document.getElementById('ps1time').textContent = new Date().toLocaleString();
+      chartPS1?.update();
+    });
     document.getElementById('ps1expand')?.addEventListener('click', ()=>{
       const modal = document.getElementById('modal'); modal.classList.add('open');
       drawInModal();
@@ -367,12 +409,18 @@
       download:true, skipEmptyLines:true,
       complete:(res)=>{
         const tbl = res.data;
-        dataA = seriesFrom(tbl, CELLS.A);
-        dataB = seriesFrom(tbl, CELLS.B);
-        dataC = seriesFrom(tbl, CELLS.C);
+        // read series
+        const sA = seriesFrom(tbl, CELLS.A);
+        const sB = seriesFrom(tbl, CELLS.B);
+        const sC = seriesFrom(tbl, CELLS.C);
+
+        // store
+        dataA = sA; dataB = sB; dataC = sC;
+
+        // init UI + chart
+        buildFilterMenu();
+        rebuildTags();
         createChart();
-        document.getElementById('ps1time').textContent = new Date().toLocaleString();
-        buildFilterMenu(); rebuildTags();
       },
       error:(e)=>{ document.getElementById('ps1err').textContent = 'Ralat memuatkan data: ' + e; }
     });
