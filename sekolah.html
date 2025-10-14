@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=1">
 
-  <!-- Libs (same as akses) -->
+  <!-- Libs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
@@ -36,9 +36,13 @@
     .tile.wide{ grid-column:1 / span 2; }
     @media (max-width: 900px){ .grid{ grid-template-columns:1fr; } .tile.wide{ grid-column:1 / span 1; } }
 
-    /* ensure chart fills the tile like akses */
+    /* chart fills the tile like akses */
     .tile .chart{ height:420px; }
     .tile .chart canvas{ width:100% !important; height:100% !important; }
+
+    /* make dropdown clicks reliable */
+    .dd .menu .menu-body .opt{ cursor:pointer; user-select:none; }
+    .dd .menu .menu-body .opt input{ margin-right:.5rem; }
   </style>
 
   <!-- SVG sprite (same icons as akses) -->
@@ -185,7 +189,7 @@
     document.getElementById('schoolBackLeft')?.addEventListener('click', ()=>{ location.href='index.html'; });
   </script>
 
-  <!-- TILE 1 logic: category filter + akses styling -->
+  <!-- TILE 1 logic: category filter + akses styling + corrected sasaran -->
   <script>
   (function(){
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1190173258&single=true&output=csv';
@@ -207,13 +211,13 @@
       { key:'C', name:'Tadika swasta',          color:'#a78bfa' }
     ];
 
-    // Sasaran (dashed context lines)
+    // CORRECTED sasaran (dashed)
     const TARGETS = [
-      {value:10,  label:'% Pesakit baru warga emas mengikut populasi'},
-      {value:100, label:'% Bilangan institusi dilawati di daerah'},
-      {value:75,  label:'% Warga Emas disaring'},
-      {value:80,  label:'% Rehabilitasi fungsi Warga Emas'},
-      {value:30,  label:'% Warga emas ≥ 20 batang gigi'}
+      {value:100, label:'% Liputan Tadika'},
+      {value:80,  label:'% Liputan Murid'},
+      {value:70,  label:'% TPR'},
+      {value:50,  label:'% Pesakit MBK'},
+      {value:70,  label:'Kes Selesai Pra Sekolah & Tadika Kerajaan'}
     ];
 
     // ---------- helpers ----------
@@ -253,11 +257,15 @@
           <input type="checkbox" id="${id}" ${selectedCats.has(cat.key)?'checked':''}>
           <span>${cat.name}</span>
         `;
-        row.querySelector('input').addEventListener('change', e=>{
+        const cb = row.querySelector('input');
+        cb.addEventListener('click', ev => ev.stopPropagation());       // prevent menu from closing
+        cb.addEventListener('change', e=>{
+          e.stopPropagation();
           e.target.checked ? selectedCats.add(cat.key) : selectedCats.delete(cat.key);
           rebuildTags();
           if(window.__ps1table) draw(window.__ps1table);
         });
+        row.addEventListener('click', () => { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); });
         body.appendChild(row);
       });
     }
@@ -272,10 +280,12 @@
       const dd = document.getElementById('dds1'); if(!dd.contains(e.target)) dd.classList.remove('open');
     });
     // select-all / none
-    document.getElementById('dds1all')?.addEventListener('click', ()=>{
+    document.getElementById('dds1all')?.addEventListener('click', (e)=>{
+      e.stopPropagation();
       selectedCats = new Set(CATEGORIES.map(c=>c.key)); buildFilterMenu(); rebuildTags(); window.__ps1table && draw(window.__ps1table);
     });
-    document.getElementById('dds1none')?.addEventListener('click', ()=>{
+    document.getElementById('dds1none')?.addEventListener('click', (e)=>{
+      e.stopPropagation();
       selectedCats = new Set(); buildFilterMenu(); rebuildTags(); window.__ps1table && draw(window.__ps1table);
     });
 
@@ -305,6 +315,7 @@
         borderColor:CATEGORIES[2].color, backgroundColor:gradient(CATEGORIES[2].color),
         borderWidth:3, tension:.45, fill:true, pointRadius:3 });
 
+      // corrected sasaran (dashed)
       TARGETS.forEach(t=> ds.push(makeTargetDataset(t.value, t.label, AREAS.length)));
 
       const cfg = {
