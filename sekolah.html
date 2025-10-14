@@ -1,422 +1,252 @@
-<!doctype html>
-<html lang="ms">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Kesihatan Pergigian Sekolah</title>
+<!-- Tile 1: fetch sheet & draw chart (akses-style) -->
+<script>
+(function(){
+  const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1190173258&single=true&output=csv';
 
-  <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=1">
+  // Views (you can switch with the pills above the chart)
+  const views = [
+    {id:'bilangan',  label:'Bilangan',           kind:'count'},
+    {id:'enrol',     label:'Enrolmen',          kind:'count'},
+    {id:'liputan',   label:'Liputan (%)',       kind:'pct_inst'},
+    {id:'liputanM',  label:'Liputan Murid (%)', kind:'pct_murid'},
+    {id:'tpr',       label:'TPR (%)',           kind:'pct_other'},
+    {id:'mbk',       label:'MBK (%)',           kind:'pct_other'},
+    {id:'selesai',   label:'Kes Selesai (%)',   kind:'pct_other'},
+  ];
 
-  <!-- Chart/Papa -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  const labels = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
 
-  <!-- Page-scoped tweaks -->
-  <style>
-    /* header + grid share same max width as tiles */
-    header.ph, .grid{ max-width:1200px; margin:0 auto; padding:0 20px; width:100%; }
-    header.ph{
-      display:flex; flex-direction:column; align-items:stretch; text-align:left;
-      padding-top:28px;
+  // Cell maps (A=Pra sekolah di sekolah, B=Tadika kerajaan, C=Tadika swasta)
+  const coords = {
+    bilangan: {
+      A:['D5','E5','F5','G5','H5','I5','J5','K5','L5','M5','N5','O5'],
+      B:['D6','E6','F6','G6','H6','I6','J6','K6','L6','M6','N6','O6'],
+      C:['D7','E7','F7','G7','H7','I7','J7','K7','L7','M7','N7','O7']
+    },
+    enrol: {
+      A:['D8','E8','F8','G8','H8','I8','J8','K8','L8','M8','N8','O8'],
+      B:['D9','E9','F9','G9','H9','I9','J9','K9','L9','M9','N9','O9'],
+      C:['D10','E10','F10','G10','H10','I10','J10','K10','L10','M10','N10','O10']
+    },
+    liputan: {
+      A:['D14','E14','F14','G14','H14','I14','J14','K14','L14','M14','N14','O14'],
+      B:['D17','E17','F17','G17','H17','I17','J17','K17','L17','M17','N17','O17'],
+      C:['D20','E20','F20','G20','H20','I20','J20','K20','L20','M20','N20','O20']
+    },
+    liputanM: {
+      A:['D24','E24','F24','G24','H24','I24','J24','K24','L24','M24','N24','O24'],
+      B:['D27','E27','F27','G27','H27','I27','J27','K27','L27','M27','N27','O27'],
+      C:['D30','E30','F30','G30','H30','I30','J30','K30','L30','M30','N30','O30']
+    },
+    tpr: {
+      A:['D34','E34','F34','G34','H34','I34','J34','K34','L34','M34','N34','O34'],
+      B:['D37','E37','F37','G37','H37','I37','J37','K37','L37','M37','N37','O37'],
+      C:['D40','E40','F40','G40','H40','I40','J40','K40','L40','M40','N40','O40']
+    },
+    mbk: {
+      A:['D44','E44','F44','G44','H44','I44','J44','K44','L44','M44','N44','O44'],
+      B:['D47','E47','F47','G47','H47','I47','J47','K47','L47','M47','N47','O47'],
+      C:['D50','E50','F50','G50','H50','I50','J50','K50','L50','M50','N50','O50']
+    },
+    selesai: {
+      A:['D54','E54','F54','G54','H54','I54','J54','K54','L54','M54','N54','O54'],
+      B:['D57','E57','F57','G57','H57','I57','J57','K57','L57','M57','N57','O57'],
+      C:['D61','E61','F61','G61','H61','I61','J61','K61','L61','M61','N61','O61']
     }
-    header.ph h1{ margin:0 0 2px; }
-    header.ph p{ margin:0 0 8px; color:#5b6b83; }
+  };
 
-    /* searchbar row */
-    .ph .searchbar{ display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:12px; margin-top:6px; }
-    .ph .searchbar .btn{ height:44px; width:44px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; border:none; cursor:pointer; }
-    .ph .searchbar #schoolSearchRight{ background:#12a39a; color:#fff; box-shadow:0 4px 14px rgba(18,163,154,.25); }
-    .ph .btn-ghost{ background:#fff; color:#0f172a; border:1px solid #d8dee8; box-shadow:0 4px 14px rgba(15,27,45,.06); }
-    .ph .btn-ghost:hover{ background:#fff; border-color:#d8dee8; box-shadow:0 0 0 4px rgba(16,185,129,.15), 0 4px 14px rgba(15,27,45,.06); }
-    .ph input[type="search"]{ height:44px; border-radius:12px; border:1px solid #e3e8f0; padding:0 16px; box-shadow:0 4px 14px rgba(15,27,45,.06) inset, 0 6px 18px rgba(15,27,45,.04); background:#fff; }
+  // Sasaran lines (shown only for % views)
+  const targets = [
+    {value:10,  label:'% Pesakit baru warga emas mengikut populasi'},
+    {value:100, label:'% Bilangan institusi dilawati di daerah'},
+    {value:75,  label:'% Warga Emas disaring'},
+    {value:80,  label:'% Rehabilitasi fungsi Warga Emas'},
+    {value:30,  label:'% Warga emas ≥20 batang gigi'}
+  ];
 
-    /* grid like akses */
-    .grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
-    .tile.wide{ grid-column:1 / span 2; }
-    @media (max-width: 900px){ .grid{ grid-template-columns:1fr; } .tile.wide{ grid-column:1 / span 1; } }
+  const catNames = ['Pra sekolah di sekolah','Tadika kerajaan','Tadika swasta'];
+  const palette  = ['#0ea5e9','#22c55e','#a78bfa'];
 
-    /* small tag pills used as view switcher */
-    .tags .pill{
-      display:inline-flex; align-items:center; gap:6px; padding:6px 10px;
-      border-radius:999px; border:1px solid #e5e7eb; background:#fff;
-      color:#334155; font-size:12px; cursor:pointer; margin:0 6px 6px 0;
-    }
-    .tags .pill.active{ border-color:#12a39a; box-shadow:0 0 0 3px rgba(18,163,154,.15); color:#0f172a; }
-  </style>
+  // ---------- helpers ----------
+  function colIndex(A){
+    let idx = 0; for (let i=0;i<A.length;i++) idx = idx*26 + (A.charCodeAt(i)-64);
+    return idx-1;
+  }
+  function rawCell(table, A1){
+    const m = /^([A-Z]+)(\d+)$/.exec(A1); if(!m) return null;
+    const r = +m[2]-1, c = colIndex(m[1]);
+    return table[r] && table[r][c]!=null ? table[r][c] : null;
+  }
+  const toNum = (v)=> Number(String(v).replace(/\u00A0/g,'').replace(/[, ]/g,'').replace(/%/g,'').trim()) || 0;
+  function seriesFrom(table, arrA1){ return arrA1.map(a1 => toNum(rawCell(table,a1))); }
 
-  <!-- SVG sprite -->
-  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
-    <symbol id="i-time" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>
-    </symbol>
-    <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/>
-    </symbol>
-    <symbol id="i-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M4 9V4h5M4 4l6 6"/><path d="M20 15v5h-5M20 20l-6-6"/>
-      <path d="M15 4h5v5M20 4l-6 6"/><path d="M9 20H4v-5M4 20l6-6"/>
-    </symbol>
-    <symbol id="i-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M3 5h18l-7 8v6l-4-2v-4L3 5z"/>
-    </symbol>
-    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M18 6L6 18M6 6l12 12"/>
-    </symbol>
-    <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M15 18l-6-6 6-6"/><path d="M21 12H9"/>
-    </symbol>
-    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="11" cy="11" r="7"></circle><path d="M21 21l-3.6-3.6"></path>
-    </symbol>
-  </svg>
-</head>
-<body>
-
-  <!-- HEADER: title + subtitle + searchbar -->
-  <header class="ph">
-    <h1>Kesihatan Pergigian Sekolah</h1>
-    <p>Analisis proses dan sasaran kesihatan pergigian pelajar sekolah negeri Kedah.</p>
-
-    <div class="searchbar" role="search">
-      <!-- LEFT: ghost back button -->
-      <button id="schoolBackLeft" type="button" class="btn btn-ghost" aria-label="Kembali ke halaman utama">
-        <svg class="ico" width="20" height="20"><use href="#i-back"/></svg>
-      </button>
-
-      <!-- Center: input -->
-      <input id="schoolSearch" type="search" placeholder="Cari di halaman ini… (kategori, tajuk graf)" autocomplete="off" />
-      <div id="gs-suggest" class="gs-suggest" hidden></div>
-
-      <!-- RIGHT: teal search button -->
-      <button id="schoolSearchRight" type="button" class="btn" aria-label="Cari">
-        <svg class="ico" width="20" height="20"><use href="#i-search"/></svg>
-      </button>
-    </div>
-  </header>
-
-  <!-- GRID -->
-  <main class="grid">
-    <!-- Tile 1 — WIDE -->
-    <section class="tile wide" id="tile1">
-      <div class="th">
-        <div>
-          <h2 class="ttl">Pra Sekolah, Tadika &amp; Tadika Swasta</h2>
-          <div class="sub">
-            <svg class="ico"><use href="#i-time"/></svg>
-            <span id="s1time">Memuatkan…</span>
-          </div>
-        </div>
-        <div class="act">
-          <button id="s1refresh" class="btn" title="Kemas Kini"><svg class="ico"><use href="#i-refresh"/></svg></button>
-          <button id="s1expand" class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
-        </div>
-      </div>
-      <div class="tb">
-        <!-- view switcher tags -->
-        <div class="tags" id="s1views"></div>
-
-        <!-- chart -->
-        <div class="chart"><canvas id="s1"></canvas></div>
-
-        <div class="legend" id="s1legend"></div>
-        <div class="err" id="s1err"></div>
-      </div>
-    </section>
-
-    <!-- Tile 2 -->
-    <section class="tile">
-      <div class="th">
-        <div>
-          <h2 class="ttl">Saringan Pergigian Sekolah</h2>
-          <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="s2time">—</span></div>
-        </div>
-        <div class="act">
-          <div class="dd" id="dds2">
-            <button class="btn dd-trigger" id="dds2btn" title="Tapis"><svg class="ico"><use href="#i-filter"/></svg></button>
-            <div class="menu" id="dds2menu">
-              <div class="menu-body"></div>
-              <div class="mfoot">
-                <button class="icbtn" id="dds2all" title="Pilih Semua"><svg class="ico"><use href="#i-x"/></svg></button>
-                <button class="icbtn" id="dds2none" title="Kosongkan"><svg class="ico"><use href="#i-x"/></svg></button>
-                <button class="icbtn" id="dds2close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
-              </div>
-            </div>
-          </div>
-          <button id="s2refresh" class="btn" title="Kemas Kini"><svg class="ico"><use href="#i-refresh"/></svg></button>
-          <button id="s2expand" class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
-        </div>
-      </div>
-      <div class="tb">
-        <div class="tags" id="dds2tags"></div>
-        <div class="chart"><canvas id="s2"></canvas></div>
-        <div class="legend" id="s2legend"></div>
-        <div class="err" id="s2err"></div>
-      </div>
-    </section>
-
-    <!-- Tile 3 -->
-    <section class="tile">
-      <div class="th">
-        <div>
-          <h2 class="ttl">Intervensi Sekolah (Fluoride/AG/Rawatan)</h2>
-          <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="s3time">—</span></div>
-        </div>
-        <div class="act">
-          <div class="dd" id="dds3">
-            <button class="btn dd-trigger" id="dds3btn" title="Tapis"><svg class="ico"><use href="#i-filter"/></svg></button>
-            <div class="menu" id="dds3menu">
-              <div class="menu-body"></div>
-              <div class="mfoot">
-                <button class="icbtn" id="dds3all" title="Pilih Semua"><svg class="ico"><use href="#i-x"/></svg></button>
-                <button class="icbtn" id="dds3none" title="Kosongkan"><svg class="ico"><use href="#i-x"/></svg></button>
-                <button class="icbtn" id="dds3close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
-              </div>
-            </div>
-          </div>
-          <button id="s3refresh" class="btn" title="Kemas Kini"><svg class="ico"><use href="#i-refresh"/></svg></button>
-          <button id="s3expand" class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
-        </div>
-      </div>
-      <div class="tb">
-        <div class="tags" id="dds3tags"></div>
-        <div class="chart"><canvas id="s3"></canvas></div>
-        <div class="legend" id="s3legend"></div>
-        <div class="err" id="s3err"></div>
-      </div>
-    </section>
-  </main>
-
-  <!-- Modal -->
-  <div class="modal" id="modal">
-    <div class="modal-inner">
-      <div class="mh">
-        <h3 id="mtitle" style="margin:0;font-weight:800">Perincian</h3>
-        <button class="close" id="mclose">Tutup</button>
-      </div>
-      <div class="mb"><div class="mchart"><canvas id="mcanvas"></canvas></div></div>
-    </div>
-  </div>
-
-  <!-- Back -->
-  <script>
-    document.getElementById('schoolBackLeft')?.addEventListener('click', () => {
-      location.href = 'index.html';
-    });
-  </script>
-
-  <!-- Tile 1: fetch sheet & draw chart -->
-  <script>
-  (function(){
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1190173258&single=true&output=csv';
-    const views = [
-      {id:'bilangan',  label:'Bilangan',           kind:'count'},
-      {id:'enrol',     label:'Enrolmen',          kind:'count'},
-      {id:'liputan',   label:'Liputan (%)',       kind:'pct_inst'},
-      {id:'liputanM',  label:'Liputan Murid (%)', kind:'pct_murid'},
-      {id:'tpr',       label:'TPR (%)',           kind:'pct_other'},
-      {id:'mbk',       label:'MBK (%)',           kind:'pct_other'},
-      {id:'selesai',   label:'Kes Selesai (%)',   kind:'pct_other'},
+  function buildSeries(table, viewKey){
+    const map = coords[viewKey];
+    return [
+      seriesFrom(table, map.A),
+      seriesFrom(table, map.B),
+      seriesFrom(table, map.C)
     ];
-    const labels = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
+  }
 
-    // Map each view to 3 cell coordinates per daerah (Pra sekolah di sekolah, Tadika kerajaan, Tadika swasta)
-    const coords = {
-      bilangan: {
-        // D5..O7 by category rows (5/6/7)
-        A:['D5','E5','F5','G5','H5','I5','J5','K5','L5','M5','N5','O5'],
-        B:['D6','E6','F6','G6','H6','I6','J6','K6','L6','M6','N6','O6'],
-        C:['D7','E7','F7','G7','H7','I7','J7','K7','L7','M7','N7','O7']
+  function makeTargetDataset(value,label,count){
+    return {
+      type:'line',
+      label:`Sasaran: ${label}`,
+      data:new Array(count).fill(value),
+      borderColor:'rgba(15,27,45,0.25)',
+      borderDash:[6,6],
+      pointRadius:0,
+      borderWidth:1.5,
+      tension:0
+    };
+  }
+
+  // View switcher pills
+  function renderViewTags(active){
+    const wrap = document.getElementById('s1views');
+    wrap.innerHTML = '';
+    views.forEach(v=>{
+      const b = document.createElement('button');
+      b.className = 'pill' + (v.id===active?' active':'');
+      b.textContent = v.label;
+      b.dataset.view = v.id;
+      b.onclick = ()=>{ draw(v.id); wrap.querySelectorAll('.pill').forEach(p=>p.classList.remove('active')); b.classList.add('active'); };
+      wrap.appendChild(b);
+    });
+  }
+
+  // -------- akses-like chart styling --------
+  let CHART;
+  function draw(viewId){
+    if(!window.__table) return;
+
+    const [A,B,C] = buildSeries(window.__table, viewId);
+    const isPct = ['liputan','liputanM','tpr','mbk','selesai'].includes(viewId);
+
+    const ctx = document.getElementById('s1').getContext('2d');
+
+    // soft gradients like akses
+    function grad(hex){
+      const g = ctx.createLinearGradient(0,0,0,260);
+      const rgb = hex; // pass hex directly to rgba()
+      g.addColorStop(0, hexToRgba(rgb, .35));
+      g.addColorStop(1, hexToRgba(rgb, .03));
+      return g;
+    }
+    function hexToRgba(h,a){
+      const c = parseInt(h.slice(1),16);
+      const r = (c>>16)&255, g=(c>>8)&255, b=c&255;
+      return `rgba(${r},${g},${b},${a})`;
+    }
+
+    const datasets = [
+      {
+        type:'line', label:catNames[0], data:A,
+        borderColor:palette[0], backgroundColor:grad(palette[0]),
+        borderWidth:3, tension:.45, fill:true,
+        pointRadius:(c)=> (c.dataIndex===0 || c.dataIndex===labels.length-1)?0:3
       },
-      enrol: {
-        // D8..O10
-        A:['D8','E8','F8','G8','H8','I8','J8','K8','L8','M8','N8','O8'],
-        B:['D9','E9','F9','G9','H9','I9','J9','K9','L9','M9','N9','O9'],
-        C:['D10','E10','F10','G10','H10','I10','J10','K10','L10','M10','N10','O10']
+      {
+        type:'line', label:catNames[1], data:B,
+        borderColor:palette[1], backgroundColor:grad(palette[1]),
+        borderWidth:3, tension:.45, fill:true,
+        pointRadius:(c)=> (c.dataIndex===0 || c.dataIndex===labels.length-1)?0:3
       },
-      liputan: {
-        // institusi %: rows 14/17/20
-        A:['D14','E14','F14','G14','H14','I14','J14','K14','L14','M14','N14','O14'],
-        B:['D17','E17','F17','G17','H17','I17','J17','K17','L17','M17','N17','O17'],
-        C:['D20','E20','F20','G20','H20','I20','J20','K20','L20','M20','N20','O20']
-      },
-      liputanM: {
-        // murid %: rows 24/27/30
-        A:['D24','E24','F24','G24','H24','I24','J24','K24','L24','M24','N24','O24'],
-        B:['D27','E27','F27','G27','H27','I27','J27','K27','L27','M27','N27','O27'],
-        C:['D30','E30','F30','G30','H30','I30','J30','K30','L30','M30','N30','O30']
-      },
-      tpr: {
-        // TPR %: rows 34/37/40  (note: your Pendang row shows E27 – assuming it should be E37; using 37 here)
-        A:['D34','E34','F34','G34','H34','I34','J34','K34','L34','M34','N34','O34'],
-        B:['D37','E37','F37','G37','H37','I37','J37','K37','L37','M37','N37','O37'],
-        C:['D40','E40','F40','G40','H40','I40','J40','K40','L40','M40','N40','O40']
-      },
-      mbk: {
-        // MBK %: rows 44/47/50
-        A:['D44','E44','F44','G44','H44','I44','J44','K44','L44','M44','N44','O44'],
-        B:['D47','E47','F47','G47','H47','I47','J47','K47','L47','M47','N47','O47'],
-        C:['D50','E50','F50','G50','H50','I50','J50','K50','L50','M50','N50','O50']
-      },
-      selesai: {
-        // Kes selesai %: rows 54/57/61
-        A:['D54','E54','F54','G54','H54','I54','J54','K54','L54','M54','N54','O54'],
-        B:['D57','E57','F57','G57','H57','I57','J57','K57','L57','M57','N57','O57'],
-        C:['D61','E61','F61','G61','H61','I61','J61','K61','L61','M61','N61','O61']
+      {
+        type:'line', label:catNames[2], data:C,
+        borderColor:palette[2], backgroundColor:grad(palette[2]),
+        borderWidth:3, tension:.45, fill:true,
+        pointRadius:(c)=> (c.dataIndex===0 || c.dataIndex===labels.length-1)?0:3
+      }
+    ];
+
+    if(isPct){ targets.forEach(t=> datasets.push(makeTargetDataset(t.value,t.label,labels.length))); }
+
+    const cfg = {
+      type:'line',
+      data:{ labels, datasets },
+      options:{
+        responsive:true,
+        aspectRatio: 16/7,
+        layout:{ padding:{ top:8, right:8, bottom:140, left:8 }}, // same extra room for x labels
+        plugins:{
+          legend:{ position:'bottom' },
+          tooltip:{ mode:'index', intersect:false, callbacks:{
+            label: (ctx)=> {
+              const v = ctx.parsed.y;
+              return `${ctx.dataset.label}: ${isPct? v+'%': v.toLocaleString()}`;
+            }
+          }}
+        },
+        scales:{
+          x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } },
+          y:{ beginAtZero:true, max: isPct?105:undefined,
+              ticks:{ callback:(v)=> isPct? v+'%': v.toLocaleString() } }
+        }
       }
     };
 
-    // Sasaran lines (percent-based); shown only for % views
-    const targets = [
-      {value:10,  label:'% Pesakit baru warga emas mengikut populasi'},
-      {value:100, label:'% Bilangan institusi dilawati di daerah'},
-      {value:75,  label:'% Warga Emas disaring'},
-      {value:80,  label:'% Rehabilitasi fungsi Warga Emas'},
-      {value:30,  label:'% Warga emas ≥20 batang gigi'}
+    if(CHART) CHART.destroy();
+    CHART = new Chart(ctx, cfg);
+    document.getElementById('s1time').textContent = 'Dikemas kini: '+ new Date().toLocaleString();
+  }
+
+  // refresh / expand behave like akses
+  document.getElementById('s1refresh')?.addEventListener('click', ()=>{
+    const active = document.querySelector('#s1views .pill.active')?.dataset.view || 'liputan';
+    draw(active);
+  });
+  document.getElementById('s1expand')?.addEventListener('click', ()=>{
+    const modal = document.getElementById('modal');
+    const mctx  = document.getElementById('mcanvas').getContext('2d');
+    modal.classList.add('open');
+    const active = document.querySelector('#s1views .pill.active')?.dataset.view || 'liputan';
+    const [A,B,C] = buildSeries(window.__table, active);
+    const isPct = ['liputan','liputanM','tpr','mbk','selesai'].includes(active);
+
+    function grad(hex){
+      const g = mctx.createLinearGradient(0,0,0,320);
+      const rgb = hex; 
+      g.addColorStop(0, hexToRgba(rgb, .35));
+      g.addColorStop(1, hexToRgba(rgb, .03));
+      return g;
+    }
+    function hexToRgba(h,a){
+      const c = parseInt(h.slice(1),16);
+      const r = (c>>16)&255, g=(c>>8)&255, b=c&255;
+      return `rgba(${r},${g},${b},${a})`;
+    }
+
+    const datasets = [
+      { type:'line', label:catNames[0], data:A, borderColor:palette[0], backgroundColor:grad(palette[0]), borderWidth:3, tension:.45, fill:true, pointRadius:2 },
+      { type:'line', label:catNames[1], data:B, borderColor:palette[1], backgroundColor:grad(palette[1]), borderWidth:3, tension:.45, fill:true, pointRadius:2 },
+      { type:'line', label:catNames[2], data:C, borderColor:palette[2], backgroundColor:grad(palette[2]), borderWidth:3, tension:.45, fill:true, pointRadius:2 }
     ];
+    if(isPct){ targets.forEach(t=> datasets.push(makeTargetDataset(t.value,t.label,labels.length))); }
 
-    const catNames = ['Pra sekolah di sekolah','Tadika kerajaan','Tadika swasta'];
-    const palette = ['#0ea5e9','#22c55e','#a78bfa']; // nice, readable triad
-
-    // helpers
-    const colIndex = c => c.toUpperCase().charCodeAt(0) - 65; // 'A' -> 0
-    function getCell(table, A1){
-      const m = /^([A-Z]+)(\d+)$/.exec(A1);
-      if(!m) return null;
-      const col = m[1], row = parseInt(m[2],10);
-      // supports multi-letter columns just in case
-      let idx = 0;
-      for (let i=0; i<col.length; i++){
-        idx = idx*26 + (col.charCodeAt(i)-64);
-      }
-      const ci = idx-1;
-      const ri = row-1;
-      return (table[ri] && table[ri][ci] != null) ? table[ri][ci] : null;
-    }
-
-    function buildSeries(table, viewKey){
-      const map = coords[viewKey];
-      const A = map.A.map(a1=>Number(getCell(table,a1)||0));
-      const B = map.B.map(a1=>Number(getCell(table,a1)||0));
-      const C = map.C.map(a1=>Number(getCell(table,a1)||0));
-      return [A,B,C];
-    }
-
-    function makeTargetDataset(value,label,count){
-      const data = new Array(count).fill(value);
-      return {
-        type:'line',
-        label:`Sasaran: ${label}`,
-        data,
-        borderColor:'rgba(15,27,45,0.25)',
-        borderDash:[6,6],
-        pointRadius:0,
-        borderWidth:1.5,
-        tension:0
-      };
-    }
-
-    // UI: view tags
-    function renderViewTags(active){
-      const wrap = document.getElementById('s1views');
-      wrap.innerHTML = '';
-      views.forEach(v=>{
-        const el = document.createElement('button');
-        el.className = 'pill' + (v.id===active?' active':'');
-        el.textContent = v.label;
-        el.dataset.view = v.id;
-        el.onclick = ()=>{ draw(v.id); document.querySelectorAll('#s1views .pill').forEach(p=>p.classList.remove('active')); el.classList.add('active'); };
-        wrap.appendChild(el);
-      });
-    }
-
-    let CHART;
-    function draw(viewId){
-      if(!window.__table){ return; }
-      const [A,B,C] = buildSeries(window.__table, viewId);
-      const isPct = ['liputan','liputanM','tpr','mbk','selesai'].includes(viewId);
-
-      const ds = [
-        { type:'bar', label:catNames[0], data:A, backgroundColor:palette[0], borderRadius:8, barPercentage:0.8, categoryPercentage:0.7 },
-        { type:'bar', label:catNames[1], data:B, backgroundColor:palette[1], borderRadius:8, barPercentage:0.8, categoryPercentage:0.7 },
-        { type:'bar', label:catNames[2], data:C, backgroundColor:palette[2], borderRadius:8, barPercentage:0.8, categoryPercentage:0.7 }
-      ];
-
-      if(isPct){
-        targets.forEach(t=> ds.push( makeTargetDataset(t.value, t.label, labels.length) ));
-      }
-
-      const yMaxGuess = isPct ? 105 : undefined;
-
-      const cfg = {
-        type:'bar',
-        data:{ labels, datasets: ds },
-        options:{
-          responsive:true,
-          plugins:{
-            legend:{ position:'bottom' },
-            tooltip:{ mode:'index', intersect:false }
-          },
-          scales:{
-            x:{ stacked:false, ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } },
-            y:{ beginAtZero:true, max:yMaxGuess, ticks:{ callback:v=> isPct? v+'%': v } }
-          }
-        }
-      };
-
-      const ctx = document.getElementById('s1').getContext('2d');
-      if(CHART){ CHART.destroy(); }
-      CHART = new Chart(ctx, cfg);
-      document.getElementById('s1time').textContent = 'Dikemas kini: ' + new Date().toLocaleString();
-    }
-
-    // refresh & expand buttons
-    document.getElementById('s1refresh')?.addEventListener('click', ()=> draw(document.querySelector('#s1views .pill.active')?.dataset.view || 'liputan'));
-    document.getElementById('s1expand')?.addEventListener('click', ()=>{
-      // simple “expand” modal reuse (same pattern as akses)
-      const modal = document.getElementById('modal');
-      const mCanvas = document.getElementById('mcanvas').getContext('2d');
-      modal.classList.add('open');
-      const activeView = document.querySelector('#s1views .pill.active')?.dataset.view || 'liputan';
-      const [A,B,C] = buildSeries(window.__table, activeView);
-      const isPct = ['liputan','liputanM','tpr','mbk','selesai'].includes(activeView);
-      const ds = [
-        { type:'bar', label:catNames[0], data:A, backgroundColor:palette[0], borderRadius:8, barPercentage:0.8, categoryPercentage:0.7 },
-        { type:'bar', label:catNames[1], data:B, backgroundColor:palette[1], borderRadius:8, barPercentage:0.8, categoryPercentage:0.7 },
-        { type:'bar', label:catNames[2], data:C, backgroundColor:palette[2], borderRadius:8, barPercentage:0.8, categoryPercentage:0.7 }
-      ];
-      if(isPct){ targets.forEach(t=> ds.push( makeTargetDataset(t.value, t.label, labels.length) )); }
-      if(window.__mchart){ window.__mchart.destroy(); }
-      window.__mchart = new Chart(mCanvas, {
-        type:'bar',
-        data:{ labels, datasets: ds },
-        options:{
-          plugins:{ legend:{ position:'bottom' } },
-          scales:{ y:{ beginAtZero:true, max: isPct?105:undefined, ticks:{ callback:v=> isPct? v+'%': v } } }
-        }
-      });
-      document.getElementById('mclose').onclick = ()=>{ modal.classList.remove('open'); window.__mchart?.destroy(); };
-    });
-
-    // Fetch CSV
-    Papa.parse(CSV_URL, {
-      download:true,
-      skipEmptyLines:true,
-      complete: (res)=>{
-        window.__table = res.data;
-        renderViewTags('liputan');   // default to a % view so sasaran lines make sense
-        draw('liputan');
-      },
-      error: (e)=>{
-        document.getElementById('s1err').textContent = 'Ralat memuatkan data: ' + e;
+    if(window.__mchart) window.__mchart.destroy();
+    window.__mchart = new Chart(mctx, {
+      type:'line',
+      data:{ labels, datasets },
+      options:{
+        plugins:{ legend:{ position:'bottom' } },
+        scales:{ y:{ beginAtZero:true, max:isPct?105:undefined, ticks:{ callback:(v)=> isPct? v+'%': v.toLocaleString() } } }
       }
     });
-  })();
-  </script>
 
-  <footer class="wrap">
-    <div class="content">© Kedah Oral Health Analytics • Data Kesihatan Pergigian yang disahkan dan dikemas kini.</div>
-  </footer>
-</body>
-</html>
+    document.getElementById('mclose').onclick = ()=>{ modal.classList.remove('open'); window.__mchart?.destroy(); };
+  });
+
+  // Fetch & init
+  Papa.parse(CSV_URL, {
+    download:true, skipEmptyLines:true,
+    complete: (res)=>{
+      window.__table = res.data;
+      renderViewTags('liputan'); // default to % so sasaran shows
+      draw('liputan');
+    },
+    error: (e)=>{ document.getElementById('s1err').textContent = 'Ralat memuatkan data: ' + e; }
+  });
+})();
+</script>
