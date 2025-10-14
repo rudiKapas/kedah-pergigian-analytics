@@ -290,5 +290,24 @@ header.ph p{ margin: 0 0 8px; color:#5b6b83; }
 footer.wrap{ max-width: var(--page-max); margin: 8px auto 20px; padding: 0 var(--gap); }
 footer.wrap .content{ text-align:center; }
 
+/* Give the header some breathing room from the very top */
+header.ph{
+  padding-top: 28px;     /* was too tight to the top edge */
+}
+
+/* Make title & subtitle sit a bit closer together (akses + sekolah) */
+header.ph h1{
+  margin: 0 0 2px;       /* tighter gap to subtitle */
+}
+header.ph p{
+  margin: 0 0 8px;       /* small space under subtitle */
+}
+
+/* Keep the search row comfortable below the top edge on both layouts */
+.ph .topnav,
+.ph .searchbar{
+  margin-top: 6px;       /* slight offset from header top */
+}
+
 
 
