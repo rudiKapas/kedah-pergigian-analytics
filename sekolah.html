@@ -16,7 +16,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <!-- Page-scoped tweaks so header spans same width as tiles -->
+  <!-- Layout tweaks to match Akses -->
   <style>
     header.ph, .grid{ max-width:1200px; margin:0 auto; padding:0 20px; width:100%; }
     header.ph{ display:flex; flex-direction:column; align-items:stretch; text-align:left; padding-top:24px; }
@@ -36,16 +36,16 @@
     .tile.wide{ grid-column:1 / span 2; }
     @media (max-width: 900px){ .grid{ grid-template-columns:1fr; } .tile.wide{ grid-column:1 / span 1; } }
 
-    /* chart fills the tile like akses */
+    /* chart fills the tile */
     .tile .chart{ height:420px; }
     .tile .chart canvas{ width:100% !important; height:100% !important; }
 
-    /* make dropdown clicks reliable */
+    /* dropdown usability */
     .dd .menu .menu-body .opt{ cursor:pointer; user-select:none; }
     .dd .menu .menu-body .opt input{ margin-right:.5rem; }
   </style>
 
-  <!-- SVG sprite (same icons as akses) -->
+  <!-- SVG sprite -->
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
     <symbol id="i-time" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>
@@ -95,7 +95,7 @@
   <!-- GRID -->
   <main class="grid">
 
-    <!-- TILE 1: akses-style + CATEGORY FILTER -->
+    <!-- TILE 1 -->
     <section class="tile wide" id="ps1-tile">
       <div class="th">
         <div>
@@ -103,7 +103,6 @@
           <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="ps1time">—</span></div>
         </div>
         <div class="act">
-          <!-- filter dropdown (filters series/categories) -->
           <div class="dd" id="dds1">
             <button class="btn dd-trigger" id="dds1btn" title="Tapis"><svg class="ico"><use href="#i-filter"/></svg></button>
             <div class="menu" id="dds1menu">
@@ -134,11 +133,10 @@
       </div>
     </section>
 
-    <!-- TILE 2 placeholder -->
+    <!-- Tile 2 & 3 placeholders -->
     <section class="tile">
       <div class="th">
-        <div>
-          <h2 class="ttl">Saringan Pergigian Sekolah</h2>
+        <div><h2 class="ttl">Saringan Pergigian Sekolah</h2>
           <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="s2time">—</span></div>
         </div>
         <div class="act">
@@ -146,18 +144,12 @@
           <button id="s2expand" class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
         </div>
       </div>
-      <div class="tb">
-        <div class="chart"><canvas id="s2"></canvas></div>
-        <div class="legend" id="s2legend"></div>
-        <div class="err" id="s2err"></div>
-      </div>
+      <div class="tb"><div class="chart"><canvas id="s2"></canvas></div><div class="legend" id="s2legend"></div><div class="err" id="s2err"></div></div>
     </section>
 
-    <!-- TILE 3 placeholder -->
     <section class="tile">
       <div class="th">
-        <div>
-          <h2 class="ttl">Intervensi Sekolah</h2>
+        <div><h2 class="ttl">Intervensi Sekolah</h2>
           <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="s3time">—</span></div>
         </div>
         <div class="act">
@@ -165,15 +157,11 @@
           <button id="s3expand" class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
         </div>
       </div>
-      <div class="tb">
-        <div class="chart"><canvas id="s3"></canvas></div>
-        <div class="legend" id="s3legend"></div>
-        <div class="err" id="s3err"></div>
-      </div>
+      <div class="tb"><div class="chart"><canvas id="s3"></canvas></div><div class="legend" id="s3legend"></div><div class="err" id="s3err"></div></div>
     </section>
   </main>
 
-  <!-- Modal (same as akses) -->
+  <!-- Modal -->
   <div class="modal" id="modal">
     <div class="modal-inner">
       <div class="mh">
@@ -189,29 +177,27 @@
     document.getElementById('schoolBackLeft')?.addEventListener('click', ()=>{ location.href='index.html'; });
   </script>
 
-  <!-- TILE 1 logic: category filter + akses styling + corrected sasaran -->
+  <!-- TILE 1 logic -->
   <script>
   (function(){
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1190173258&single=true&output=csv';
 
-    // X-axis (daerah)
     const AREAS = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
 
-    // Cells (Bilangan institusi)
+    // A1 cells for Bilangan institusi
     const CELLS = {
       A: ['D5','E5','F5','G5','H5','I5','J5','K5','L5','M5','N5','O5'], // Pra sekolah di sekolah
       B: ['D6','E6','F6','G6','H6','I6','J6','K6','L6','M6','N6','O6'], // Tadika kerajaan
       C: ['D7','E7','F7','G7','H7','I7','J7','K7','L7','M7','N7','O7']  // Tadika swasta
     };
 
-    // Categories to toggle
     const CATEGORIES = [
       { key:'A', name:'Pra sekolah di sekolah', color:'#0ea5e9' },
       { key:'B', name:'Tadika kerajaan',        color:'#22c55e' },
       { key:'C', name:'Tadika swasta',          color:'#a78bfa' }
     ];
 
-    // CORRECTED sasaran (dashed)
+    // Correct sasaran
     const TARGETS = [
       {value:100, label:'% Liputan Tadika'},
       {value:80,  label:'% Liputan Murid'},
@@ -220,7 +206,7 @@
       {value:70,  label:'Kes Selesai Pra Sekolah & Tadika Kerajaan'}
     ];
 
-    // ---------- helpers ----------
+    // --- helpers ---
     function colIndex(A){ let i=0, n=0; for(; i<A.length; i++) n=n*26+(A.charCodeAt(i)-64); return n-1; }
     function getCell(table, A1){
       const m=/^([A-Z]+)(\d+)$/.exec(A1); if(!m) return null;
@@ -229,13 +215,14 @@
     }
     const toNum = v => Number(String(v).replace(/\u00A0/g,'').replace(/[, ]/g,'').replace(/%/g,'').trim()) || 0;
     const seriesFrom = (table, cells) => cells.map(a1 => toNum(getCell(table,a1)));
+
     function makeTargetDataset(value,label,count){
       return { type:'line', label:`Sasaran: ${label}`, data:new Array(count).fill(value),
         borderColor:'rgba(15,27,45,0.25)', borderDash:[6,6], pointRadius:0, borderWidth:1.5, tension:0 };
     }
 
-    // -------- FILTER: per-category (series) --------
-    let selectedCats = new Set(CATEGORIES.map(c=>c.key)); // all on by default
+    // Filter state (by category)
+    let selectedCats = new Set(CATEGORIES.map(c=>c.key)); // all visible
 
     function rebuildTags(){
       const host = document.getElementById('dds1tags');
@@ -253,23 +240,16 @@
         const id = 'ps1-cat-'+cat.key;
         const row = document.createElement('label');
         row.className = 'opt';
-        row.innerHTML = `
-          <input type="checkbox" id="${id}" ${selectedCats.has(cat.key)?'checked':''}>
-          <span>${cat.name}</span>
-        `;
+        row.innerHTML = `<input type="checkbox" id="${id}" ${selectedCats.has(cat.key)?'checked':''}><span>${cat.name}</span>`;
         const cb = row.querySelector('input');
-        cb.addEventListener('click', ev => ev.stopPropagation());       // prevent menu from closing
-        cb.addEventListener('change', e=>{
-          e.stopPropagation();
-          e.target.checked ? selectedCats.add(cat.key) : selectedCats.delete(cat.key);
-          rebuildTags();
-          if(window.__ps1table) draw(window.__ps1table);
-        });
+        cb.addEventListener('click', ev => ev.stopPropagation());
+        cb.addEventListener('change', () => { cb.checked ? selectedCats.add(cat.key) : selectedCats.delete(cat.key); applyCategoryFilter(); });
         row.addEventListener('click', () => { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); });
         body.appendChild(row);
       });
     }
-    // dropdown open/close (same feel as akses)
+
+    // Dropdown behavior
     document.getElementById('dds1btn')?.addEventListener('click', (e)=>{
       e.stopPropagation(); document.getElementById('dds1').classList.toggle('open');
     });
@@ -279,19 +259,16 @@
     document.addEventListener('click', e=>{
       const dd = document.getElementById('dds1'); if(!dd.contains(e.target)) dd.classList.remove('open');
     });
-    // select-all / none
     document.getElementById('dds1all')?.addEventListener('click', (e)=>{
-      e.stopPropagation();
-      selectedCats = new Set(CATEGORIES.map(c=>c.key)); buildFilterMenu(); rebuildTags(); window.__ps1table && draw(window.__ps1table);
+      e.stopPropagation(); selectedCats = new Set(CATEGORIES.map(c=>c.key)); buildFilterMenu(); applyCategoryFilter();
     });
     document.getElementById('dds1none')?.addEventListener('click', (e)=>{
-      e.stopPropagation();
-      selectedCats = new Set(); buildFilterMenu(); rebuildTags(); window.__ps1table && draw(window.__ps1table);
+      e.stopPropagation(); selectedCats = new Set(); buildFilterMenu(); applyCategoryFilter();
     });
 
-    // -------- chart drawing (akses styling) --------
-    let chartPS1;
-    function draw(table){
+    let chartPS1, dataA=[], dataB=[], dataC=[];
+
+    function createChart(){
       const ctx = document.getElementById('ps1').getContext('2d');
       function gradient(hex){
         const g = ctx.createLinearGradient(0,0,0,300);
@@ -300,30 +277,19 @@
         g.addColorStop(0, rgba(.35)); g.addColorStop(1, rgba(.03)); return g;
       }
 
-      const A = seriesFrom(table, CELLS.A);
-      const B = seriesFrom(table, CELLS.B);
-      const C = seriesFrom(table, CELLS.C);
+      const datasets = [
+        { key:'A', type:'line', label:CATEGORIES[0].name, data:dataA, borderColor:CATEGORIES[0].color, backgroundColor:gradient(CATEGORIES[0].color), borderWidth:3, tension:.45, fill:true, pointRadius:3 },
+        { key:'B', type:'line', label:CATEGORIES[1].name, data:dataB, borderColor:CATEGORIES[1].color, backgroundColor:gradient(CATEGORIES[1].color), borderWidth:3, tension:.45, fill:true, pointRadius:3 },
+        { key:'C', type:'line', label:CATEGORIES[2].name, data:dataC, borderColor:CATEGORIES[2].color, backgroundColor:gradient(CATEGORIES[2].color), borderWidth:3, tension:.45, fill:true, pointRadius:3 },
+        ...TARGETS.map(t => makeTargetDataset(t.value, t.label, AREAS.length))
+      ];
 
-      const ds = [];
-      if(selectedCats.has('A')) ds.push({ type:'line', label:CATEGORIES[0].name, data:A,
-        borderColor:CATEGORIES[0].color, backgroundColor:gradient(CATEGORIES[0].color),
-        borderWidth:3, tension:.45, fill:true, pointRadius:3 });
-      if(selectedCats.has('B')) ds.push({ type:'line', label:CATEGORIES[1].name, data:B,
-        borderColor:CATEGORIES[1].color, backgroundColor:gradient(CATEGORIES[1].color),
-        borderWidth:3, tension:.45, fill:true, pointRadius:3 });
-      if(selectedCats.has('C')) ds.push({ type:'line', label:CATEGORIES[2].name, data:C,
-        borderColor:CATEGORIES[2].color, backgroundColor:gradient(CATEGORIES[2].color),
-        borderWidth:3, tension:.45, fill:true, pointRadius:3 });
-
-      // corrected sasaran (dashed)
-      TARGETS.forEach(t=> ds.push(makeTargetDataset(t.value, t.label, AREAS.length)));
-
-      const cfg = {
+      chartPS1 = new Chart(ctx, {
         type:'line',
-        data:{ labels:AREAS, datasets:ds },
+        data:{ labels:AREAS, datasets },
         options:{
           responsive:true,
-          maintainAspectRatio:false, /* fill the tile height */
+          maintainAspectRatio:false,
           plugins:{
             legend:{ position:'bottom' },
             tooltip:{ mode:'index', intersect:false,
@@ -342,14 +308,23 @@
             y:{ beginAtZero:true, ticks:{ callback:v=> v.toLocaleString() } }
           }
         }
-      };
+      });
 
-      if(chartPS1) chartPS1.destroy();
-      chartPS1 = new Chart(ctx, cfg);
-      document.getElementById('ps1time').textContent = new Date().toLocaleString();
+      applyCategoryFilter(); // apply initial visibility
     }
 
-    function drawInModal(table){
+    function applyCategoryFilter(){
+      rebuildTags();
+      if(!chartPS1) return;
+      chartPS1.data.datasets.forEach(ds=>{
+        if(ds.key){ // only for the 3 series; targets have no "key"
+          ds.hidden = !selectedCats.has(ds.key);
+        }
+      });
+      chartPS1.update();
+    }
+
+    function drawInModal(){
       const mctx = document.getElementById('mcanvas').getContext('2d');
       function gradient(hex){
         const g = mctx.createLinearGradient(0,0,0,360);
@@ -357,36 +332,43 @@
         const rgba = a=>`rgba(${r},${g1},${b},${a})`;
         g.addColorStop(0, rgba(.35)); g.addColorStop(1, rgba(.03)); return g;
       }
-      const A = seriesFrom(table, CELLS.A);
-      const B = seriesFrom(table, CELLS.B);
-      const C = seriesFrom(table, CELLS.C);
-      const ds = [];
-      if(selectedCats.has('A')) ds.push({ type:'line', label:CATEGORIES[0].name, data:A, borderColor:CATEGORIES[0].color, backgroundColor:gradient(CATEGORIES[0].color), borderWidth:3, tension:.45, fill:true, pointRadius:2 });
-      if(selectedCats.has('B')) ds.push({ type:'line', label:CATEGORIES[1].name, data:B, borderColor:CATEGORIES[1].color, backgroundColor:gradient(CATEGORIES[1].color), borderWidth:3, tension:.45, fill:true, pointRadius:2 });
-      if(selectedCats.has('C')) ds.push({ type:'line', label:CATEGORIES[2].name, data:C, borderColor:CATEGORIES[2].color, backgroundColor:gradient(CATEGORIES[2].color), borderWidth:3, tension:.45, fill:true, pointRadius:2 });
-      TARGETS.forEach(t=> ds.push(makeTargetDataset(t.value, t.label, AREAS.length)));
 
       if(window.__mchart) window.__mchart.destroy();
+      const md = [
+        { key:'A', type:'line', label:CATEGORIES[0].name, data:dataA, borderColor:CATEGORIES[0].color, backgroundColor:gradient(CATEGORIES[0].color), borderWidth:3, tension:.45, fill:true, pointRadius:2, hidden:!selectedCats.has('A') },
+        { key:'B', type:'line', label:CATEGORIES[1].name, data:dataB, borderColor:CATEGORIES[1].color, backgroundColor:gradient(CATEGORIES[1].color), borderWidth:3, tension:.45, fill:true, pointRadius:2, hidden:!selectedCats.has('B') },
+        { key:'C', type:'line', label:CATEGORIES[2].name, data:dataC, borderColor:CATEGORIES[2].color, backgroundColor:gradient(CATEGORIES[2].color), borderWidth:3, tension:.45, fill:true, pointRadius:2, hidden:!selectedCats.has('C') },
+        ...TARGETS.map(t => makeTargetDataset(t.value, t.label, AREAS.length))
+      ];
+
       window.__mchart = new Chart(mctx, {
         type:'line',
-        data:{ labels:AREAS, datasets:ds },
+        data:{ labels:AREAS, datasets:md },
         options:{ plugins:{ legend:{ position:'bottom' } },
           scales:{ y:{ beginAtZero:true, ticks:{ callback:v=> v.toLocaleString() } } } }
       });
     }
 
     // Buttons
-    document.getElementById('ps1refresh')?.addEventListener('click', ()=> window.__ps1table && draw(window.__ps1table));
+    document.getElementById('ps1refresh')?.addEventListener('click', ()=>{ document.getElementById('ps1time').textContent = new Date().toLocaleString(); chartPS1?.update(); });
     document.getElementById('ps1expand')?.addEventListener('click', ()=>{
       const modal = document.getElementById('modal'); modal.classList.add('open');
-      drawInModal(window.__ps1table);
+      drawInModal();
       document.getElementById('mclose').onclick = ()=>{ modal.classList.remove('open'); window.__mchart?.destroy(); };
     });
 
-    // Load data + init filter UI
+    // Load data
     Papa.parse(CSV_URL, {
       download:true, skipEmptyLines:true,
-      complete:(res)=>{ window.__ps1table = res.data; buildFilterMenu(); rebuildTags(); draw(res.data); },
+      complete:(res)=>{
+        const tbl = res.data;
+        dataA = seriesFrom(tbl, CELLS.A);
+        dataB = seriesFrom(tbl, CELLS.B);
+        dataC = seriesFrom(tbl, CELLS.C);
+        createChart();
+        document.getElementById('ps1time').textContent = new Date().toLocaleString();
+        buildFilterMenu(); rebuildTags();
+      },
       error:(e)=>{ document.getElementById('ps1err').textContent = 'Ralat memuatkan data: ' + e; }
     });
   })();
