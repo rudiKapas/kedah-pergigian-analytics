@@ -309,5 +309,19 @@ header.ph p{
   margin-top: 6px;       /* slight offset from header top */
 }
 
+/* Space between the search bar row and the first tile row */
+header.ph .searchbar{
+  margin-top: 8px;        /* slight gap under subtitle */
+  margin-bottom: 22px;    /* <-- add air before tiles */
+}
+
+/* (Optional) add a touch more space on wide screens */
+@media (min-width: 1024px){
+  header.ph .searchbar{ margin-bottom: 26px; }
+}
+
+/* If you still see tiles hugging the header, add a tiny buffer on the grid */
+.ph + .grid{ margin-top: 4px; }
+
 
 
