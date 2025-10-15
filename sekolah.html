@@ -5,15 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Kesihatan Pergigian Sekolah</title>
 
+  <!-- tiny inline favicon to avoid 404 -->
   <link rel="icon" type="image/png"
         href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=">
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=1">
 
+  <!-- libs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
+  <!-- page tweaks to mirror akses header/grid/dropdown -->
   <style>
     header.ph, .grid{ max-width:1200px; margin:0 auto; padding:0 20px; width:100%; }
     header.ph{ display:flex; flex-direction:column; align-items:stretch; text-align:left; padding-top:24px; }
@@ -33,9 +36,11 @@
     .tile.wide{ grid-column:1 / span 2; }
     @media (max-width: 900px){ .grid{ grid-template-columns:1fr; } .tile.wide{ grid-column:1 / span 1; } }
 
+    /* chart fills tile area */
     .tile .chart{ height:420px; }
     .tile .chart canvas{ width:100% !important; height:100% !important; }
 
+    /* dropdown */
     .dd{ position:relative; }
     .dd .menu{
       position:absolute; right:0; top:44px;
@@ -87,6 +92,7 @@
 </head>
 <body>
 
+  <!-- HEADER -->
   <header class="ph">
     <h1>Kesihatan Pergigian Sekolah</h1>
     <p>Analisis proses dan sasaran kesihatan pergigian pelajar sekolah negeri Kedah.</p>
@@ -95,15 +101,19 @@
       <button id="schoolBackLeft" type="button" class="btn-ghost" aria-label="Kembali ke halaman utama">
         <svg class="ico" width="20" height="20"><use href="#i-back"/></svg>
       </button>
+
       <input id="schoolSearch" type="search" placeholder="Cari di halaman ini… (kategori, tajuk graf)" autocomplete="off" />
       <div id="gs-suggest" class="gs-suggest" hidden></div>
+
       <button id="schoolSearchRight" type="button" aria-label="Cari">
         <svg class="ico" width="20" height="20"><use href="#i-search"/></svg>
       </button>
     </div>
   </header>
 
+  <!-- GRID -->
   <main class="grid">
+    <!-- TILE 1 -->
     <section class="tile wide" id="ps1-tile">
       <div class="th">
         <div>
@@ -141,6 +151,7 @@
       </div>
     </section>
 
+    <!-- placeholders for future tiles -->
     <section class="tile">
       <div class="th">
         <div>
@@ -178,6 +189,7 @@
     </section>
   </main>
 
+  <!-- MODAL -->
   <div class="modal" id="modal">
     <div class="modal-inner">
       <div class="mh">
@@ -192,18 +204,19 @@
     document.getElementById('schoolBackLeft')?.addEventListener('click', ()=>{ location.href='index.html'; });
   </script>
 
+  <!-- TILE 1 LOGIC -->
   <script>
   (function(){
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1190173258&single=true&output=csv';
 
-    // Base labels and padded labels to land on baseline
     const AREAS = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
-    const LABELS_PAD = [' ', ...AREAS, ' '];  // blank before & after
+    const LABELS_PAD = [' ', ...AREAS, ' '];  // blank before & after to land on baseline
 
+    // Cell map (bilangan institusi)
     const CELLS = {
-      A: ['D5','E5','F5','G5','H5','I5','J5','K5','L5','M5','N5','O5'],
-      B: ['D6','E6','F6','G6','H6','I6','J6','K6','L6','M6','N6','O6'],
-      C: ['D7','E7','F7','G7','H7','I7','J7','K7','L7','M7','N7','O7']
+      A: ['D5','E5','F5','G5','H5','I5','J5','K5','L5','M5','N5','O5'], // Pra sekolah di sekolah
+      B: ['D6','E6','F6','G6','H6','I6','J6','K6','L6','M6','N6','O6'], // Tadika kerajaan
+      C: ['D7','E7','F7','G7','H7','I7','J7','K7','L7','M7','N7','O7']  // Tadika swasta
     };
 
     const CATEGORIES = [
@@ -212,6 +225,7 @@
       { key:'C', name:'Tadika swasta',          color:'#a78bfa' }
     ];
 
+    // Sasaran (dashed)
     const TARGETS = [
       {value:100, label:'% Liputan Tadika'},
       {value:80,  label:'% Liputan Murid'},
@@ -220,6 +234,7 @@
       {value:70,  label:'Kes Selesai Pra Sekolah & Tadika Kerajaan'}
     ];
 
+    // ---------- helpers ----------
     function colIndex(A){ let i=0, n=0; for(; i<A.length; i++) n=n*26+(A.charCodeAt(i)-64); return n-1; }
     function getCell(table, A1){
       const m=/^([A-Z]+)(\d+)$/.exec(A1); if(!m) return null;
@@ -235,10 +250,36 @@
         borderColor:'rgba(15,27,45,0.25)', borderDash:[6,6], pointRadius:0, borderWidth:1.5, tension:0 };
     }
 
+    // Filter state
     let selectedCats = new Set(CATEGORIES.map(c=>c.key));
+
+    // Chart state
     let chartPS1, dataA=[], dataB=[], dataC=[];
 
-    // ---------- Filter UI ----------
+    // --------- label rotation helper (mobile / tight layout) ---------
+    function adjustXAxisTicks() {
+      if (!chartPS1 || !chartPS1.chartArea) return;
+
+      const n = AREAS.length;
+      const w = chartPS1.chartArea.width;
+      const pxPerLabel = w / n;
+
+      const shouldRotate = (pxPerLabel < 70) || (window.innerWidth < 900);
+
+      const ticks = chartPS1.options.scales.x.ticks;
+      ticks.maxRotation = shouldRotate ? 90 : 0;
+      ticks.minRotation = shouldRotate ? 90 : 0;
+      ticks.autoSkip   = !shouldRotate;   // if rotated, show every label
+
+      chartPS1.update();
+    }
+    let __resizeTO;
+    window.addEventListener('resize', () => {
+      clearTimeout(__resizeTO);
+      __resizeTO = setTimeout(adjustXAxisTicks, 120);
+    });
+
+    // ---------- FILTER UI ----------
     const dd = document.getElementById('dds1');
     const body = document.getElementById('dds1body');
     const menu = document.getElementById('dds1menu');
@@ -249,19 +290,26 @@
           <input type="checkbox" data-key="${cat.key}" ${selectedCats.has(cat.key)?'checked':''}>
           <span>${cat.name}</span>
         </div>
-      `).join('');
+      `.trim()).join('');
     }
+
     body.addEventListener('change', (e)=>{
-      const cb = e.target.closest('input[type="checkbox"][data-key]'); if(!cb) return;
-      if(cb.checked) selectedCats.add(cb.dataset.key); else selectedCats.delete(cb.dataset.key);
-      syncTagsAndVisibility(); e.stopPropagation();
+      const cb = e.target.closest('input[type="checkbox"][data-key]');
+      if(!cb) return;
+      const k = cb.dataset.key;
+      if(cb.checked) selectedCats.add(k); else selectedCats.delete(k);
+      syncTagsAndVisibility();
+      e.stopPropagation();
     });
+
     body.addEventListener('click', (e)=>{
-      const row = e.target.closest('.opt[data-row]'); if(!row) return;
+      const row = e.target.closest('.opt[data-row]');
+      if(!row) return;
       const cb = row.querySelector('input[type="checkbox"][data-key]');
       if(cb && e.target !== cb){ cb.checked = !cb.checked; cb.dispatchEvent(new Event('change',{bubbles:true})); }
       e.stopPropagation();
     });
+
     menu.addEventListener('click', (e)=> e.stopPropagation());
     document.getElementById('dds1btn').addEventListener('click', (e)=>{ e.stopPropagation(); dd.classList.toggle('open'); });
     document.getElementById('dds1close').addEventListener('click', ()=> dd.classList.remove('open'));
@@ -278,22 +326,28 @@
       const host = document.getElementById('dds1tags');
       host.innerHTML = selectedCats.size===CATEGORIES.length
         ? '<span class="tag">Semua kategori</span>'
-        : [...selectedCats].map(k => `<span class="tag">${CATEGORIES.find(c=>c.key===k).name}</span>`).join('');
+        : [...selectedCats].map(k=>{
+            const name = CATEGORIES.find(c=>c.key===k).name;
+            return `<span class="tag">${name}</span>`;
+          }).join('');
     }
+
     function syncTagsAndVisibility(){
       rebuildTags();
       if(!chartPS1) return;
-      chartPS1.data.datasets.forEach(ds => { if(ds._catKey) ds.hidden = !selectedCats.has(ds._catKey); });
+      chartPS1.data.datasets.forEach(ds=>{
+        if(ds._catKey) ds.hidden = !selectedCats.has(ds._catKey);
+      });
       chartPS1.update();
     }
 
-    // ---------- Chart ----------
+    // ---------- CHART ----------
     function createChart(){
       const ctx = document.getElementById('ps1').getContext('2d');
       function grad(hex){
         const g = ctx.createLinearGradient(0,0,0,300);
-        const c = parseInt(hex.slice(1),16), r=(c>>16)&255, gg=(c>>8)&255, b=c&255;
-        const rgba = a=>`rgba(${r},${gg},${b},${a})`;
+        const c = parseInt(hex.slice(1),16), r=(c>>16)&255, g1=(c>>8)&255, b=c&255;
+        const rgba = a=>`rgba(${r},${g1},${b},${a})`;
         g.addColorStop(0, rgba(.35)); g.addColorStop(1, rgba(.03)); return g;
       }
 
@@ -323,20 +377,20 @@
         options:{
           responsive:true, maintainAspectRatio:false,
           plugins:{
-            legend:{ display:false },
+            legend:{ display:false }, // akses-style custom legend rendered below
             tooltip:{ mode:'index', intersect:false,
               callbacks:{ label:(c)=> c.dataset.label.startsWith('Sasaran:')
                 ? `${c.dataset.label} — ${c.parsed.y}%`
                 : `${c.dataset.label}: ${c.parsed.y.toLocaleString()}` } }
           },
-          scales:{
-            x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } }, // base
-            y:{ beginAtZero:true, ticks:{ callback:v=> v.toLocaleString() } }
+          scales:{ 
+            x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } }, /* base; helper adjusts */
+            y:{ beginAtZero:true, ticks:{ callback:v=> v.toLocaleString() } } 
           }
         }
       });
 
-      // akses-style legend
+      // akses-style legend (three colored dots only)
       (function renderCustomLegend(){
         const host = document.getElementById('ps1legend');
         const entries = [
@@ -345,11 +399,17 @@
           {label: CATEGORIES[2].name, color: CATEGORIES[2].color},
         ];
         host.innerHTML = entries.map(e => `
-          <span class="lg"><span class="dot" style="background:${e.color}"></span>${e.label}</span>
+          <span class="lg">
+            <span class="dot" style="background:${e.color}"></span>${e.label}
+          </span>
         `).join('');
       })();
 
       syncTagsAndVisibility();
+
+      // run after first layout so chartArea exists
+      setTimeout(adjustXAxisTicks, 0);
+
       document.getElementById('ps1time').textContent = new Date().toLocaleString();
     }
 
@@ -357,8 +417,8 @@
       const mctx = document.getElementById('mcanvas').getContext('2d');
       function grad(hex){
         const g = mctx.createLinearGradient(0,0,0,360);
-        const c = parseInt(hex.slice(1),16), r=(c>>16)&255, gg=(c>>8)&255, b=c&255;
-        const rgba = a=>`rgba(${r},${gg},${b},${a})`;
+        const c = parseInt(hex.slice(1),16), r=(c>>16)&255, g1=(c>>8)&255, b=c&255;
+        const rgba = a=>`rgba(${r},${g1},${b},${a})`;
         g.addColorStop(0, rgba(.35)); g.addColorStop(1, rgba(.03)); return g;
       }
       if(window.__mchart) window.__mchart.destroy();
@@ -381,7 +441,7 @@
       });
     }
 
-    // ---------- Data ----------
+    // ---------- DATA ----------
     function loadDataAndDraw(){
       Papa.parse(CSV_URL, {
         download:true, skipEmptyLines:true,
@@ -393,11 +453,14 @@
           renderMenu();
           rebuildTags();
           createChart();
+          // ensure rotation check runs after new render
+          setTimeout(adjustXAxisTicks, 0);
         },
         error:(e)=>{ document.getElementById('ps1err').textContent = 'Ralat memuatkan data: ' + e; }
       });
     }
 
+    // Buttons
     document.getElementById('ps1refresh').addEventListener('click', loadDataAndDraw);
     document.getElementById('ps1expand').addEventListener('click', ()=>{
       const modal = document.getElementById('modal'); modal.classList.add('open');
@@ -405,6 +468,7 @@
       document.getElementById('mclose').onclick = ()=>{ modal.classList.remove('open'); window.__mchart?.destroy(); };
     });
 
+    // init
     loadDataAndDraw();
   })();
   </script>
