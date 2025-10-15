@@ -15,7 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <!-- SVG sprite (icons) -->
+  <!-- SVG sprite -->
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
     <symbol id="i-time" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>
@@ -54,20 +54,12 @@
     <h1>Kesihatan Pergigian Sekolah</h1>
     <p>Analisis proses dan sasaran kesihatan pergigian pelajar sekolah negeri Kedah.</p>
 
-    <!-- Search bar row (Back • Input • Search) -->
     <div class="searchbar" role="search">
-      <!-- Back (ghost) -->
       <a class="btn btn-ghost" href="index.html" aria-label="Kembali ke halaman utama">
         <svg class="ico" width="20" height="20"><use href="#i-back"/></svg>
       </a>
-
-      <!-- Input -->
-      <input id="schoolSearch" type="search"
-             placeholder="Cari di halaman ini… (kategori, tajuk graf)"
-             autocomplete="off" />
+      <input id="schoolSearch" type="search" placeholder="Cari di halaman ini… (kategori, tajuk graf)" autocomplete="off" />
       <div id="gs-suggest" class="gs-suggest" hidden></div>
-
-      <!-- Search (teal) -->
       <button id="schoolSearchRight" type="button" class="btn" aria-label="Cari">
         <svg class="ico" width="20" height="20"><use href="#i-search"/></svg>
         <span class="lbl" hidden>Cari</span>
@@ -75,12 +67,9 @@
     </div>
   </header>
 
-  <!-- GRID -->
   <main class="grid">
 
-    <!-- ===================================== -->
-    <!-- Tile 1 — Pra Sekolah / Tadika (wide) -->
-    <!-- ===================================== -->
+    <!-- Tile 1 -->
     <section class="tile wide" id="ps1tile">
       <div class="th">
         <div>
@@ -88,7 +77,6 @@
           <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="ps1time">—</span></div>
         </div>
         <div class="act">
-          <!-- Filter -->
           <div class="dd" id="ps1dd">
             <button class="btn dd-trigger" id="ps1filter" title="Tapis">
               <svg class="ico"><use href="#i-filter"/></svg>
@@ -98,13 +86,12 @@
                 <ul class="cklist" id="ps1list" style="padding:8px 12px 0 12px"></ul>
               </div>
               <div class="mfoot">
-                <button class="icbtn" id="ps1apply" title="Terapkan"><svg class="ico"><use href="#i-check"/></svg></button>
-                <button class="icbtn" id="ps1reset" title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
+                <button class="icbtn" id="ps1all"   title="Pilih Semua"><svg class="ico"><use href="#i-check"/></svg></button>
+                <button class="icbtn" id="ps1none"  title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
                 <button class="icbtn" id="ps1close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
               </div>
             </div>
           </div>
-          <!-- Refresh & Expand -->
           <button id="ps1refresh" class="btn" title="Kemas Kini"><svg class="ico"><use href="#i-refresh"/></svg></button>
           <button id="ps1expand" class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
         </div>
@@ -116,9 +103,7 @@
       </div>
     </section>
 
-    <!-- ===================================== -->
-    <!-- Tile 2 (left on second row) — Sek Ren -->
-    <!-- ===================================== -->
+    <!-- Tile 2 -->
     <section class="tile" id="ps2tile">
       <div class="th">
         <div>
@@ -135,8 +120,8 @@
                 <ul class="cklist" id="ps2list" style="padding:8px 12px 0 12px"></ul>
               </div>
               <div class="mfoot">
-                <button class="icbtn" id="ps2apply" title="Terapkan"><svg class="ico"><use href="#i-check"/></svg></button>
-                <button class="icbtn" id="ps2reset" title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
+                <button class="icbtn" id="ps2all"   title="Pilih Semua"><svg class="ico"><use href="#i-check"/></svg></button>
+                <button class="icbtn" id="ps2none"  title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
                 <button class="icbtn" id="ps2close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
               </div>
             </div>
@@ -152,9 +137,7 @@
       </div>
     </section>
 
-    <!-- ===================================== -->
-    <!-- Tile 3 (right on second row) — kosong -->
-    <!-- ===================================== -->
+    <!-- Tile 3 (placeholder) -->
     <section class="tile" id="ps3tile">
       <div class="th">
         <div>
@@ -168,7 +151,6 @@
       </div>
       <div class="tb">
         <div class="chart" style="min-height:340px;display:grid;place-items:center;color:#9aa3af">—</div>
-        <div class="err" id="ps3err"></div>
       </div>
     </section>
 
@@ -185,26 +167,26 @@
     </div>
   </div>
 
-  <!-- Footer -->
   <footer class="wrap">
     <div class="content">© Kedah Oral Health Analytics • Data Kesihatan Pergigian yang disahkan dan dikemas kini.</div>
   </footer>
 
-  <!-- ================= Scripts (Tile 1 + Tile 2) ================= -->
   <script>
-  // Common helpers
+  // -------- helpers ----------
   const LABELS_DO = ['Kota Setar','Pendang','Kuala Muda','Sik','Kulim','Bandar Baru','Kubang Pasu','Pdg Terap','Baling','Yan','Langkawi','Kedah'];
   const COLS_DO   = ['D','E','F','G','H','I','J','K','L','M','N','O'];
   const colIdx = L => L.toUpperCase().charCodeAt(0)-65;
   const num = v => { if(v==null) return 0; const n=parseFloat(String(v).replace(/[, ]/g,'')); return isNaN(n)?0:n; };
   const nowMY = ()=> new Date().toLocaleString('ms-MY',{hour12:false});
 
-  /* ==========================================================
-     TILE 1 — PRA SEKOLAH, TADIKA & TADIKA SWASTA (Dual axis)
-     ========================================================== */
+  // Make x labels rotate on tight space
+  function xTicksRotate() {
+    return {autoSkip:false, maxRotation:(window.innerWidth<640?90:0), minRotation:(window.innerWidth<640?90:0)};
+  }
+
+  // ------- TILE 1 (Pra Sekolah/Tadika) -------
   const PS1_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1190173258&single=true&output=csv';
 
-  // Filter list (as requested)
   const PS1_FILTERS = [
     { key:'inst',     label:'Bilangan institusi', axis:'y2' },
     { key:'enrol',    label:'Enrolmen murid',     axis:'y2' },
@@ -214,8 +196,6 @@
     { key:'mbk',      label:'% MBK',              axis:'y'  },
     { key:'selesai',  label:'% Kes selesai',      axis:'y'  },
   ];
-
-  // Sasaran (tile 1)
   const PS1_TARGETS = [
     { label:'Sasaran: % Liputan Tadika — 100%', value:100 },
     { label:'Sasaran: % Liputan Murid — 80%',   value:80  },
@@ -223,73 +203,56 @@
     { label:'Sasaran: % Pesakit MBK — 50%',     value:50  },
     { label:'Sasaran: Kes Selesai Pra Sekolah & Tadika Kerajaan — 70%', value:70 },
   ];
-
   let chartPS1=null;
   const ps1State = { active:new Set(PS1_FILTERS.map(f=>f.key)), series:null };
 
-  (function buildPS1FilterUI(){
+  // Build filter UI (akses-style: immediate apply + all/none/close)
+  (function buildPS1Filter(){
     const ul = document.getElementById('ps1list');
     PS1_FILTERS.forEach(f=>{
-      const li = document.createElement('li');
-      li.style.listStyle='none'; li.style.padding='6px 6px';
-      li.innerHTML = `
+      const li=document.createElement('li'); li.style.listStyle='none'; li.style.padding='6px 6px';
+      li.innerHTML=`
         <label class="ckrow" style="display:flex;align-items:center;gap:.75rem;cursor:pointer;">
-          <input type="checkbox" data-key="${f.key}" checked/>
+          <input type="checkbox" data-key="${f.key}" checked />
           <span>${f.label}</span>
         </label>`;
       ul.appendChild(li);
     });
-
-    const menu = document.getElementById('ps1menu');
-    document.getElementById('ps1filter').onclick = ()=> menu.classList.add('open');
-    document.getElementById('ps1close').onclick  = ()=> menu.classList.remove('open');
-    document.getElementById('ps1apply').onclick  = ()=>{
-      ps1State.active.clear();
-      ul.querySelectorAll('input[type="checkbox"]').forEach(cb=>{ if(cb.checked) ps1State.active.add(cb.dataset.key); });
-      menu.classList.remove('open'); drawPS1();
-    };
-    document.getElementById('ps1reset').onclick  = ()=>{
-      ul.querySelectorAll('input[type="checkbox"]').forEach(cb=> cb.checked=false);
-      ps1State.active.clear(); drawPS1();
-    };
+    const menu=document.getElementById('ps1menu');
+    const open=()=>menu.classList.add('open');
+    const close=()=>menu.classList.remove('open');
+    document.getElementById('ps1filter').onclick=e=>{e.stopPropagation();open();};
+    document.getElementById('ps1close').onclick=close;
+    document.getElementById('ps1all').onclick=()=>{ ul.querySelectorAll('input').forEach(cb=>cb.checked=true); syncFromUI(ps1State, ul); drawPS1(); };
+    document.getElementById('ps1none').onclick=()=>{ ul.querySelectorAll('input').forEach(cb=>cb.checked=false); syncFromUI(ps1State, ul); drawPS1(); };
+    ul.addEventListener('click', (e)=>{
+      const cb = e.target.closest('input[type="checkbox"]');
+      if(!cb) return;
+      e.stopPropagation();
+      syncFromUI(ps1State, ul);
+      drawPS1();
+    });
+    document.addEventListener('click',(e)=>{ if(!menu.contains(e.target) && !document.getElementById('ps1filter').contains(e.target)) close(); });
   })();
+
+  function syncFromUI(state, ul){
+    state.active.clear();
+    ul.querySelectorAll('input[type="checkbox"]').forEach(cb=>{ if(cb.checked) state.active.add(cb.dataset.key); });
+  }
 
   async function loadPS1(){
     const csv = await (await fetch(PS1_CSV)).text();
     const rows = Papa.parse(csv).data;
-
     const rowVals=(r)=> COLS_DO.map(c=> num(rows[r-1]?.[colIdx(c)]));
 
-    // Line graph 1..3  : Bilangan institusi
-    const instPra   = rowVals(5);
-    const instKer   = rowVals(6);
-    const instSwa   = rowVals(7);
-    // Line graph 4..6  : Enrolmen murid
-    const enrPra    = rowVals(8);
-    const enrKer    = rowVals(9);
-    const enrSwa    = rowVals(10);
-    // Line graph 7..9  : % liputan tadika
-    const lipTanPra = rowVals(14);
-    const lipTanKer = rowVals(17);
-    const lipTanSwa = rowVals(20);
-    // Line graph 10..12: % liputan murid
-    const lipMurPra = rowVals(24);
-    const lipMurKer = rowVals(27);
-    const lipMurSwa = rowVals(30);
-    // Line graph 13..15: % TPR
-    const tprPra    = rowVals(34);
-    const tprKer    = rowVals(37);
-    const tprSwa    = rowVals(40);
-    // Line graph 16..18: % MBK
-    const mbkPra    = rowVals(44);
-    const mbkKer    = rowVals(47);
-    const mbkSwa    = rowVals(50);
-    // Line graph 19..21: % Kes selesai
-    const selPra    = rowVals(54);
-    const selKer    = rowVals(57);
-    const selSwa    = rowVals(61);
+    const instPra=rowVals(5), instKer=rowVals(6), instSwa=rowVals(7);
+    const enrPra=rowVals(8), enrKer=rowVals(9), enrSwa=rowVals(10);
+    const lipTanPra=rowVals(14), lipTanKer=rowVals(17), lipTanSwa=rowVals(20);
+    const lipMurPra=rowVals(24), lipMurKer=rowVals(27), lipMurSwa=rowVals(30);
+    const tprPra=rowVals(34), tprKer=rowVals(37), tprSwa=rowVals(40);
+    const mbkPra=rowVals(44), mbkKer=rowVals(47), mbkSwa=rowVals(50);
+    const selPra=rowVals(54), selKer=rowVals(57), selSwa=rowVals(61);
 
-    // combine by category
     ps1State.series = {
       inst:  LABELS_DO.map((_,i)=> instPra[i]+instKer[i]+instSwa[i]),
       enrol: LABELS_DO.map((_,i)=> enrPra[i]+enrKer[i]+enrSwa[i]),
@@ -299,7 +262,6 @@
       mbk:       LABELS_DO.map((_,i)=> (mbkPra[i]+mbkKer[i]+mbkSwa[i])/3 ),
       selesai:   LABELS_DO.map((_,i)=> (selPra[i]+selKer[i]+selSwa[i])/3 ),
     };
-
     document.getElementById('ps1time').textContent = nowMY();
   }
 
@@ -337,16 +299,14 @@
         scales:{
           y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'},grid:{color:'rgba(156,163,175,.35)',borderDash:[4,4]}},
           y2:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},ticks:{callback:v=>v.toLocaleString()}},
-          x:{ticks:{autoSkip:false,maxRotation:(window.innerWidth<640?90:0),minRotation:(window.innerWidth<640?90:0)}}
+          x:{ticks:xTicksRotate()}
         }
       }
     });
     if(inModal) window.__mchart=obj; else chartPS1=obj;
   }
 
-  async function loadDataAndDraw(){
-    try{ await loadPS1(); drawPS1(false); }catch(e){ console.error(e); document.getElementById('ps1err').textContent='Ralat memuat data.'; }
-  }
+  async function loadDataAndDraw(){ try{ await loadPS1(); drawPS1(false); }catch(e){ console.error(e); document.getElementById('ps1err').textContent='Ralat memuat data.'; } }
 
   document.getElementById('ps1refresh').addEventListener('click', loadDataAndDraw);
   document.getElementById('ps1expand').addEventListener('click', ()=>{
@@ -356,12 +316,10 @@
     document.getElementById('mclose').onclick=()=>{ modal.classList.remove('open'); window.__mchart?.destroy(); };
   });
 
-  // kick off tile 1
+  // Start Tile 1
   loadDataAndDraw();
 
-  /* ============================================
-     TILE 2 — SEKOLAH RENDAH (Dual axis + filter)
-     ============================================ */
+  // ------- TILE 2 (Sekolah Rendah) -------
   const PS2_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=282265418&single=true&output=csv';
 
   const PS2_FILTERS = [
@@ -385,29 +343,32 @@
   let chartPS2=null;
   const ps2State = { active:new Set(PS2_FILTERS.map(f=>f.key)), series:null };
 
-  (function buildPS2FilterUI(){
-    const ul=document.getElementById('ps2list');
+  (function buildPS2Filter(){
+    const ul = document.getElementById('ps2list');
     PS2_FILTERS.forEach(f=>{
       const li=document.createElement('li'); li.style.listStyle='none'; li.style.padding='6px 6px';
-      li.innerHTML = `
+      li.innerHTML=`
         <label class="ckrow" style="display:flex;align-items:center;gap:.75rem;cursor:pointer;">
-          <input type="checkbox" data-key="${f.key}" checked/>
+          <input type="checkbox" data-key="${f.key}" checked />
           <span>${f.label}</span>
         </label>`;
       ul.appendChild(li);
     });
     const menu=document.getElementById('ps2menu');
-    document.getElementById('ps2filter').onclick=()=>menu.classList.add('open');
-    document.getElementById('ps2close').onclick =()=>menu.classList.remove('open');
-    document.getElementById('ps2apply').onclick =()=>{
-      ps2State.active.clear();
-      ul.querySelectorAll('input[type="checkbox"]').forEach(cb=>{ if(cb.checked) ps2State.active.add(cb.dataset.key); });
-      menu.classList.remove('open'); drawPS2(false);
-    };
-    document.getElementById('ps2reset').onclick =()=>{
-      ul.querySelectorAll('input[type="checkbox"]').forEach(cb=> cb.checked=false);
-      ps2State.active.clear(); drawPS2(false);
-    };
+    const open=()=>menu.classList.add('open');
+    const close=()=>menu.classList.remove('open');
+    document.getElementById('ps2filter').onclick=e=>{e.stopPropagation();open();};
+    document.getElementById('ps2close').onclick=close;
+    document.getElementById('ps2all').onclick =()=>{ ul.querySelectorAll('input').forEach(cb=>cb.checked=true); syncFromUI(ps2State, ul); drawPS2(false); };
+    document.getElementById('ps2none').onclick=()=>{ ul.querySelectorAll('input').forEach(cb=>cb.checked=false); syncFromUI(ps2State, ul); drawPS2(false); };
+    ul.addEventListener('click', (e)=>{
+      const cb = e.target.closest('input[type="checkbox"]');
+      if(!cb) return;
+      e.stopPropagation();
+      syncFromUI(ps2State, ul);
+      drawPS2(false);
+    });
+    document.addEventListener('click',(e)=>{ if(!menu.contains(e.target) && !document.getElementById('ps2filter').contains(e.target)) close(); });
   })();
 
   async function loadPS2(){
@@ -415,19 +376,12 @@
     const rows = Papa.parse(csv).data;
     const rowVals=(r)=> COLS_DO.map(c=> num(rows[r-1]?.[colIdx(c)]));
 
-    // Bilangan sekolah
-    const srKer = rowVals(14), srSwa=rowVals(15), srJumlah=rowVals(16);
-    // Enrolmen
-    const enKer = rowVals(17), enSwa=rowVals(18), enJumlah=rowVals(19);
-    // % SR dilawati
+    const srKer=rowVals(14), srSwa=rowVals(15), srJumlah=rowVals(16);
+    const enKer=rowVals(17), enSwa=rowVals(18), enJumlah=rowVals(19);
     const srDilawati=rowVals(22);
-    // % liputan murid
     const liputan=rowVals(25);
-    // % orally fit
     const orallyFit=rowVals(28);
-    // % kes selesai
     const kesSelesai=rowVals(31);
-    // % TPR
     const tpr=rowVals(34);
 
     ps2State.series = {
@@ -472,16 +426,14 @@
         scales:{
           y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'},grid:{color:'rgba(156,163,175,.35)',borderDash:[4,4]}},
           y2:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},ticks:{callback:v=>v.toLocaleString()}},
-          x:{ticks:{autoSkip:false,maxRotation:(window.innerWidth<640?90:0),minRotation:(window.innerWidth<640?90:0)}}
+          x:{ticks:xTicksRotate()}
         }
       }
     });
     if(inModal) window.__mchart=obj; else chartPS2=obj;
   }
 
-  async function loadPS2AndDraw(){
-    try{ await loadPS2(); drawPS2(false); }catch(e){ console.error(e); document.getElementById('ps2err').textContent='Ralat memuat data.'; }
-  }
+  async function loadPS2AndDraw(){ try{ await loadPS2(); drawPS2(false); }catch(e){ console.error(e); document.getElementById('ps2err').textContent='Ralat memuat data.'; } }
 
   document.getElementById('ps2refresh').addEventListener('click', loadPS2AndDraw);
   document.getElementById('ps2expand').addEventListener('click', ()=>{
@@ -491,7 +443,7 @@
     document.getElementById('mclose').onclick=()=>{ modal.classList.remove('open'); window.__mchart?.destroy(); };
   });
 
-  // kick off tile2
+  // Start Tile 2
   loadPS2AndDraw();
 
   </script>
