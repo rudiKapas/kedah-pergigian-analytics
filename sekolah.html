@@ -575,6 +575,255 @@
   })();
   </script>
 
+  <script>
+// ======================= TILE 2 (left of 2nd row): Sekolah Rendah =======================
+(() => {
+  // ---- locate the left tile on 2nd row by its heading text (do not change your HTML) ----
+  const allTiles = Array.from(document.querySelectorAll('.tile'));
+  const targetTile =
+    allTiles.find(t => t.querySelector('.th .ttl')?.textContent?.trim().toLowerCase() === 'saringan pergigian sekolah')
+    || allTiles[1]; // fallback: second tile in the page if title mismatch
+
+  if (!targetTile) return;
+
+  // inject a canvas if none exists, keep your markup intact
+  const chartBox = targetTile.querySelector('.tb .chart') || targetTile.querySelector('.tb');
+  let canvas = chartBox.querySelector('canvas#sr2');
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.id = 'sr2';
+    chartBox.appendChild(canvas);
+  }
+
+  // wire existing buttons (left-to-right in the act group)
+  const actBtns = Array.from(targetTile.querySelectorAll('.th .act .btn'));
+  const btnFilter = actBtns[0]; // if present
+  const btnRefresh = actBtns[1] || actBtns[0];
+  const btnExpand = actBtns[2] || actBtns[1];
+
+  // give them IDs at runtime (no HTML changes saved)
+  btnFilter?.setAttribute('id','sr2filter');
+  btnRefresh?.setAttribute('id','sr2refresh');
+  btnExpand?.setAttribute('id','sr2expand');
+
+  // add a popover menu container for filter (keeps your styling)
+  let menu = targetTile.querySelector('#sr2menu');
+  if (!menu) {
+    const ddWrap = document.createElement('div');
+    ddWrap.className = 'menu';
+    ddWrap.id = 'sr2menu';
+    ddWrap.style.minWidth = '320px';
+    ddWrap.innerHTML = `
+      <div class="menu-body"><ul class="cklist" id="sr2list" style="padding:8px 12px 0 12px"></ul></div>
+      <div class="mfoot">
+        <button class="icbtn" id="sr2apply" title="Terapkan"><svg class="ico"><use href="#i-check"/></svg></button>
+        <button class="icbtn" id="sr2reset" title="Kosongkan"><svg class="ico"><use href="#i-eraser"/></svg></button>
+        <button class="icbtn" id="sr2close" title="Tutup"><svg class="ico"><use href="#i-x"/></svg></button>
+      </div>`;
+    // attach menu next to buttons (keeps theme)
+    targetTile.querySelector('.th .act')?.appendChild(ddWrap);
+    menu = ddWrap;
+  }
+
+  // time label in subtitle area (reuse your sub span)
+  const timeSpan = targetTile.querySelector('.sub span') || targetTile.querySelector('.sub');
+
+  // ---------------- data & config ----------------
+  const CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=282265418&single=true&output=csv';
+  const LABELS = ['Kota Setar','Pendang','Kuala Muda','Sik','Kulim','Bandar Baru','Kubang Pasu','Pdg Terap','Baling','Yan','Langkawi','Kedah'];
+  const COLS = ['D','E','F','G','H','I','J','K','L','M','N','O'];
+  const colIdx = L => L.toUpperCase().charCodeAt(0)-65;
+  const num = v => {
+    if (v==null) return 0;
+    const n = parseFloat(String(v).replace(/[, ]/g,''));
+    return isNaN(n)?0:n;
+  };
+
+  const FILTERS = [
+    { key:'sekolah',   label:'Bilangan sekolah', axis:'y2' }, // counts
+    { key:'enrol',     label:'Jumlah enrolmen',  axis:'y2' }, // counts
+    { key:'srDilawati',label:'Peratus SR dilawati', axis:'y' },
+    { key:'liputan',   label:'Peratus murid SR mendapat liputan', axis:'y' },
+    { key:'orallyFit', label:'Peratus murid SR mencapai status orally fit', axis:'y' },
+    { key:'kesSelesai',label:'Peratus murid SR kes selesai', axis:'y' },
+    { key:'tpr',       label:'Peratus murid SR TPR', axis:'y' }
+  ];
+  const TARGETS = [
+    { label:'Sasaran: % SR dilawati — 100%', value:100 },
+    { label:'Sasaran: % Murid SR mendapat liputan — 96%', value:96 },
+    { label:'Sasaran: % Murid SR mencapai status orally fit — 95%', value:95 },
+    { label:'Sasaran: % Liputan murid SR mencapai status orally fit kes selesai — 95%', value:95 },
+    { label:'Sasaran: % Murid SR maintaining orally fit (TPR) — 65%', value:65 },
+  ];
+
+  const colors = {
+    sekolah:   { border:'#0ea5e9', bg:'rgba(14,165,233,.12)' }, // sky
+    enrol:     { border:'#22c55e', bg:'rgba(34,197,94,.12)' },  // green
+    srDilawati:{ border:'#38bdf8', bg:'rgba(56,189,248,.10)' },
+    liputan:   { border:'#60a5fa', bg:'rgba(96,165,250,.10)' },
+    orallyFit: { border:'#a78bfa', bg:'rgba(167,139,250,.10)' },
+    kesSelesai:{ border:'#f59e0b', bg:'rgba(245,158,11,.10)' },
+    tpr:       { border:'#e879f9', bg:'rgba(232,121,249,.10)' },
+    target:    { border:'#9ca3af' }
+  };
+
+  let chart = null;
+  const state = {
+    active: new Set(FILTERS.map(f=>f.key)),
+    series: null
+  };
+
+  function fmtNow() { return new Date().toLocaleString('ms-MY', { hour12:false }); }
+
+  // build filter list
+  function buildFilter() {
+    const ul = document.getElementById('sr2list');
+    ul.innerHTML = '';
+    FILTERS.forEach(f=>{
+      const li = document.createElement('li');
+      li.style.listStyle='none';
+      li.style.padding='6px 6px';
+      li.innerHTML = `
+        <label class="ckrow" style="display:flex;align-items:center;gap:.75rem;cursor:pointer;">
+          <input type="checkbox" data-key="${f.key}" ${state.active.has(f.key)?'checked':''}/>
+          <span>${f.label}</span>
+        </label>`;
+      ul.appendChild(li);
+    });
+
+    // open/close/apply/reset
+    if (btnFilter) btnFilter.onclick = ()=> menu.classList.add('open');
+    document.getElementById('sr2close').onclick = ()=> menu.classList.remove('open');
+    document.getElementById('sr2apply').onclick = ()=>{
+      state.active.clear();
+      ul.querySelectorAll('input[type="checkbox"]').forEach(cb=>{
+        if(cb.checked) state.active.add(cb.dataset.key);
+      });
+      menu.classList.remove('open');
+      draw(false);
+    };
+    document.getElementById('sr2reset').onclick = ()=>{
+      ul.querySelectorAll('input[type="checkbox"]').forEach(cb=> cb.checked=false);
+      state.active.clear();
+      draw(false);
+    };
+  }
+
+  async function load() {
+    const res = await fetch(CSV);
+    const csv = await res.text();
+    const parsed = Papa.parse(csv, {dynamicTyping:false});
+    const rows = parsed.data;
+
+    const rowVals = (rowNo) => COLS.map(c => num(rows[rowNo-1]?.[colIdx(c)]));
+
+    // mappings you gave
+    const sekolahJumlah = rowVals(16);
+    const enrolJumlah   = rowVals(19);
+    const srDilawati    = rowVals(22);
+    const liputan       = rowVals(25);
+    const orallyFit     = rowVals(28);
+    const kesSelesai    = rowVals(31);
+    const tpr           = rowVals(34);
+
+    state.series = { sekolah:sekolahJumlah, enrol:enrolJumlah, srDilawati, liputan, orallyFit, kesSelesai, tpr };
+    if (timeSpan) timeSpan.textContent = fmtNow();
+  }
+
+  function datasets() {
+    const defLine = (label,data,color,axis)=>({
+      type:'line',
+      label, data, yAxisID:axis,
+      borderColor:color.border, backgroundColor:color.bg,
+      tension:.35, fill:true, pointRadius:4, pointHoverRadius:5, borderWidth:2
+    });
+
+    const ds = [];
+    FILTERS.forEach(f=>{
+      if(state.active.has(f.key)) {
+        ds.push(defLine(f.label, state.series[f.key], colors[f.key], f.axis));
+      }
+    });
+    // sasaran (% on left)
+    TARGETS.forEach(t=>{
+      ds.push({
+        type:'line', label:t.label, yAxisID:'y',
+        data: Array(LABELS.length).fill(t.value),
+        borderColor:colors.target.border, borderDash:[6,6], borderWidth:2,
+        pointRadius:0, fill:false
+      });
+    });
+    return ds;
+  }
+
+  function draw(inModal){
+    const ctx = (inModal ? document.getElementById('mcanvas') : canvas).getContext('2d');
+    if (!inModal && chart) { chart.destroy(); }
+    if (inModal && window.__mchart) { window.__mchart.destroy(); }
+
+    const obj = new Chart(ctx,{
+      type:'line',
+      data:{ labels: LABELS, datasets: datasets() },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{ display:false },
+          tooltip:{
+            mode:'index', intersect:false,
+            callbacks:{
+              label:(c)=>{
+                const isPct = c.dataset.yAxisID === 'y';
+                const v = c.parsed.y;
+                return ` ${c.dataset.label}: ${isPct ? v.toFixed(0)+'%' : v.toLocaleString()} `;
+              }
+            }
+          }
+        },
+        scales:{
+          y:{ beginAtZero:true, max:100, ticks:{ callback:v=>v+'%' },
+              grid:{ color:'rgba(156,163,175,.35)', borderDash:[4,4] } },
+          y2:{ position:'right', beginAtZero:true, grid:{ drawOnChartArea:false },
+               ticks:{ callback:v=>v.toLocaleString() } },
+          x:{ ticks:{ autoSkip:false,
+                      maxRotation: (window.innerWidth<640?90:0),
+                      minRotation: (window.innerWidth<640?90:0) } }
+        }
+      }
+    });
+
+    if (inModal) window.__mchart = obj; else chart = obj;
+  }
+
+  async function refresh(){
+    try{
+      await load();
+      draw(false);
+    }catch(e){
+      console.error('SR tile error', e);
+      targetTile.querySelector('.err')?.innerText = 'Ralat memuat data.';
+    }
+  }
+
+  // actions
+  btnRefresh && (btnRefresh.onclick = refresh);
+  btnExpand && (btnExpand.onclick = ()=>{
+    document.getElementById('mtitle').textContent = 'Sekolah Rendah';
+    const modal = document.getElementById('modal');
+    modal.classList.add('open');
+    draw(true);
+    document.getElementById('mclose').onclick = ()=>{
+      modal.classList.remove('open');
+      window.__mchart?.destroy();
+    };
+  });
+
+  // init
+  buildFilter();
+  refresh();
+})();
+</script>
+
+
   <footer class="wrap">
     <div class="content">© Kedah Oral Health Analytics • Data Kesihatan Pergigian yang disahkan dan dikemas kini.</div>
   </footer>
