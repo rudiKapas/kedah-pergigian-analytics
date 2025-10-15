@@ -63,7 +63,6 @@
     }
     .dd .menu .menu-body .opt:hover{ background:#f7fafc; }
 
-    /* tiny tag line above chart */
     .tags .tag{ display:inline-block; margin-right:.35rem; margin-bottom:.25rem;
       padding:.15rem .5rem; border-radius:999px; background:#eef2f7; color:#0f172a; font-size:.8rem; }
   </style>
@@ -208,13 +207,13 @@
     document.getElementById('schoolBackLeft')?.addEventListener('click', ()=>{ location.href='index.html'; });
   </script>
 
-  <!-- TILE 1 LOGIC (21 series + sasaran + filter) -->
+  <!-- TILE 1 LOGIC (21 series + sasaran + simplified filter by category) -->
   <script>
   (function(){
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1190173258&single=true&output=csv';
 
     const AREAS = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
-    const LABELS_PAD = [' ', ...AREAS, ' ']; // to land on baseline without altering edge values
+    const LABELS_PAD = [' ', ...AREAS, ' ']; // padded ends so lines touch 0 grid line
 
     /* Institution types (consistent colours across all metrics) */
     const INST = [
@@ -223,7 +222,7 @@
       { k:'C', name:'Tadika swasta',          color:'#a78bfa' }
     ];
 
-    /* 7 metrics (groups of 3). Each group provides A/B/C cell arrays exactly as you specified */
+    /* 7 metrics; each provides A/B/C cells exactly per your mapping */
     const METRICS = [
       { id:'m1', name:'Bilangan institusi', cells:{
         A:['D5','E5','F5','G5','H5','I5','J5','K5','L5','M5','N5','O5'],
@@ -271,7 +270,7 @@
       {value:70,  label:'Kes Selesai Pra Sekolah & Tadika Kerajaan'}
     ];
 
-    // ---------- little helpers ----------
+    // ---------- helpers ----------
     function colIndex(A){ let i=0, n=0; for(; i<A.length; i++) n=n*26+(A.charCodeAt(i)-64); return n-1; }
     function getCell(table, A1){
       const m=/^([A-Z]+)(\d+)$/.exec(A1); if(!m) return null;
@@ -287,8 +286,8 @@
         borderColor:'rgba(15,27,45,0.25)', borderDash:[6,6], pointRadius:0, borderWidth:1.5, tension:0, yAxisID:'y' };
     }
 
-    // Filter state: default show only metric m1 (Bilangan institusi)
-    let selectedKeys = new Set(INST.map(i=>`m1_${i.k}`));
+    // Filter state: default show only m1 (Bilangan institusi)
+    let selectedGroups = new Set(['m1']);
 
     // Chart state
     let chartPS1;
@@ -315,30 +314,28 @@
       __resizeTO = setTimeout(adjustXAxisTicks, 120);
     });
 
-    // ---------- FILTER UI ----------
+    // ---------- FILTER UI (categories only) ----------
     const dd = document.getElementById('dds1');
     const body = document.getElementById('dds1body');
     const menu = document.getElementById('dds1menu');
 
     function renderMenu(){
-      body.innerHTML = METRICS.map(m => {
-        const rows = INST.map(inst => {
-          const key = `${m.id}_${inst.k}`;
-          const checked = selectedKeys.has(key) ? 'checked' : '';
-          return `
-            <div class="opt" data-row="${key}">
-              <input type="checkbox" data-key="${key}" ${checked}>
-              <span>${m.name} — ${inst.name}</span>
-            </div>`;
-        }).join('');
-        return `<h5>${m.name}</h5>${rows}`;
-      }).join('');
+      body.innerHTML = `
+        <h5>Kategori</h5>
+        ${METRICS.map(m=>{
+          const checked = selectedGroups.has(m.id) ? 'checked' : '';
+          return `<div class="opt" data-row="${m.id}">
+            <input type="checkbox" data-key="${m.id}" ${checked}>
+            <span>${m.name}</span>
+          </div>`;
+        }).join('')}
+      `;
     }
 
     body.addEventListener('change', (e)=>{
       const cb=e.target.closest('input[type="checkbox"][data-key]'); if(!cb) return;
       const k = cb.dataset.key;
-      if(cb.checked) selectedKeys.add(k); else selectedKeys.delete(k);
+      if(cb.checked) selectedGroups.add(k); else selectedGroups.delete(k);
       syncTagsAndVisibility();
       e.stopPropagation();
     });
@@ -358,26 +355,22 @@
 
     document.getElementById('dds1all').addEventListener('click', (e)=>{
       e.stopPropagation();
-      selectedKeys = new Set();
-      METRICS.forEach(m=>INST.forEach(inst=>selectedKeys.add(`${m.id}_${inst.k}`)));
+      selectedGroups = new Set(METRICS.map(m=>m.id));
       renderMenu(); syncTagsAndVisibility();
     });
     document.getElementById('dds1none').addEventListener('click', (e)=>{
-      e.stopPropagation(); selectedKeys = new Set(); renderMenu(); syncTagsAndVisibility();
+      e.stopPropagation(); selectedGroups = new Set(); renderMenu(); syncTagsAndVisibility();
     });
 
     function rebuildTags(){
       const host = document.getElementById('dds1tags');
-      if(selectedKeys.size === METRICS.length * INST.length){
+      if(selectedGroups.size === METRICS.length){
         host.innerHTML = '<span class="tag">Semua kategori</span>';
         return;
       }
-      const tags = [];
-      selectedKeys.forEach(k=>{
-        const [mid, ik] = k.split('_');
-        const m = METRICS.find(x=>x.id===mid);
-        const iname = INST.find(x=>x.k===ik).name;
-        tags.push(`<span class="tag">${m.name} — ${iname}</span>`);
+      const tags = Array.from(selectedGroups).map(id=>{
+        const m = METRICS.find(x=>x.id===id);
+        return `<span class="tag">${m.name}</span>`;
       });
       host.innerHTML = tags.join('');
     }
@@ -386,7 +379,7 @@
       rebuildTags();
       if(!chartPS1) return;
       chartPS1.data.datasets.forEach(ds=>{
-        if(ds._key) ds.hidden = !selectedKeys.has(ds._key);
+        if(ds._group) ds.hidden = !selectedGroups.has(ds._group);
       });
       chartPS1.update();
     }
@@ -406,12 +399,12 @@
 
       const datasets = [];
 
-      // 21 series
+      // 21 series, grouped by metric id
       METRICS.forEach(m=>{
         INST.forEach(inst=>{
           const arr = DATA[m.id]?.[inst.k] || new Array(AREAS.length).fill(0);
           datasets.push({
-            _key:`${m.id}_${inst.k}`,
+            _group:m.id,
             type:'line',
             label:`${m.name} — ${inst.name}`,
             data: padEnds(arr),
@@ -422,13 +415,13 @@
             fill:true,
             pointRadius:pointR,
             pointHoverRadius:3,
-            hidden: !selectedKeys.has(`${m.id}_${inst.k}`),
+            hidden: !selectedGroups.has(m.id),
             yAxisID: 'y'
           });
         });
       });
 
-      // Sasaran
+      // Sasaran (always visible)
       TARGETS.forEach(t => datasets.push(makeTargetDataset(t.value, t.label, LABELS_PAD.length)));
 
       if(chartPS1) chartPS1.destroy();
@@ -451,7 +444,7 @@
         }
       });
 
-      // akses-style legend: just the three institution colours
+      // akses-style legend: only institution colours
       (function renderCustomLegend(){
         const host = document.getElementById('ps1legend');
         host.innerHTML = INST.map(e => `
@@ -461,7 +454,6 @@
         `).join('');
       })();
 
-      // run after first layout so chartArea exists
       setTimeout(adjustXAxisTicks, 0);
       document.getElementById('ps1time').textContent = new Date().toLocaleString();
     }
@@ -483,11 +475,10 @@
         INST.forEach(inst=>{
           const arr = DATA[m.id]?.[inst.k] || new Array(AREAS.length).fill(0);
           datasets.push({
-            _key:`${m.id}_${inst.k}`,
-            type:'line', label:`${m.name} — ${inst.name}`,
+            _group:m.id, type:'line', label:`${m.name} — ${inst.name}`,
             data: padEnds(arr), borderColor:inst.color, backgroundColor:grad(inst.color),
             borderWidth:3, tension:.45, fill:true, pointRadius:pointR,
-            hidden: !selectedKeys.has(`${m.id}_${inst.k}`), yAxisID:'y'
+            hidden: !selectedGroups.has(m.id), yAxisID:'y'
           });
         });
       });
