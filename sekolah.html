@@ -558,10 +558,17 @@
     // Buttons
     document.getElementById('ps1refresh').addEventListener('click', loadDataAndDraw);
     document.getElementById('ps1expand').addEventListener('click', ()=>{
-      const modal = document.getElementById('modal'); modal.classList.add('open');
-      drawInModal();
-      document.getElementById('mclose').onclick = ()=>{ modal.classList.remove('open'); window.__mchart?.destroy(); };
+    // set modal title to the tile title
+    document.getElementById('mtitle').textContent = 'Pra Sekolah, Tadika & Tadika Swasta';
+    const modal = document.getElementById('modal');
+    modal.classList.add('open');
+    drawInModal();
+    document.getElementById('mclose').onclick = ()=>{
+    modal.classList.remove('open');
+    window.__mchart?.destroy();
+      };
     });
+
 
     // init
     loadDataAndDraw();
