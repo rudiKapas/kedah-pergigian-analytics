@@ -77,11 +77,11 @@
           <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="ps1time">—</span></div>
         </div>
         <div class="act">
-          <div class="dd" id="ps1dd">
+          <div class="dd">
             <button class="btn dd-trigger" id="ps1filter" title="Tapis">
               <svg class="ico"><use href="#i-filter"/></svg>
             </button>
-            <div class="menu" id="ps1menu" style="min-width:320px">
+            <div class="menu" id="ps1menu" hidden style="min-width:320px">
               <div class="menu-body">
                 <ul class="cklist" id="ps1list" style="padding:8px 12px 0 12px"></ul>
               </div>
@@ -111,11 +111,11 @@
           <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="ps2time">—</span></div>
         </div>
         <div class="act">
-          <div class="dd" id="ps2dd">
+          <div class="dd">
             <button class="btn dd-trigger" id="ps2filter" title="Tapis">
               <svg class="ico"><use href="#i-filter"/></svg>
             </button>
-            <div class="menu" id="ps2menu" style="min-width:320px">
+            <div class="menu" id="ps2menu" hidden style="min-width:320px">
               <div class="menu-body">
                 <ul class="cklist" id="ps2list" style="padding:8px 12px 0 12px"></ul>
               </div>
@@ -137,7 +137,7 @@
       </div>
     </section>
 
-    <!-- Tile 3 (placeholder) -->
+    <!-- Tile 3 placeholder -->
     <section class="tile" id="ps3tile">
       <div class="th">
         <div>
@@ -171,281 +171,279 @@
     <div class="content">© Kedah Oral Health Analytics • Data Kesihatan Pergigian yang disahkan dan dikemas kini.</div>
   </footer>
 
-  <script>
-  // -------- helpers ----------
-  const LABELS_DO = ['Kota Setar','Pendang','Kuala Muda','Sik','Kulim','Bandar Baru','Kubang Pasu','Pdg Terap','Baling','Yan','Langkawi','Kedah'];
-  const COLS_DO   = ['D','E','F','G','H','I','J','K','L','M','N','O'];
-  const colIdx = L => L.toUpperCase().charCodeAt(0)-65;
-  const num = v => { if(v==null) return 0; const n=parseFloat(String(v).replace(/[, ]/g,'')); return isNaN(n)?0:n; };
-  const nowMY = ()=> new Date().toLocaleString('ms-MY',{hour12:false});
+<script>
+/* ===================== helpers ===================== */
+const LABELS_DO = ['Kota Setar','Pendang','Kuala Muda','Sik','Kulim','Bandar Baru','Kubang Pasu','Pdg Terap','Baling','Yan','Langkawi','Kedah'];
+const COLS_DO   = ['D','E','F','G','H','I','J','K','L','M','N','O'];
+const colIdx = L => L.toUpperCase().charCodeAt(0)-65;
+const num = v => { if(v==null) return 0; const n=parseFloat(String(v).replace(/[, ]/g,'')); return isNaN(n)?0:n; };
+const nowMY = ()=> new Date().toLocaleString('ms-MY',{hour12:false});
+const xTicksRotate = () => ({ autoSkip:false, maxRotation:(window.innerWidth<640?90:0), minRotation:(window.innerWidth<640?90:0) });
 
-  // Make x labels rotate on tight space
-  function xTicksRotate() {
-    return {autoSkip:false, maxRotation:(window.innerWidth<640?90:0), minRotation:(window.innerWidth<640?90:0)};
-  }
+function openMenu(btn, menu){
+  menu.hidden=false;
+  const close = (ev)=>{
+    if (!menu.contains(ev.target) && !btn.contains(ev.target)) {
+      menu.hidden=true; document.removeEventListener('click', close);
+    }
+  };
+  setTimeout(()=>document.addEventListener('click', close),0);
+}
 
-  // ------- TILE 1 (Pra Sekolah/Tadika) -------
-  const PS1_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1190173258&single=true&output=csv';
+/* ===================== TILE 1 ===================== */
+const PS1_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1190173258&single=true&output=csv';
 
-  const PS1_FILTERS = [
-    { key:'inst',     label:'Bilangan institusi', axis:'y2' },
-    { key:'enrol',    label:'Enrolmen murid',     axis:'y2' },
-    { key:'lipTadika',label:'% Liputan Tadika',   axis:'y'  },
-    { key:'lipMurid', label:'% Liputan Murid',    axis:'y'  },
-    { key:'tpr',      label:'% TPR',              axis:'y'  },
-    { key:'mbk',      label:'% MBK',              axis:'y'  },
-    { key:'selesai',  label:'% Kes selesai',      axis:'y'  },
+// Metric list (single-choice)
+const PS1_METRICS = [
+  { key:'lipTadika', label:'% Liputan Tadika', rows:{ pra:14, ker:17, swa:20 }, axis:'y' },
+  { key:'lipMurid',  label:'% Liputan Murid',  rows:{ pra:24, ker:27, swa:30 }, axis:'y' },
+  { key:'tpr',       label:'% TPR',            rows:{ pra:34, ker:37, swa:40 }, axis:'y' },
+  { key:'mbk',       label:'% MBK',            rows:{ pra:44, ker:47, swa:50 }, axis:'y' },
+  { key:'selesai',   label:'% Kes selesai',    rows:{ pra:54, ker:57, swa:61 }, axis:'y' },
+  { key:'inst',      label:'Bilangan institusi', rows:{ pra:5, ker:6, swa:7 }, axis:'y2' },
+  { key:'enrol',     label:'Enrolmen murid',    rows:{ pra:8, ker:9, swa:10 }, axis:'y2' },
+];
+
+const PS1_TARGETS = [
+  { label:'Sasaran: % Liputan Tadika — 100%', value:100 },
+  { label:'Sasaran: % Liputan Murid — 80%',   value:80  },
+  { label:'Sasaran: % TPR — 70%',             value:70  },
+  { label:'Sasaran: % Pesakit MBK — 50%',     value:50  },
+  { label:'Sasaran: Kes Selesai Pra Sekolah & Tadika Kerajaan — 70%', value:70 },
+];
+
+let chartPS1=null;
+const ps1State = { metric: PS1_METRICS[0].key, seriesRaw:null };
+
+function buildPS1Filter(){
+  const ul = document.getElementById('ps1list');
+  PS1_METRICS.forEach((m,i)=>{
+    const li = document.createElement('li');
+    li.style.listStyle='none'; li.style.padding='6px 6px';
+    li.innerHTML = `
+      <label style="display:flex;gap:.75rem;align-items:center;cursor:pointer">
+        <input type="radio" name="ps1opt" value="${m.key}" ${i===0?'checked':''}>
+        <span>${m.label}</span>
+      </label>`;
+    ul.appendChild(li);
+  });
+  const btn = document.getElementById('ps1filter');
+  const menu= document.getElementById('ps1menu');
+  btn.onclick = (e)=>{ e.stopPropagation(); openMenu(btn, menu); };
+  document.getElementById('ps1close').onclick = ()=> menu.hidden=true;
+  document.getElementById('ps1all').onclick = ()=>{
+    ul.querySelectorAll('input[type="radio"]')[0].checked = true;
+    ps1State.metric = PS1_METRICS[0].key;
+    drawPS1(false);
+  };
+  document.getElementById('ps1none').onclick = ()=>{
+    ul.querySelectorAll('input[type="radio"]').forEach(r=> r.checked=false);
+  };
+  ul.addEventListener('change',(e)=>{
+    if(e.target.name==='ps1opt'){ ps1State.metric = e.target.value; drawPS1(false); }
+  });
+}
+buildPS1Filter();
+
+async function loadPS1(){
+  const csv = await (await fetch(PS1_CSV)).text();
+  const rows = Papa.parse(csv).data;
+  const rowVals=(r)=> COLS_DO.map(c=> num(rows[r-1]?.[colIdx(c)]));
+
+  ps1State.seriesRaw = {
+    pra:{
+      lipTadika: rowVals(14), lipMurid: rowVals(24), tpr:rowVals(34), mbk:rowVals(44), selesai:rowVals(54),
+      inst: rowVals(5), enrol: rowVals(8)
+    },
+    ker:{
+      lipTadika: rowVals(17), lipMurid: rowVals(27), tpr:rowVals(37), mbk:rowVals(47), selesai:rowVals(57),
+      inst: rowVals(6), enrol: rowVals(9)
+    },
+    swa:{
+      lipTadika: rowVals(20), lipMurid: rowVals(30), tpr:rowVals(40), mbk:rowVals(50), selesai:rowVals(61),
+      inst: rowVals(7), enrol: rowVals(10)
+    }
+  };
+  document.getElementById('ps1time').textContent = nowMY();
+}
+
+function ps1Datasets(){
+  const c={ pra:{b:'#3b82f6',g:'rgba(59,130,246,.10)'},
+            ker:{b:'#22c55e',g:'rgba(34,197,94,.10)'},
+            swa:{b:'#a78bfa',g:'rgba(167,139,250,.10)'},
+            tgt:'#9ca3af' };
+  const m = PS1_METRICS.find(x=>x.key===ps1State.metric);
+  const ds = [
+    { type:'line', label:'Pra sekolah di sekolah', data:ps1State.seriesRaw.pra[m.key], yAxisID:m.axis, borderColor:c.pra.b, backgroundColor:c.pra.g, tension:.35, fill:true, pointRadius:4, pointHoverRadius:5, borderWidth:2 },
+    { type:'line', label:'Tadika kerajaan',        data:ps1State.seriesRaw.ker[m.key], yAxisID:m.axis, borderColor:c.ker.b, backgroundColor:c.ker.g, tension:.35, fill:true, pointRadius:4, pointHoverRadius:5, borderWidth:2 },
+    { type:'line', label:'Tadika swasta',          data:ps1State.seriesRaw.swa[m.key], yAxisID:m.axis, borderColor:c.swa.b, backgroundColor:c.swa.g, tension:.35, fill:true, pointRadius:4, pointHoverRadius:5, borderWidth:2 }
   ];
-  const PS1_TARGETS = [
-    { label:'Sasaran: % Liputan Tadika — 100%', value:100 },
-    { label:'Sasaran: % Liputan Murid — 80%',   value:80  },
-    { label:'Sasaran: % TPR — 70%',             value:70  },
-    { label:'Sasaran: % Pesakit MBK — 50%',     value:50  },
-    { label:'Sasaran: Kes Selesai Pra Sekolah & Tadika Kerajaan — 70%', value:70 },
-  ];
-  let chartPS1=null;
-  const ps1State = { active:new Set(PS1_FILTERS.map(f=>f.key)), series:null };
-
-  // Build filter UI (akses-style: immediate apply + all/none/close)
-  (function buildPS1Filter(){
-    const ul = document.getElementById('ps1list');
-    PS1_FILTERS.forEach(f=>{
-      const li=document.createElement('li'); li.style.listStyle='none'; li.style.padding='6px 6px';
-      li.innerHTML=`
-        <label class="ckrow" style="display:flex;align-items:center;gap:.75rem;cursor:pointer;">
-          <input type="checkbox" data-key="${f.key}" checked />
-          <span>${f.label}</span>
-        </label>`;
-      ul.appendChild(li);
-    });
-    const menu=document.getElementById('ps1menu');
-    const open=()=>menu.classList.add('open');
-    const close=()=>menu.classList.remove('open');
-    document.getElementById('ps1filter').onclick=e=>{e.stopPropagation();open();};
-    document.getElementById('ps1close').onclick=close;
-    document.getElementById('ps1all').onclick=()=>{ ul.querySelectorAll('input').forEach(cb=>cb.checked=true); syncFromUI(ps1State, ul); drawPS1(); };
-    document.getElementById('ps1none').onclick=()=>{ ul.querySelectorAll('input').forEach(cb=>cb.checked=false); syncFromUI(ps1State, ul); drawPS1(); };
-    ul.addEventListener('click', (e)=>{
-      const cb = e.target.closest('input[type="checkbox"]');
-      if(!cb) return;
-      e.stopPropagation();
-      syncFromUI(ps1State, ul);
-      drawPS1();
-    });
-    document.addEventListener('click',(e)=>{ if(!menu.contains(e.target) && !document.getElementById('ps1filter').contains(e.target)) close(); });
-  })();
-
-  function syncFromUI(state, ul){
-    state.active.clear();
-    ul.querySelectorAll('input[type="checkbox"]').forEach(cb=>{ if(cb.checked) state.active.add(cb.dataset.key); });
-  }
-
-  async function loadPS1(){
-    const csv = await (await fetch(PS1_CSV)).text();
-    const rows = Papa.parse(csv).data;
-    const rowVals=(r)=> COLS_DO.map(c=> num(rows[r-1]?.[colIdx(c)]));
-
-    const instPra=rowVals(5), instKer=rowVals(6), instSwa=rowVals(7);
-    const enrPra=rowVals(8), enrKer=rowVals(9), enrSwa=rowVals(10);
-    const lipTanPra=rowVals(14), lipTanKer=rowVals(17), lipTanSwa=rowVals(20);
-    const lipMurPra=rowVals(24), lipMurKer=rowVals(27), lipMurSwa=rowVals(30);
-    const tprPra=rowVals(34), tprKer=rowVals(37), tprSwa=rowVals(40);
-    const mbkPra=rowVals(44), mbkKer=rowVals(47), mbkSwa=rowVals(50);
-    const selPra=rowVals(54), selKer=rowVals(57), selSwa=rowVals(61);
-
-    ps1State.series = {
-      inst:  LABELS_DO.map((_,i)=> instPra[i]+instKer[i]+instSwa[i]),
-      enrol: LABELS_DO.map((_,i)=> enrPra[i]+enrKer[i]+enrSwa[i]),
-      lipTadika: LABELS_DO.map((_,i)=> (lipTanPra[i]+lipTanKer[i]+lipTanSwa[i])/3 ),
-      lipMurid:  LABELS_DO.map((_,i)=> (lipMurPra[i]+lipMurKer[i]+lipMurSwa[i])/3 ),
-      tpr:       LABELS_DO.map((_,i)=> (tprPra[i]+tprKer[i]+tprSwa[i])/3 ),
-      mbk:       LABELS_DO.map((_,i)=> (mbkPra[i]+mbkKer[i]+mbkSwa[i])/3 ),
-      selesai:   LABELS_DO.map((_,i)=> (selPra[i]+selKer[i]+selSwa[i])/3 ),
-    };
-    document.getElementById('ps1time').textContent = nowMY();
-  }
-
-  function ps1Datasets(){
-    const colors = {
-      inst:{border:'#0ea5e9',bg:'rgba(14,165,233,.12)'},
-      enrol:{border:'#22c55e',bg:'rgba(34,197,94,.12)'},
-      lipTadika:{border:'#38bdf8',bg:'rgba(56,189,248,.10)'},
-      lipMurid:{border:'#60a5fa',bg:'rgba(96,165,250,.10)'},
-      tpr:{border:'#e879f9',bg:'rgba(232,121,249,.10)'},
-      mbk:{border:'#a78bfa',bg:'rgba(167,139,250,.10)'},
-      selesai:{border:'#f59e0b',bg:'rgba(245,158,11,.10)'},
-      target:'#9ca3af'
-    };
-    const def=(lbl,dat,col,ax)=>({type:'line',label:lbl,data:dat,yAxisID:ax,borderColor:col.border,backgroundColor:col.bg,tension:.35,fill:true,pointRadius:4,pointHoverRadius:5,borderWidth:2});
-    const ds=[];
-    PS1_FILTERS.forEach(f=>{ if(ps1State.active.has(f.key)) ds.push(def(f.label, ps1State.series[f.key], colors[f.key], f.axis)); });
+  if(m.axis==='y'){ // add % targets for % metrics
     PS1_TARGETS.forEach(t=>{
-      ds.push({type:'line',label:t.label,data:Array(LABELS_DO.length).fill(t.value),yAxisID:'y',borderColor:colors.target,borderDash:[6,6],borderWidth:2,pointRadius:0,fill:false});
+      ds.push({ type:'line', label:t.label, data:Array(LABELS_DO.length).fill(t.value), yAxisID:'y',
+        borderColor:c.tgt, borderDash:[6,6], borderWidth:2, pointRadius:0, fill:false });
     });
-    return ds;
   }
+  return ds;
+}
 
-  function drawPS1(inModal=false){
-    const ctx=(inModal?document.getElementById('mcanvas'):document.getElementById('ps1')).getContext('2d');
-    if(!inModal && chartPS1) chartPS1.destroy();
-    if(inModal && window.__mchart) window.__mchart.destroy();
-
-    const obj=new Chart(ctx,{
-      type:'line',
-      data:{labels:LABELS_DO,datasets:ps1Datasets()},
-      options:{
-        responsive:true, maintainAspectRatio:false,
-        plugins:{ legend:{display:false}, tooltip:{mode:'index',intersect:false,callbacks:{label:(c)=>` ${c.dataset.label}: ${c.dataset.yAxisID==='y'? c.parsed.y.toFixed(0)+'%': c.parsed.y.toLocaleString()} `}}},
-        scales:{
-          y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'},grid:{color:'rgba(156,163,175,.35)',borderDash:[4,4]}},
-          y2:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},ticks:{callback:v=>v.toLocaleString()}},
-          x:{ticks:xTicksRotate()}
-        }
+function drawPS1(inModal){
+  const ctx=(inModal?document.getElementById('mcanvas'):document.getElementById('ps1')).getContext('2d');
+  if(!inModal && window.chartPS1) window.chartPS1.destroy();
+  if(inModal && window.__mchart) window.__mchart.destroy();
+  const m = PS1_METRICS.find(x=>x.key===ps1State.metric);
+  const obj=new Chart(ctx,{
+    type:'line',
+    data:{ labels:LABELS_DO, datasets:ps1Datasets() },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{mode:'index',intersect:false,
+        callbacks:{ label:(c)=>` ${c.dataset.label}: ${c.dataset.yAxisID==='y'? c.parsed.y.toFixed(0)+'%': c.parsed.y.toLocaleString()} ` } } },
+      scales:{
+        y:{ beginAtZero:true, max:100, ticks:{callback:v=>v+'%'}, grid:{color:'rgba(156,163,175,.35)',borderDash:[4,4]} },
+        y2:{ position:'right', beginAtZero:true, grid:{drawOnChartArea:false}, ticks:{ callback:v=>v.toLocaleString() } },
+        x:{ ticks:xTicksRotate() }
       }
-    });
-    if(inModal) window.__mchart=obj; else chartPS1=obj;
-  }
-
-  async function loadDataAndDraw(){ try{ await loadPS1(); drawPS1(false); }catch(e){ console.error(e); document.getElementById('ps1err').textContent='Ralat memuat data.'; } }
-
-  document.getElementById('ps1refresh').addEventListener('click', loadDataAndDraw);
-  document.getElementById('ps1expand').addEventListener('click', ()=>{
-    document.getElementById('mtitle').textContent='Pra Sekolah, Tadika & Tadika Swasta';
-    const modal=document.getElementById('modal'); modal.classList.add('open');
-    drawPS1(true);
-    document.getElementById('mclose').onclick=()=>{ modal.classList.remove('open'); window.__mchart?.destroy(); };
+    }
   });
+  if(inModal) window.__mchart=obj; else window.chartPS1=obj;
+}
 
-  // Start Tile 1
-  loadDataAndDraw();
+async function ps1LoadAndDraw(){ try{ await loadPS1(); drawPS1(false); }catch(e){ console.error(e); document.getElementById('ps1err').textContent='Ralat memuat data.'; } }
+document.getElementById('ps1refresh').addEventListener('click', ps1LoadAndDraw);
+document.getElementById('ps1expand').addEventListener('click', ()=>{
+  document.getElementById('mtitle').textContent='Pra Sekolah, Tadika & Tadika Swasta';
+  const modal=document.getElementById('modal'); modal.classList.add('open');
+  drawPS1(true);
+  document.getElementById('mclose').onclick=()=>{ modal.classList.remove('open'); window.__mchart?.destroy(); };
+});
+ps1LoadAndDraw();
 
-  // ------- TILE 2 (Sekolah Rendah) -------
-  const PS2_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=282265418&single=true&output=csv';
+/* ===================== TILE 2 ===================== */
+const PS2_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=282265418&single=true&output=csv';
 
-  const PS2_FILTERS = [
-    { key:'sekolah',   label:'Bilangan sekolah', axis:'y2' },
-    { key:'enrol',     label:'Jumlah enrolmen',  axis:'y2' },
-    { key:'srDilawati',label:'Peratus SR dilawati', axis:'y' },
-    { key:'liputan',   label:'Peratus murid SR mendapat liputan', axis:'y' },
-    { key:'orallyFit', label:'Peratus murid SR mencapai status orally fit', axis:'y' },
-    { key:'kesSelesai',label:'Peratus murid SR kes selesai', axis:'y' },
-    { key:'tpr',       label:'Peratus murid SR TPR', axis:'y' }
-  ];
+// Metric list (single-choice)
+const PS2_METRICS = [
+  { key:'sekolah',   label:'Bilangan sekolah', axis:'y2' },
+  { key:'enrol',     label:'Jumlah enrolmen',  axis:'y2' },
+  { key:'srDilawati',label:'Peratus SR dilawati', axis:'y' },
+  { key:'liputan',   label:'Peratus murid SR mendapat liputan', axis:'y' },
+  { key:'orallyFit', label:'Peratus murid SR mencapai status orally fit', axis:'y' },
+  { key:'kesSelesai',label:'Peratus murid SR kes selesai', axis:'y' },
+  { key:'tpr',       label:'Peratus murid SR TPR', axis:'y' }
+];
 
-  const PS2_TARGETS = [
-    { label:'Sasaran: % SR dilawati — 100%', value:100 },
-    { label:'Sasaran: % Murid SR mendapat liputan — 96%', value:96 },
-    { label:'Sasaran: % Murid SR mencapai status orally fit — 95%', value:95 },
-    { label:'Sasaran: % Liputan murid SR mencapai status orally fit kes selesai — 95%', value:95 },
-    { label:'Sasaran: % Murid SR maintaining orally fit (TPR) — 65%', value:65 },
-  ];
+const PS2_TARGETS = [
+  { label:'Sasaran: % SR dilawati — 100%', value:100 },
+  { label:'Sasaran: % Murid SR mendapat liputan — 96%', value:96 },
+  { label:'Sasaran: % Murid SR mencapai status orally fit — 95%', value:95 },
+  { label:'Sasaran: % Liputan murid SR mencapai status orally fit kes selesai — 95%', value:95 },
+  { label:'Sasaran: % Murid SR maintaining orally fit (TPR) — 65%', value:65 },
+];
 
-  let chartPS2=null;
-  const ps2State = { active:new Set(PS2_FILTERS.map(f=>f.key)), series:null };
+let chartPS2=null;
+const ps2State={ metric: PS2_METRICS[0].key, data:null };
 
-  (function buildPS2Filter(){
-    const ul = document.getElementById('ps2list');
-    PS2_FILTERS.forEach(f=>{
-      const li=document.createElement('li'); li.style.listStyle='none'; li.style.padding='6px 6px';
-      li.innerHTML=`
-        <label class="ckrow" style="display:flex;align-items:center;gap:.75rem;cursor:pointer;">
-          <input type="checkbox" data-key="${f.key}" checked />
-          <span>${f.label}</span>
-        </label>`;
-      ul.appendChild(li);
-    });
-    const menu=document.getElementById('ps2menu');
-    const open=()=>menu.classList.add('open');
-    const close=()=>menu.classList.remove('open');
-    document.getElementById('ps2filter').onclick=e=>{e.stopPropagation();open();};
-    document.getElementById('ps2close').onclick=close;
-    document.getElementById('ps2all').onclick =()=>{ ul.querySelectorAll('input').forEach(cb=>cb.checked=true); syncFromUI(ps2State, ul); drawPS2(false); };
-    document.getElementById('ps2none').onclick=()=>{ ul.querySelectorAll('input').forEach(cb=>cb.checked=false); syncFromUI(ps2State, ul); drawPS2(false); };
-    ul.addEventListener('click', (e)=>{
-      const cb = e.target.closest('input[type="checkbox"]');
-      if(!cb) return;
-      e.stopPropagation();
-      syncFromUI(ps2State, ul);
-      drawPS2(false);
-    });
-    document.addEventListener('click',(e)=>{ if(!menu.contains(e.target) && !document.getElementById('ps2filter').contains(e.target)) close(); });
-  })();
+function buildPS2Filter(){
+  const ul = document.getElementById('ps2list');
+  PS2_METRICS.forEach((m,i)=>{
+    const li = document.createElement('li');
+    li.style.listStyle='none'; li.style.padding='6px 6px';
+    li.innerHTML = `
+      <label style="display:flex;gap:.75rem;align-items:center;cursor:pointer">
+        <input type="radio" name="ps2opt" value="${m.key}" ${i===0?'checked':''}>
+        <span>${m.label}</span>
+      </label>`;
+    ul.appendChild(li);
+  });
+  const btn=document.getElementById('ps2filter'); const menu=document.getElementById('ps2menu');
+  btn.onclick=(e)=>{ e.stopPropagation(); openMenu(btn, menu); };
+  document.getElementById('ps2close').onclick=()=> menu.hidden=true;
+  document.getElementById('ps2all').onclick = ()=>{
+    ul.querySelectorAll('input[type="radio"]')[0].checked = true;
+    ps2State.metric = PS2_METRICS[0].key; drawPS2(false);
+  };
+  document.getElementById('ps2none').onclick = ()=>{ ul.querySelectorAll('input[type="radio"]').forEach(r=> r.checked=false); };
+  ul.addEventListener('change',(e)=>{ if(e.target.name==='ps2opt'){ ps2State.metric=e.target.value; drawPS2(false); } });
+}
+buildPS2Filter();
 
-  async function loadPS2(){
-    const csv = await (await fetch(PS2_CSV)).text();
-    const rows = Papa.parse(csv).data;
-    const rowVals=(r)=> COLS_DO.map(c=> num(rows[r-1]?.[colIdx(c)]));
+async function loadPS2(){
+  const csv = await (await fetch(PS2_CSV)).text();
+  const rows = Papa.parse(csv).data;
+  const rowVals=(r)=> COLS_DO.map(c=> num(rows[r-1]?.[colIdx(c)]));
 
-    const srKer=rowVals(14), srSwa=rowVals(15), srJumlah=rowVals(16);
-    const enKer=rowVals(17), enSwa=rowVals(18), enJumlah=rowVals(19);
-    const srDilawati=rowVals(22);
-    const liputan=rowVals(25);
-    const orallyFit=rowVals(28);
-    const kesSelesai=rowVals(31);
-    const tpr=rowVals(34);
+  ps2State.data = {
+    sekolah:{ ker:rowVals(14), swa:rowVals(15), jumlah:rowVals(16) },
+    enrol:{ ker:rowVals(17), swa:rowVals(18), jumlah:rowVals(19) },
+    srDilawati: rowVals(22),
+    liputan:    rowVals(25),
+    orallyFit:  rowVals(28),
+    kesSelesai: rowVals(31),
+    tpr:        rowVals(34)
+  };
+  document.getElementById('ps2time').textContent = nowMY();
+}
 
-    ps2State.series = {
-      sekolah: srJumlah,
-      enrol:   enJumlah,
-      srDilawati, liputan, orallyFit, kesSelesai, tpr
-    };
-    document.getElementById('ps2time').textContent = nowMY();
-  }
-
-  function ps2Datasets(){
-    const colors={
-      sekolah:{border:'#0ea5e9',bg:'rgba(14,165,233,.12)'},
-      enrol:{border:'#22c55e',bg:'rgba(34,197,94,.12)'},
-      srDilawati:{border:'#38bdf8',bg:'rgba(56,189,248,.10)'},
-      liputan:{border:'#60a5fa',bg:'rgba(96,165,250,.10)'},
-      orallyFit:{border:'#a78bfa',bg:'rgba(167,139,250,.10)'},
-      kesSelesai:{border:'#f59e0b',bg:'rgba(245,158,11,.10)'},
-      tpr:{border:'#e879f9',bg:'rgba(232,121,249,.10)'},
-      target:'#9ca3af'
-    };
-    const def=(lbl,dat,col,ax)=>({type:'line',label:lbl,data:dat,yAxisID:ax,borderColor:col.border,backgroundColor:col.bg,tension:.35,fill:true,pointRadius:4,pointHoverRadius:5,borderWidth:2});
-    const ds=[];
-    PS2_FILTERS.forEach(f=>{ if(ps2State.active.has(f.key)) ds.push(def(f.label, ps2State.series[f.key], colors[f.key], f.axis)); });
+function ps2Datasets(){
+  const c={ ker:{b:'#3b82f6',g:'rgba(59,130,246,.10)'},
+            swa:{b:'#a78bfa',g:'rgba(167,139,250,.10)'},
+            jumlah:{b:'#22c55e',g:'rgba(34,197,94,.10)'},
+            tgt:'#9ca3af' };
+  const m = PS2_METRICS.find(x=>x.key===ps2State.metric);
+  const ds=[];
+  if(m.key==='sekolah' || m.key==='enrol'){
+    const s = ps2State.data[m.key];
+    ds.push({type:'line',label:'SR kerajaan',data:s.ker,yAxisID:m.axis,borderColor:c.ker.b,backgroundColor:c.ker.g,tension:.35,fill:true,pointRadius:4,pointHoverRadius:5,borderWidth:2});
+    ds.push({type:'line',label:'SR swasta',data:s.swa,yAxisID:m.axis,borderColor:c.swa.b,backgroundColor:c.swa.g,tension:.35,fill:true,pointRadius:4,pointHoverRadius:5,borderWidth:2});
+    ds.push({type:'line',label:'Jumlah',data:s.jumlah,yAxisID:m.axis,borderColor:c.jumlah.b,backgroundColor:c.jumlah.g,tension:.35,fill:true,pointRadius:4,pointHoverRadius:5,borderWidth:2});
+  } else {
+    ds.push({type:'line',label:m.label,data:ps2State.data[m.key],yAxisID:m.axis,borderColor:c.jumlah.b,backgroundColor:c.jumlah.g,tension:.35,fill:true,pointRadius:4,pointHoverRadius:5,borderWidth:2});
     PS2_TARGETS.forEach(t=>{
-      ds.push({type:'line',label:t.label,data:Array(LABELS_DO.length).fill(t.value),yAxisID:'y',borderColor:colors.target,borderDash:[6,6],borderWidth:2,pointRadius:0,fill:false});
-    });
-    return ds;
-  }
-
-  function drawPS2(inModal){
-    const ctx=(inModal?document.getElementById('mcanvas'):document.getElementById('ps2')).getContext('2d');
-    if(!inModal && chartPS2) chartPS2.destroy();
-    if(inModal && window.__mchart) window.__mchart.destroy();
-
-    const obj=new Chart(ctx,{
-      type:'line',
-      data:{labels:LABELS_DO,datasets:ps2Datasets()},
-      options:{
-        responsive:true, maintainAspectRatio:false,
-        plugins:{ legend:{display:false}, tooltip:{mode:'index',intersect:false,callbacks:{label:(c)=>` ${c.dataset.label}: ${c.dataset.yAxisID==='y'? c.parsed.y.toFixed(0)+'%': c.parsed.y.toLocaleString()} `}}},
-        scales:{
-          y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'},grid:{color:'rgba(156,163,175,.35)',borderDash:[4,4]}},
-          y2:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},ticks:{callback:v=>v.toLocaleString()}},
-          x:{ticks:xTicksRotate()}
-        }
+      // add the matching target depending on metric
+      if((m.key==='srDilawati' && t.value===100) ||
+         (m.key==='liputan' && t.value===96) ||
+         (m.key==='orallyFit' && t.value===95) ||
+         (m.key==='kesSelesai' && t.value===95) ||
+         (m.key==='tpr' && t.value===65)) {
+        ds.push({type:'line',label:t.label,data:Array(LABELS_DO.length).fill(t.value),yAxisID:'y',borderColor:c.tgt,borderDash:[6,6],borderWidth:2,pointRadius:0,fill:false});
       }
     });
-    if(inModal) window.__mchart=obj; else chartPS2=obj;
   }
+  return ds;
+}
 
-  async function loadPS2AndDraw(){ try{ await loadPS2(); drawPS2(false); }catch(e){ console.error(e); document.getElementById('ps2err').textContent='Ralat memuat data.'; } }
-
-  document.getElementById('ps2refresh').addEventListener('click', loadPS2AndDraw);
-  document.getElementById('ps2expand').addEventListener('click', ()=>{
-    document.getElementById('mtitle').textContent='Sekolah Rendah';
-    const modal=document.getElementById('modal'); modal.classList.add('open');
-    drawPS2(true);
-    document.getElementById('mclose').onclick=()=>{ modal.classList.remove('open'); window.__mchart?.destroy(); };
+function drawPS2(inModal){
+  const ctx=(inModal?document.getElementById('mcanvas'):document.getElementById('ps2')).getContext('2d');
+  if(!inModal && window.chartPS2) window.chartPS2.destroy();
+  if(inModal && window.__mchart) window.__mchart.destroy();
+  const m=PS2_METRICS.find(x=>x.key===ps2State.metric);
+  const obj=new Chart(ctx,{
+    type:'line',
+    data:{labels:LABELS_DO,datasets:ps2Datasets()},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{mode:'index',intersect:false,callbacks:{label:(c)=>` ${c.dataset.label}: ${c.dataset.yAxisID==='y'? c.parsed.y.toFixed(0)+'%': c.parsed.y.toLocaleString()} `}}},
+      scales:{
+        y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'},grid:{color:'rgba(156,163,175,.35)',borderDash:[4,4]}},
+        y2:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},ticks:{callback:v=>v.toLocaleString()}},
+        x:{ticks:xTicksRotate()}
+      }
+    }
   });
+  if(inModal) window.__mchart=obj; else window.chartPS2=obj;
+}
 
-  // Start Tile 2
-  loadPS2AndDraw();
+async function ps2LoadAndDraw(){ try{ await loadPS2(); drawPS2(false); }catch(e){ console.error(e); document.getElementById('ps2err').textContent='Ralat memuat data.'; } }
+document.getElementById('ps2refresh').addEventListener('click', ps2LoadAndDraw);
+document.getElementById('ps2expand').addEventListener('click', ()=>{
+  document.getElementById('mtitle').textContent='Sekolah Rendah';
+  const modal=document.getElementById('modal'); modal.classList.add('open');
+  drawPS2(true);
+  document.getElementById('mclose').onclick=()=>{ modal.classList.remove('open'); window.__mchart?.destroy(); };
+});
+ps2LoadAndDraw();
 
-  </script>
+</script>
 </body>
 </html>
