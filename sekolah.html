@@ -330,7 +330,7 @@
                 : `${c.dataset.label}: ${c.parsed.y.toLocaleString()}` } }
           },
           scales:{
-            x:{ ticks:{ autoSkip:false, maxRotation:0 } },
+            x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } }, // base
             y:{ beginAtZero:true, ticks:{ callback:v=> v.toLocaleString() } }
           }
         }
