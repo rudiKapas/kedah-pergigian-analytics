@@ -154,7 +154,7 @@
       </div>
     </section>
 
-    <!-- spare tiles (placeholder) -->
+    <!-- spare tiles (placeholders) -->
     <section class="tile">
       <div class="th">
         <div>
@@ -207,7 +207,7 @@
     document.getElementById('schoolBackLeft')?.addEventListener('click', ()=>{ location.href='index.html'; });
   </script>
 
-  <!-- TILE 1 LOGIC (21 series + sasaran + simplified filter by category) -->
+  <!-- TILE 1 LOGIC (dual-axis + simplified filter by 7 categories) -->
   <script>
   (function(){
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1190173258&single=true&output=csv';
@@ -281,9 +281,19 @@
     const seriesFrom = (table, cells) => cells.map(a1 => toNum(getCell(table,a1)));
     const padEnds = arr => [0, ...arr, 0];
 
+    // Dual-axis: sasaran always on percent axis
     function makeTargetDataset(value,label,count){
-      return { type:'line', label:`Sasaran: ${label}`, data:new Array(count).fill(value),
-        borderColor:'rgba(15,27,45,0.25)', borderDash:[6,6], pointRadius:0, borderWidth:1.5, tension:0, yAxisID:'y' };
+      return {
+        type:'line',
+        label:`Sasaran: ${label}`,
+        data:new Array(count).fill(value),
+        borderColor:'rgba(15,27,45,0.25)',
+        borderDash:[6,6],
+        pointRadius:0,
+        borderWidth:1.5,
+        tension:0,
+        yAxisID:'yPct'
+      };
     }
 
     // Filter state: default show only m1 (Bilangan institusi)
@@ -401,10 +411,12 @@
 
       // 21 series, grouped by metric id
       METRICS.forEach(m=>{
+        const isPct = ['m3','m4','m5','m6','m7'].includes(m.id); // percent metrics
         INST.forEach(inst=>{
           const arr = DATA[m.id]?.[inst.k] || new Array(AREAS.length).fill(0);
           datasets.push({
             _group:m.id,
+            _pct:isPct,
             type:'line',
             label:`${m.name} — ${inst.name}`,
             data: padEnds(arr),
@@ -416,12 +428,12 @@
             pointRadius:pointR,
             pointHoverRadius:3,
             hidden: !selectedGroups.has(m.id),
-            yAxisID: 'y'
+            yAxisID: isPct ? 'yPct' : 'yCnt'
           });
         });
       });
 
-      // Sasaran (always visible)
+      // Sasaran (always visible, on percent axis)
       TARGETS.forEach(t => datasets.push(makeTargetDataset(t.value, t.label, LABELS_PAD.length)));
 
       if(chartPS1) chartPS1.destroy();
@@ -432,14 +444,35 @@
           responsive:true, maintainAspectRatio:false,
           plugins:{
             legend:{ display:false }, // akses-style legend below
-            tooltip:{ mode:'index', intersect:false,
-              callbacks:{ label:(c)=> c.dataset.label.startsWith('Sasaran:')
-                ? `${c.dataset.label} — ${c.parsed.y}%`
-                : `${c.dataset.label}: ${c.parsed.y.toLocaleString()}` } }
+            tooltip:{
+              mode:'index', intersect:false,
+              callbacks:{
+                label:(c)=>{
+                  const lbl = c.dataset.label;
+                  const v = c.parsed.y;
+                  if (lbl.startsWith('Sasaran:')) return `${lbl} — ${v}%`;
+                  return c.dataset._pct
+                    ? `${lbl}: ${v}%`
+                    : `${lbl}: ${v.toLocaleString()}`;
+                }
+              }
+            }
           },
           scales:{
             x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } },
-            y:{ beginAtZero:true, ticks:{ callback:v=> v.toLocaleString() } }
+            yPct:{                       // LEFT axis for percentages
+              position:'left',
+              beginAtZero:true,
+              suggestedMax:100,
+              grid:{ drawOnChartArea:true },
+              ticks:{ callback:v=> `${v}%` }
+            },
+            yCnt:{                       // RIGHT axis for counts
+              position:'right',
+              beginAtZero:true,
+              grid:{ drawOnChartArea:false },
+              ticks:{ callback:v=> v.toLocaleString() }
+            }
           }
         }
       });
@@ -472,13 +505,15 @@
 
       const datasets = [];
       METRICS.forEach(m=>{
+        const isPct = ['m3','m4','m5','m6','m7'].includes(m.id);
         INST.forEach(inst=>{
           const arr = DATA[m.id]?.[inst.k] || new Array(AREAS.length).fill(0);
           datasets.push({
-            _group:m.id, type:'line', label:`${m.name} — ${inst.name}`,
+            _group:m.id, _pct:isPct,
+            type:'line', label:`${m.name} — ${inst.name}`,
             data: padEnds(arr), borderColor:inst.color, backgroundColor:grad(inst.color),
             borderWidth:3, tension:.45, fill:true, pointRadius:pointR,
-            hidden: !selectedGroups.has(m.id), yAxisID:'y'
+            hidden: !selectedGroups.has(m.id), yAxisID: isPct ? 'yPct' : 'yCnt'
           });
         });
       });
@@ -487,8 +522,14 @@
       window.__mchart = new Chart(mctx, {
         type:'line',
         data:{ labels:LABELS_PAD, datasets },
-        options:{ plugins:{ legend:{ display:false } },
-          scales:{ y:{ beginAtZero:true, ticks:{ callback:v=> v.toLocaleString() } } } }
+        options:{
+          plugins:{ legend:{ display:false } },
+          scales:{
+            x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } },
+            yPct:{ position:'left', beginAtZero:true, suggestedMax:100, ticks:{ callback:v=> `${v}%` } },
+            yCnt:{ position:'right', beginAtZero:true, grid:{ drawOnChartArea:false }, ticks:{ callback:v=> v.toLocaleString() } }
+          }
+        }
       });
     }
 
