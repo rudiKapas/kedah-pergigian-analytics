@@ -7,7 +7,7 @@
 
   <!-- tiny inline favicon to avoid 404 -->
   <link rel="icon" type="image/png"
-        href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=">
+        href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEA...ABCAQAAAC1HAwCAAAAC0lEQVR42mNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=">
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=1">
@@ -50,21 +50,41 @@
       pointer-events:auto;
     }
     .dd.open .menu{ display:block; }
-    .dd .menu .menu-body{ max-height:360px; overflow:auto; padding:10px 12px; }
-    .dd .menu h5{ margin:.35rem .25rem .25rem; font-size:.86rem; font-weight:700; color:#0f172a; }
-    .dd .menu .mfoot{
-      display:flex; gap:8px; justify-content:flex-end;
-      padding:10px 12px; border-top:1px solid #eef2f7;
-    }
-    .dd .menu .menu-body .opt{
-      display:flex; align-items:center; gap:.6rem;
-      padding:.45rem .35rem; cursor:pointer; user-select:none;
-      border-radius:8px;
-    }
-    .dd .menu .menu-body .opt:hover{ background:#f7fafc; }
+    .dd .menu .menu-body{ max-height:320px; overflow:auto; padding:8px 8px 4px; }
+    .dd .menu .opt{ display:grid; grid-template-columns:auto 1fr; gap:10px; align-items:center;
+      padding:8px 10px; border-radius:10px; }
+    .dd .menu .opt:hover{ background:#f7fafc; }
+    .dd .menu .mfoot{ display:flex; gap:8px; justify-content:flex-end; padding:10px; border-top:1px solid #ecf0f5; }
+    .dd .menu .icbtn{ height:36px; width:36px; border:1px solid #e3e8f0; border-radius:8px; background:#fff; }
+    .dd .menu .icbtn .ico{ height:20px; width:20px; }
 
-    .tags .tag{ display:inline-block; margin-right:.35rem; margin-bottom:.25rem;
-      padding:.15rem .5rem; border-radius:999px; background:#eef2f7; color:#0f172a; font-size:.8rem; }
+    .tags{ display:flex; flex-wrap:wrap; gap:8px; margin:2px 0 6px; }
+    .tag{ font-size:12px; font-weight:600; color:#0f172a; background:#edf7ff; border:1px solid #d9ecff;
+      padding:4px 8px; border-radius:999px; }
+
+    /* modal */
+    .modal{ position:fixed; inset:0; display:none; background:rgba(13,23,41,.28); align-items:center; justify-content:center; z-index:9999; }
+    .modal.open{ display:flex; }
+    .modal-inner{ width:min(1100px, 96%); background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 24px 60px rgba(0,0,0,.28); }
+    .mh{ display:flex; align-items:center; justify-content:space-between; padding:16px 18px; background:#f8fafc; border-bottom:1px solid #e7edf6; }
+    .mb{ padding:16px 18px; }
+    .mchart{ height:520px; }
+    .mchart canvas{ width:100% !important; height:100% !important; }
+    .close{ border:1px solid #d7dee9; background:#fff; height:34px; padding:0 10px; border-radius:8px; }
+
+    /* small fixes */
+    .legend{ display:flex; flex-wrap:wrap; gap:12px; margin-top:8px; }
+    .legend .lg{ display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:600; color:#334155; background:#f8fafc; border:1px solid #e5edf7; padding:5px 10px; border-radius:999px; }
+    .legend .lg .dot{ height:10px; width:10px; border-radius:999px; display:inline-block; }
+
+    .th .act .btn{ display:inline-flex; align-items:center; justify-content:center; height:44px; min-width:44px; border-radius:12px; border:1px solid #e5edf7; background:#fff; box-shadow:0 4px 14px rgba(15,27,45,.06); }
+    .th .act .btn:hover{ box-shadow:0 0 0 4px rgba(59,130,246,.10), 0 4px 14px rgba(15,27,45,.06); }
+    .th .ttl{ font-size:18px; margin:0; }
+    .th .sub{ font-size:12px; color:#5b6b83; display:flex; align-items:center; gap:6px; }
+    .th .ico{ width:18px; height:18px; }
+
+    /* err */
+    .err{ display:none; margin-top:10px; color:#b91c1c; font-weight:700; background:#fee2e2; border:1px solid #fecaca; padding:8px 10px; border-radius:10px; }
   </style>
 
   <!-- icons -->
@@ -89,32 +109,22 @@
       <path d="M15 18l-6-6 6-6"/><path d="M21 12H9"/>
     </symbol>
     <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="11" cy="11" r="7"></circle><path d="M21 21l-3.6-3.6"></path>
+      <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
     </symbol>
   </svg>
 </head>
+
 <body>
-
-  <!-- HEADER -->
   <header class="ph">
-    <h1>Kesihatan Pergigian Sekolah</h1>
-    <p>Analisis proses dan sasaran kesihatan pergigian pelajar sekolah negeri Kedah.</p>
-
-    <div class="searchbar" role="search">
-      <button id="schoolBackLeft" type="button" class="btn-ghost" aria-label="Kembali ke halaman utama">
-        <svg class="ico" width="20" height="20"><use href="#i-back"/></svg>
-      </button>
-
-      <input id="schoolSearch" type="search" placeholder="Cari di halaman ini… (kategori, tajuk graf)" autocomplete="off" />
-      <div id="gs-suggest" class="gs-suggest" hidden></div>
-
-      <button id="schoolSearchRight" type="button" aria-label="Cari">
-        <svg class="ico" width="20" height="20"><use href="#i-search"/></svg>
-      </button>
+    <div class="searchbar">
+      <button id="schoolBackLeft" class="btn-ghost" title="Kembali"><svg class="ico"><use href="#i-back"/></svg></button>
+      <input type="search" placeholder="Cari komponen atau daerah…" aria-label="Carian">
+      <button id="schoolSearchRight" title="Cari"><svg class="ico"><use href="#i-search"/></svg></button>
     </div>
+    <h1>Kesihatan Pergigian — Sekolah</h1>
+    <p>Analitik ringkas untuk program pergigian sekolah mengikut daerah.</p>
   </header>
 
-  <!-- GRID -->
   <main class="grid">
     <!-- TILE 1 -->
     <section class="tile wide" id="ps1-tile">
@@ -154,19 +164,37 @@
       </div>
     </section>
 
-    <!-- spare tiles (placeholders) -->
-    <section class="tile">
+    <!-- TILE 2 — Sekolah Rendah -->
+    <section class="tile" id="sr2-tile">
       <div class="th">
         <div>
-          <h2 class="ttl">Saringan Pergigian Sekolah</h2>
+          <h2 class="ttl">Sekolah Rendah</h2>
           <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="s2time">—</span></div>
         </div>
         <div class="act">
+          <div class="dd" id="dds2">
+            <button class="btn dd-trigger" id="dds2btn" title="Tapis"><svg class="ico"><use href="#i-filter"/></svg></button>
+            <div class="menu" id="dds2menu">
+              <div class="menu-body" id="dds2body"></div>
+              <div class="mfoot">
+                <button class="icbtn" id="dds2all" title="Pilih Semua" aria-label="Pilih Semua">
+                  <img class="ico" src="assets/icons/selectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dds2none" title="Kosongkan" aria-label="Kosongkan">
+                  <img class="ico" src="assets/icons/unselectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dds2close" title="Tutup" aria-label="Tutup">
+                  <svg class="ico"><use href="#i-x"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
           <button id="s2refresh" class="btn" title="Kemas Kini"><svg class="ico"><use href="#i-refresh"/></svg></button>
           <button id="s2expand" class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
         </div>
       </div>
       <div class="tb">
+        <div class="tags" id="dds2tags"></div>
         <div class="chart"><canvas id="s2"></canvas></div>
         <div class="legend" id="s2legend"></div>
         <div class="err" id="s2err"></div>
@@ -229,15 +257,15 @@
         B:['D6','E6','F6','G6','H6','I6','J6','K6','L6','M6','N6','O6'],
         C:['D7','E7','F7','G7','H7','I7','J7','K7','L7','M7','N7','O7'],
       }},
-      { id:'m2', name:'Enrolmen murid', cells:{
-        A:['D8','E8','F8','G8','H8','I8','J8','K8','L8','M8','N8','O8'],
-        B:['D9','E9','F9','G9','H9','I9','J9','K9','L9','M9','N9','O9'],
-        C:['D10','E10','F10','G10','H10','I10','J10','K10','L10','M10','N10','O10'],
+      { id:'m2', name:'Jumlah enrolmen', cells:{
+        A:['D10','E10','F10','G10','H10','I10','J10','K10','L10','M10','N10','O10'],
+        B:['D11','E11','F11','G11','H11','I11','J11','K11','L11','M11','N11','O11'],
+        C:['D12','E12','F12','G12','H12','I12','J12','K12','L12','M12','N12','O12'],
       }},
       { id:'m3', name:'% Liputan Tadika', cells:{
-        A:['D14','E14','F14','G14','H14','I14','J14','K14','L14','M14','N14','O14'],
-        B:['D17','E17','F17','G17','H17','I17','J17','K17','L17','M17','N17','O17'],
-        C:['D20','E20','F20','G20','H20','I20','J20','K20','L20','M20','N20','O20'],
+        A:['D18','E18','F18','G18','H18','I18','J18','K18','L18','M18','N18','O18'],
+        B:['D21','E21','F21','G21','H21','I21','J21','K21','L21','M21','N21','O21'],
+        C:['D24','E24','F24','G24','H24','I24','J24','K24','L24','M24','N24','O24'],
       }},
       { id:'m4', name:'% Liputan Murid', cells:{
         A:['D24','E24','F24','G24','H24','I24','J24','K24','L24','M24','N24','O24'],
@@ -270,203 +298,109 @@
       {value:70,  label:'Kes Selesai Pra Sekolah & Tadika Kerajaan'}
     ];
 
-    // ---------- helpers ----------
-    function colIndex(A){ let i=0, n=0; for(; i<A.length; i++) n=n*26+(A.charCodeAt(i)-64); return n-1; }
-    function getCell(table, A1){
-      const m=/^([A-Z]+)(\d+)$/.exec(A1); if(!m) return null;
-      const r=+m[2]-1, c=colIndex(m[1]);
-      return table[r] && table[r][c]!=null ? table[r][c] : null;
-    }
+    // helpers
     const toNum = v => Number(String(v).replace(/\u00A0/g,'').replace(/[, ]/g,'').replace(/%/g,'').trim()) || 0;
-    const seriesFrom = (table, cells) => cells.map(a1 => toNum(getCell(table,a1)));
-    const padEnds = arr => [0, ...arr, 0];
 
-    // Dual-axis: sasaran always on percent axis
-    function makeTargetDataset(value,label,count){
-      return {
-        type:'line',
-        label:`Sasaran: ${label}`,
-        data:new Array(count).fill(value),
-        borderColor:'rgba(15,27,45,0.25)',
-        borderDash:[6,6],
-        pointRadius:0,
-        borderWidth:1.5,
-        tension:0,
-        yAxisID:'yPct'
-      };
-    }
+    function dsFromCells(tbl, arr){ return arr.map(A1=>{
+      const m=/^([A-Z]+)(\d+)$/.exec(A1); if(!m) return 0;
+      const r=+m[2]-1, c=(m[1].charCodeAt(0)-65);
+      return toNum((tbl[r]||[])[c]);
+    });}
+    function pad(a){ return [0, ...a, 0]; }
 
-    // Filter state: default show only m1 (Bilangan institusi)
-    let selectedGroups = new Set(['m1']);
+    let table = null, chart = null;
+    let selectedGroups = new Set(['m1']); // default select first group
 
-    // Chart state
-    let chartPS1;
-    let DATA = {}; // DATA[metric.id][inst.k] = numeric array(12)
-
-    // --------- label rotation helper (mobile / tight layout) ---------
-    function adjustXAxisTicks() {
-      if (!chartPS1 || !chartPS1.chartArea) return;
-      const n = AREAS.length;
-      const w = chartPS1.chartArea.width;
-      const pxPerLabel = w / n;
-      const shouldRotate = (pxPerLabel < 70) || (window.innerWidth < 900);
-
-      const ticks = chartPS1.options.scales.x.ticks;
-      ticks.maxRotation = shouldRotate ? 90 : 0;
-      ticks.minRotation = shouldRotate ? 90 : 0;
-      ticks.autoSkip   = !shouldRotate;
-
-      chartPS1.update();
-    }
-    let __resizeTO;
-    window.addEventListener('resize', () => {
-      clearTimeout(__resizeTO);
-      __resizeTO = setTimeout(adjustXAxisTicks, 120);
-    });
-
-    // ---------- FILTER UI (categories only) ----------
-    const dd = document.getElementById('dds1');
-    const body = document.getElementById('dds1body');
-    const menu = document.getElementById('dds1menu');
-
-    function renderMenu(){
-      body.innerHTML = `
-        <h5>Kategori</h5>
-        ${METRICS.map(m=>{
-          const checked = selectedGroups.has(m.id) ? 'checked' : '';
-          return `<div class="opt" data-row="${m.id}">
-            <input type="checkbox" data-key="${m.id}" ${checked}>
-            <span>${m.name}</span>
-          </div>`;
-        }).join('')}
-      `;
-    }
-
-    body.addEventListener('change', (e)=>{
-      const cb=e.target.closest('input[type="checkbox"][data-key]'); if(!cb) return;
-      const k = cb.dataset.key;
-      if(cb.checked) selectedGroups.add(k); else selectedGroups.delete(k);
-      syncTagsAndVisibility();
-      e.stopPropagation();
-    });
-
-    body.addEventListener('click', (e)=>{
-      const row = e.target.closest('.opt[data-row]');
-      if(!row) return;
-      const cb = row.querySelector('input[type="checkbox"][data-key]');
-      if(cb && e.target !== cb){ cb.checked = !cb.checked; cb.dispatchEvent(new Event('change',{bubbles:true})); }
-      e.stopPropagation();
-    });
-
-    menu.addEventListener('click', (e)=> e.stopPropagation());
-    document.getElementById('dds1btn').addEventListener('click', (e)=>{ e.stopPropagation(); dd.classList.toggle('open'); });
-    document.getElementById('dds1close').addEventListener('click', ()=> dd.classList.remove('open'));
-    document.addEventListener('click', (e)=>{ if(!dd.contains(e.target)) dd.classList.remove('open'); });
-
-    document.getElementById('dds1all').addEventListener('click', (e)=>{
-      e.stopPropagation();
-      selectedGroups = new Set(METRICS.map(m=>m.id));
-      renderMenu(); syncTagsAndVisibility();
-    });
-    document.getElementById('dds1none').addEventListener('click', (e)=>{
-      e.stopPropagation(); selectedGroups = new Set(); renderMenu(); syncTagsAndVisibility();
-    });
-
-    function rebuildTags(){
-      const host = document.getElementById('dds1tags');
-      if(selectedGroups.size === METRICS.length){
-        host.innerHTML = '<span class="tag">Semua kategori</span>';
-        return;
-      }
-      const tags = Array.from(selectedGroups).map(id=>{
-        const m = METRICS.find(x=>x.id===id);
-        return `<span class="tag">${m.name}</span>`;
-      });
-      host.innerHTML = tags.join('');
-    }
-
-    function syncTagsAndVisibility(){
-      rebuildTags();
-      if(!chartPS1) return;
-      chartPS1.data.datasets.forEach(ds=>{
-        if(ds._group) ds.hidden = !selectedGroups.has(ds._group);
-      });
-      chartPS1.update();
-    }
-
-    // ---------- CHART ----------
-    function createChart(){
+    // build chart for current selections
+    function draw(){
       const ctx = document.getElementById('ps1').getContext('2d');
+      if(chart) chart.destroy();
 
-      function grad(hex){
-        const g = ctx.createLinearGradient(0,0,0,300);
-        const c = parseInt(hex.slice(1),16), r=(c>>16)&255, g1=(c>>8)&255, b=c&255;
-        const rgba = a=>`rgba(${r},${g1},${b},${a})`;
-        g.addColorStop(0, rgba(.35)); g.addColorStop(1, rgba(.03)); return g;
-      }
-      const lastIndex = LABELS_PAD.length - 1;
-      const pointR = ctx=> (ctx.dataIndex===0 || ctx.dataIndex===lastIndex ? 0 : 3);
+      const datasets=[];
+      const labels = [' ', ...AREAS, ' '];
 
-      const datasets = [];
+      function addMetric(m){
+        const cols = m.cells;
+        const series = [
+          { k:'A', col:cols.A, conf:INST.find(i=>i.k==='A') },
+          { k:'B', col:cols.B, conf:INST.find(i=>i.k==='B') },
+          { k:'C', col:cols.C, conf:INST.find(i=>i.k==='C') },
+        ];
 
-      // 21 series, grouped by metric id
-      METRICS.forEach(m=>{
-        const isPct = ['m3','m4','m5','m6','m7'].includes(m.id); // percent metrics
-        INST.forEach(inst=>{
-          const arr = DATA[m.id]?.[inst.k] || new Array(AREAS.length).fill(0);
+        series.forEach((s,idx)=>{
+          const arr = dsFromCells(table, s.col);
+          const grad = ctx.createLinearGradient(0,0,0,360);
+          const c = s.conf.color;
+          const hex = parseInt(c.slice(1),16), r=(hex>>16)&255, g=(hex>>8)&255, b=hex&255;
+          const rgba = a=>`rgba(${r},${g},${b},${a})`;
+          grad.addColorStop(0, rgba(.30));
+          grad.addColorStop(1, rgba(.04));
+
+          const isPct = /^%/.test(m.name);
           datasets.push({
-            _group:m.id,
-            _pct:isPct,
+            _metric:m.id, _pct:isPct,
             type:'line',
-            label:`${m.name} — ${inst.name}`,
-            data: padEnds(arr),
-            borderColor:inst.color,
-            backgroundColor:grad(inst.color),
+            label: `${m.name} — ${s.conf.name}`,
+            borderColor:c,
+            backgroundColor: isPct ? 'transparent' : grad,
             borderWidth:3,
+            fill: !isPct,
             tension:.45,
-            fill:true,
-            pointRadius:pointR,
+            data: pad(arr),
+            yAxisID: isPct ? 'yPct' : 'yCnt',
+            pointRadius: (ctx)=> (ctx.dataIndex===0 || ctx.dataIndex===labels.length-1) ? 0 : 3,
             pointHoverRadius:3,
-            hidden: !selectedGroups.has(m.id),
-            yAxisID: isPct ? 'yPct' : 'yCnt'
+            hidden: !selectedGroups.has(m.id)
           });
         });
-      });
 
-      // Sasaran (always visible, on percent axis)
-      TARGETS.forEach(t => datasets.push(makeTargetDataset(t.value, t.label, LABELS_PAD.length)));
+        // overlay sasaran (for % metrics only)
+        if(/^%/.test(m.name)){
+          const t = TARGETS.find(tg => tg.label===m.name) || null;
+          if(t){
+            datasets.push({
+              _metric:m.id, _pct:true,
+              type:'line',
+              label:`Sasaran — ${m.name}`,
+              data:new Array(labels.length).fill(t.value),
+              borderColor:'#475569',
+              borderDash:[4,4],
+              borderWidth:2,
+              pointRadius:0,
+              fill:false,
+              tension:0,
+              yAxisID:'yPct',
+              hidden: !selectedGroups.has(m.id)
+            });
+          }
+        }
+      }
 
-      if(chartPS1) chartPS1.destroy();
-      chartPS1 = new Chart(ctx, {
+      METRICS.forEach(m => addMetric(m));
+
+      chart = new Chart(ctx, {
         type:'line',
-        data:{ labels:LABELS_PAD, datasets },
+        data:{ labels, datasets },
         options:{
           responsive:true, maintainAspectRatio:false,
           plugins:{
-            legend:{ display:false }, // akses-style legend below
+            legend:{ display:false },
             tooltip:{
               mode:'index', intersect:false,
               callbacks:{
                 label:(c)=>{
-                  const lbl = c.dataset.label;
-                  const v = c.parsed.y;
-                  if (lbl.startsWith('Sasaran:')) return `${lbl} — ${v}%`;
-                  return c.dataset._pct
-                    ? `${lbl}: ${v}%`
-                    : `${lbl}: ${v.toLocaleString()}`;
+                  const v=c.parsed.y;
+                  const isTarget = (c.dataset.label||'').startsWith('Sasaran');
+                  if(isTarget) return `${c.dataset.label}: ${v}%`;
+                  return c.dataset._pct ? `${c.dataset.label}: ${v}%` : `${c.dataset.label}: ${v.toLocaleString()}`;
                 }
-              }
+              },
+              filter: (i)=> !(i.dataIndex===0 || i.dataIndex===labels.length-1)
             }
           },
           scales:{
             x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } },
-            yPct:{                       // LEFT axis for percentages
-              position:'left',
-              beginAtZero:true,
-              suggestedMax:100,
-              grid:{ drawOnChartArea:true },
-              ticks:{ callback:v=> `${v}%` }
-            },
+            yPct:{ position:'left', beginAtZero:true, suggestedMax:100, ticks:{ callback:v=> `${v}%` } },
             yCnt:{                       // RIGHT axis for counts
               position:'right',
               beginAtZero:true,
@@ -491,34 +425,131 @@
       document.getElementById('ps1time').textContent = new Date().toLocaleString();
     }
 
-    function drawInModal(){
+    function adjustXAxisTicks(){
+      if(!chart || !chart.chartArea) return;
+      const n = AREAS.length;
+      const w = chart.chartArea.width;
+      const pxPerLabel = w / n;
+      const shouldRotate = (pxPerLabel < 70) || (window.innerWidth < 900);
+      const ticks = chart.options.scales.x.ticks;
+      ticks.maxRotation = shouldRotate ? 90 : 0;
+      ticks.minRotation = shouldRotate ? 90 : 0;
+      ticks.autoSkip   = !shouldRotate;
+      chart.update();
+    }
+    let rto=null; window.addEventListener('resize', ()=>{ clearTimeout(rto); rto=setTimeout(adjustXAxisTicks, 120); });
+
+    // dropdown
+    const dd = document.getElementById('dds1');
+    const body = document.getElementById('dds1body');
+    const menu = document.getElementById('dds1menu');
+
+    function renderMenu(){
+      body.innerHTML = METRICS.map(m=>{
+        const checked = selectedGroups.has(m.id) ? 'checked' : '';
+        return `<div class="opt" data-row="${m.id}">
+          <input type="checkbox" data-key="${m.id}" ${checked}/>
+          <span>${m.name}</span>
+        </div>`;
+      }).join('');
+    }
+    function syncTagsAndVisibility(){
+      // tags
+      (function(){
+        const host = document.getElementById('dds1tags');
+        if(selectedGroups.size === METRICS.length){
+          host.innerHTML = '<span class="tag">Semua kategori</span>'; return;
+        }
+        const tags = Array.from(selectedGroups).map(id=>{
+          const m = METRICS.find(x=>x.id===id);
+          return `<span class="tag">${m.name}</span>`;
+        }).join('');
+        host.innerHTML = tags;
+      })();
+
+      // datasets visibility
+      if(!chart) return;
+      chart.data.datasets.forEach(ds=>{
+        ds.hidden = !selectedGroups.has(ds._metric);
+      });
+      chart.update();
+    }
+
+    body.addEventListener('change', (e)=>{
+      const cb = e.target.closest('input[type="checkbox"][data-key]');
+      if(!cb) return;
+      if(cb.checked) selectedGroups.add(cb.dataset.key);
+      else selectedGroups.delete(cb.dataset.key);
+      syncTagsAndVisibility();
+    });
+
+    body.addEventListener('click', (e)=>{
+      const row = e.target.closest('.opt[data-row]');
+      if(!row) return;
+      const cb = row.querySelector('input[type="checkbox"][data-key]');
+      if(cb && e.target !== cb){ cb.checked = !cb.checked; cb.dispatchEvent(new Event('change',{bubbles:true})); }
+      e.stopPropagation();
+    });
+
+    menu.addEventListener('click', (e)=> e.stopPropagation());
+    document.getElementById('dds1btn').addEventListener('click', (e)=>{ e.stopPropagation(); dd.classList.toggle('open'); });
+    document.getElementById('dds1close').addEventListener('click', ()=> dd.classList.remove('open'));
+    document.addEventListener('click', (e)=>{ if(!dd.contains(e.target)) dd.classList.remove('open'); });
+
+    document.getElementById('dds1all').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      selectedGroups = new Set(METRICS.map(m=>m.id));
+      renderMenu(); syncTagsAndVisibility();
+    });
+    document.getElementById('dds1none').addEventListener('click', (e)=>{
+      e.stopPropagation(); selectedGroups = new Set(); renderMenu(); syncTagsAndVisibility();
+    });
+
+    // load CSV and init chart
+    function loadDataAndDraw(){
+      Papa.parse(CSV_URL, {
+        download:true,
+        skipEmptyLines:true,
+        complete:(res)=>{
+          table = res.data;
+          const err = document.getElementById('ps1err');
+          err.textContent=''; err.style.display='none';
+          renderMenu();
+          draw();
+          syncTagsAndVisibility();
+        },
+        error:(e)=>{
+          const err = document.getElementById('ps1err');
+          err.textContent='Gagal memuatkan CSV (Tile 1).';
+          err.style.display='block';
+        }
+      });
+    }
+
+    // modal render
+    document.getElementById('ps1expand').addEventListener('click', ()=>{
+      document.getElementById('mtitle').textContent = 'Pra Sekolah, Tadika & Tadika Swasta';
+      const modal = document.getElementById('modal');
+      modal.classList.add('open');
+
       const mctx = document.getElementById('mcanvas').getContext('2d');
       function grad(hex){
         const g = mctx.createLinearGradient(0,0,0,360);
         const c = parseInt(hex.slice(1),16), r=(c>>16)&255, g1=(c>>8)&255, b=c&255;
         const rgba = a=>`rgba(${r},${g1},${b},${a})`;
-        g.addColorStop(0, rgba(.35)); g.addColorStop(1, rgba(.03)); return g;
+        g.addColorStop(0, rgba(.30));
+        g.addColorStop(1, rgba(.04));
+        return g;
       }
-      if(window.__mchart) window.__mchart.destroy();
-      const lastIndex = LABELS_PAD.length - 1;
-      const pointR = ctx=> (ctx.dataIndex===0 || ctx.dataIndex===lastIndex ? 0 : 2);
 
-      const datasets = [];
-      METRICS.forEach(m=>{
-        const isPct = ['m3','m4','m5','m6','m7'].includes(m.id);
-        INST.forEach(inst=>{
-          const arr = DATA[m.id]?.[inst.k] || new Array(AREAS.length).fill(0);
-          datasets.push({
-            _group:m.id, _pct:isPct,
-            type:'line', label:`${m.name} — ${inst.name}`,
-            data: padEnds(arr), borderColor:inst.color, backgroundColor:grad(inst.color),
-            borderWidth:3, tension:.45, fill:true, pointRadius:pointR,
-            hidden: !selectedGroups.has(m.id), yAxisID: isPct ? 'yPct' : 'yCnt'
-          });
-        });
-      });
-      TARGETS.forEach(t => datasets.push(makeTargetDataset(t.value, t.label, LABELS_PAD.length)));
+      // clone datasets with same visibility
+      const datasets = chart.data.datasets.map(d=>({
+        ...d,
+        backgroundColor: d._pct ? 'transparent' : grad(d.borderColor),
+        pointRadius:(ctx)=> (ctx.dataIndex===0 || ctx.dataIndex===LABELS_PAD.length-1) ? 0 : 3,
+      }));
 
+      window.__mchart?.destroy();
       window.__mchart = new Chart(mctx, {
         type:'line',
         data:{ labels:LABELS_PAD, datasets },
@@ -531,47 +562,289 @@
           }
         }
       });
-    }
-
-    // ---------- DATA ----------
-    function loadDataAndDraw(){
-      Papa.parse(CSV_URL, {
-        download:true, skipEmptyLines:true,
-        complete:(res)=>{
-          const tbl = res.data;
-          DATA = {};
-          METRICS.forEach(m=>{
-            DATA[m.id] = {};
-            INST.forEach(inst=>{
-              DATA[m.id][inst.k] = seriesFrom(tbl, m.cells[inst.k]);
-            });
-          });
-          renderMenu();
-          rebuildTags();
-          createChart();
-          setTimeout(adjustXAxisTicks, 0);
-        },
-        error:(e)=>{ document.getElementById('ps1err').textContent = 'Ralat memuatkan data: ' + e; }
-      });
-    }
-
-    // Buttons
-    document.getElementById('ps1refresh').addEventListener('click', loadDataAndDraw);
-    document.getElementById('ps1expand').addEventListener('click', ()=>{
-    // set modal title to the tile title
-    document.getElementById('mtitle').textContent = 'Pra Sekolah, Tadika & Tadika Swasta';
-    const modal = document.getElementById('modal');
-    modal.classList.add('open');
-    drawInModal();
-    document.getElementById('mclose').onclick = ()=>{
-    modal.classList.remove('open');
-    window.__mchart?.destroy();
-      };
     });
 
+    document.getElementById('mclose').addEventListener('click', ()=>{
+      document.getElementById('modal').classList.remove('open');
+      window.__mchart?.destroy();
+    });
 
     // init
     loadDataAndDraw();
+  })();
+  </script>
+
+  <!-- TILE 2 LOGIC — Sekolah Rendah -->
+  <script>
+  (function(){
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=282265418&single=true&output=csv';
+
+    // Districts across columns D..O
+    const AREAS = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
+    const LABELS_PAD = [' ', ...AREAS, ' ']; // padding for clean line caps
+
+    // Helpers
+    function colRange(from, to){ const out=[]; for(let c=from.charCodeAt(0); c<=to.charCodeAt(0); c++) out.push(String.fromCharCode(c)); return out; }
+    const COLS = colRange('D','O');
+    function colIndex(A){ let n=0; for(let i=0;i<A.length;i++) n=n*26+(A.charCodeAt(i)-64); return n-1; }
+    function getCell(table, A1){
+      const m=/^([A-Z]+)(\d+)$/.exec(A1); if(!m) return null;
+      const r=+m[2]-1, c=colIndex(m[1]);
+      return table[r] && table[r][c]!=null ? table[r][c] : null;
+    }
+    const toNum = v => Number(String(v).replace(/\u00A0/g,'').replace(/[, ]/g,'').replace(/%/g,'').trim()) || 0;
+
+    function rowSeries(tbl, row){ return COLS.map(L => toNum(getCell(tbl, L + String(row)))); }
+    const PAD = arr => [0, ...arr, 0];
+
+    // Categories and targets
+    const CATS = [
+      { id:'c1', name:'Bilangan sekolah', type:'cnt', lines:[
+        { label:'SR kerajaan', row:14, color:'#0ea5e9' },
+        { label:'SR swasta',  row:15, color:'#8b5cf6' },
+        { label:'Jumlah',     row:16, color:'#10b981' },
+      ]},
+      { id:'c2', name:'Jumlah enrolmen', type:'cnt', lines:[
+        { label:'SR kerajaan', row:17, color:'#0ea5e9' },
+        { label:'SR swasta',  row:18, color:'#8b5cf6' },
+        { label:'Jumlah',     row:19, color:'#10b981' },
+      ]},
+      { id:'c3', name:'Peratus SR dilawati', type:'pct', lines:[
+        { label:'Peratus SR dilawati', row:22, color:'#0ea5e9', target:100 }
+      ]},
+      { id:'c4', name:'Peratus murid SR mendapat liputan', type:'pct', lines:[
+        { label:'Peratus murid SR mendapat liputan', row:25, color:'#4f46e5', target:96 }
+      ]},
+      { id:'c5', name:'Peratus murid SR mencapai status orally fit', type:'pct', lines:[
+        { label:'Peratus murid SR mencapai status orally fit', row:28, color:'#10b981', target:95 }
+      ]},
+      { id:'c6', name:'Peratus murid SR kes selesai', type:'pct', lines:[
+        { label:'Peratus murid SR kes selesai', row:31, color:'#f59e0b', target:95 }
+      ]},
+      { id:'c7', name:'Peratus murid SR TPR', type:'pct', lines:[
+        { label:'Peratus murid SR TPR', row:34, color:'#ef4444', target:65 }
+      ]},
+    ];
+
+    let selected = new Set(['c1']); // default
+
+    const dd   = document.getElementById('dds2');
+    const body = document.getElementById('dds2body');
+    const tags = document.getElementById('dds2tags');
+    const menu = document.getElementById('dds2menu');
+
+    function renderMenu(){
+      body.innerHTML = CATS.map(c => {
+        const checked = selected.has(c.id) ? 'checked' : '';
+        return `<div class="opt" data-row="${c.id}">
+          <input type="checkbox" data-key="${c.id}" ${checked}>
+          <span>${c.name}</span>
+        </div>`;
+      }).join('');
+    }
+
+    body.addEventListener('change', (e)=>{
+      const cb = e.target.closest('input[type="checkbox"][data-key]'); if(!cb) return;
+      const k = cb.dataset.key;
+      if(cb.checked) selected.add(k); else selected.delete(k);
+      syncTagsLegendRedraw();
+    });
+
+    body.addEventListener('click',(e)=>{
+      const row = e.target.closest('.opt[data-row]'); if(!row) return;
+      const cb = row.querySelector('input[type="checkbox"][data-key]');
+      if(cb && e.target !== cb){ cb.checked = !cb.checked; cb.dispatchEvent(new Event('change',{bubbles:true})); }
+    });
+
+    document.getElementById('dds2btn').addEventListener('click', (e)=>{ e.stopPropagation(); dd.classList.toggle('open'); });
+    document.getElementById('dds2close').addEventListener('click', ()=> dd.classList.remove('open'));
+    document.addEventListener('click', (e)=>{ if(!dd.contains(e.target)) dd.classList.remove('open'); });
+    document.getElementById('dds2all').addEventListener('click', (e)=>{ e.stopPropagation(); selected = new Set(CATS.map(x=>x.id)); renderMenu(); syncTagsLegendRedraw(); });
+    document.getElementById('dds2none').addEventListener('click', (e)=>{ e.stopPropagation(); selected = new Set(); renderMenu(); syncTagsLegendRedraw(); });
+
+    function rebuildTags(){
+      if(selected.size === CATS.length){ tags.innerHTML = '<span class="tag">Semua kategori</span>'; return; }
+      tags.innerHTML = Array.from(selected).map(id => {
+        const c = CATS.find(x=>x.id===id);
+        return `<span class="tag">${c.name}</span>`;
+      }).join('');
+    }
+
+    function rebuildLegend(){
+      const leg = document.getElementById('s2legend');
+      const first = CATS.find(c => selected.has(c.id));
+      if(!first){ leg.innerHTML = ''; return; }
+      leg.innerHTML = first.lines.map(l => `
+        <span class="lg"><span class="dot" style="background:${l.color}"></span>${l.label}</span>
+      `).join('');
+    }
+
+    let chart, TABLE=null;
+
+    function datasetsFor(ctx){
+      const ds = [];
+      const last = LABELS_PAD.length - 1;
+      const pointR = x => (x.dataIndex===0 || x.dataIndex===last ? 0 : 3);
+
+      function grad(hex){
+        const g = ctx.createLinearGradient(0,0,0,300);
+        const c = parseInt(hex.slice(1),16), r=(c>>16)&255, g1=(c>>8)&255, b=c&255;
+        const rgba = a=>`rgba(${r},${g1},${b},${a})`;
+        g.addColorStop(0, rgba(.35));
+        g.addColorStop(1, rgba(.04));
+        return g;
+      }
+
+      CATS.forEach(cat=>{
+        const show = selected.has(cat.id);
+        cat.lines.forEach(line=>{
+          const base = rowSeries(TABLE, line.row);
+          const isPct = cat.type==='pct';
+          ds.push({
+            _group: cat.id, _pct:isPct,
+            type:'line',
+            label: line.label,
+            data: PAD(base),
+            borderColor: line.color,
+            backgroundColor: isPct ? 'transparent' : grad(line.color),
+            borderWidth: 3,
+            tension: .45,
+            fill: !isPct,
+            pointRadius: pointR,
+            pointHoverRadius: 3,
+            hidden: !show,
+            yAxisID: isPct ? 'yPct' : 'yCnt'
+          });
+
+          if(isPct && typeof line.target==='number'){
+            ds.push({
+              _group: cat.id, _pct:true,
+              type:'line',
+              label:`Sasaran: ${cat.name}`,
+              data: new Array(LABELS_PAD.length).fill(line.target),
+              borderColor:'#475569',
+              borderDash:[4,4],
+              borderWidth:2,
+              pointRadius:0,
+              tension:0,
+              fill:false,
+              hidden: !show,
+              yAxisID:'yPct'
+            });
+          }
+        });
+      });
+      return ds;
+    }
+
+    function drawChart(){
+      const ctx = document.getElementById('s2').getContext('2d');
+      if(chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type:'line',
+        data:{ labels: LABELS_PAD, datasets: datasetsFor(ctx) },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          plugins:{
+            legend:{ display:false },
+            tooltip:{
+              mode:'index', intersect:false,
+              callbacks:{
+                label:(c)=>{
+                  const v = c.parsed.y;
+                  const isTarget = (c.dataset.label||'').startsWith('Sasaran:');
+                  if(isTarget) return `${c.dataset.label} — ${v}%`;
+                  return c.dataset._pct ? `${c.dataset.label}: ${v}%` : `${c.dataset.label}: ${Number(v).toLocaleString()}`;
+                }
+              },
+              filter: (i)=> !(i.dataIndex===0 || i.dataIndex===LABELS_PAD.length-1)
+            }
+          },
+          scales:{
+            x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } },
+            yPct:{ position:'left', beginAtZero:true, suggestedMax:100, ticks:{ callback:v=>`${v}%` } },
+            yCnt:{ position:'right', beginAtZero:true, grid:{ drawOnChartArea:false }, ticks:{ callback:v=>Number(v).toLocaleString() } }
+          }
+        }
+      });
+      document.getElementById('s2time').textContent = new Date().toLocaleString();
+      setTimeout(adjustXAxisTicks, 0);
+    }
+
+    function adjustXAxisTicks(){
+      if(!chart || !chart.chartArea) return;
+      const n = AREAS.length;
+      const w = chart.chartArea.width;
+      const pxPerLabel = w / n;
+      const shouldRotate = (pxPerLabel < 70) || (window.innerWidth < 900);
+      const ticks = chart.options.scales.x.ticks;
+      ticks.maxRotation = shouldRotate ? 90 : 0;
+      ticks.minRotation = shouldRotate ? 90 : 0;
+      ticks.autoSkip   = !shouldRotate;
+      chart.update();
+    }
+    let __rto;
+    window.addEventListener('resize', ()=>{ clearTimeout(__rto); __rto = setTimeout(adjustXAxisTicks, 120); });
+
+    function syncTagsLegendRedraw(){
+      rebuildTags();
+      rebuildLegend();
+      if(!chart) return;
+      chart.data.datasets.forEach(ds => { ds.hidden = !selected.has(ds._group); });
+      chart.update();
+    }
+
+    function drawInModal(){
+      const mctx = document.getElementById('mcanvas').getContext('2d');
+      if(window.__mchart) window.__mchart.destroy();
+      window.__mchart = new Chart(mctx, {
+        type:'line',
+        data:{ labels: LABELS_PAD, datasets: datasetsFor(mctx) },
+        options:{
+          plugins:{ legend:{ display:false } },
+          scales:{
+            x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } },
+            yPct:{ position:'left', beginAtZero:true, suggestedMax:100, ticks:{ callback:v=>`${v}%` } },
+            yCnt:{ position:'right', beginAtZero:true, grid:{ drawOnChartArea:false }, ticks:{ callback:v=>Number(v).toLocaleString() } }
+          }
+        }
+      });
+    }
+
+    function loadAndDraw(){
+      Papa.parse(CSV_URL, {
+        download:true, skipEmptyLines:true,
+        complete:(res)=>{
+          const err = document.getElementById('s2err');
+          err.textContent=''; err.style.display='none';
+          TABLE = res.data;
+          renderMenu();
+          rebuildTags();
+          rebuildLegend();
+          drawChart();
+        },
+        error:(e)=>{
+          const err = document.getElementById('s2err');
+          err.textContent = 'Gagal memuatkan CSV (Tile 2: Sekolah Rendah).';
+          err.style.display = 'block';
+        }
+      });
+    }
+
+    document.getElementById('s2refresh').addEventListener('click', loadAndDraw);
+    document.getElementById('s2expand').addEventListener('click', ()=>{
+      document.getElementById('mtitle').textContent = 'Sekolah Rendah';
+      const modal = document.getElementById('modal');
+      modal.classList.add('open');
+      drawInModal();
+      document.getElementById('mclose').onclick = ()=>{
+        modal.classList.remove('open');
+        window.__mchart?.destroy();
+      };
+    });
+
+    // init
+    loadAndDraw();
   })();
   </script>
 
