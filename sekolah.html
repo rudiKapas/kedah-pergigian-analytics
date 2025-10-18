@@ -20,9 +20,13 @@
   <style>
     header.ph, .grid{ max-width:1200px; margin:0 auto; padding:0 20px; width:100%; }
     header.ph{ display:flex; flex-direction:column; align-items:stretch; text-align:left; padding-top:24px; }
-    header.ph h1{ margin:0 0 4px; }
-    header.ph p{ margin:0 0 12px; color:#5b6b83; }
 
+    /* Title first (like Akses) */
+    header.ph h1{ margin:0 0 4px; }
+    header.ph p{ margin:0 0 16px; color:#5b6b83; }
+
+    /* Searchbar below title */
+    .ph .searchwrap{ position:relative; }
     .ph .searchbar{ display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:12px; }
     .ph .btn-ghost{ height:44px; width:44px; border-radius:12px; background:#fff; color:#0f172a;
       border:1px solid #d8dee8; box-shadow:0 4px 14px rgba(15,27,45,.06); }
@@ -32,7 +36,20 @@
     #schoolSearchRight{ height:44px; width:44px; border-radius:12px; background:#12a39a; color:#fff; border:0;
       box-shadow:0 4px 14px rgba(18,163,154,.25); }
 
-    .grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
+    /* Autocomplete dropdown */
+    .sugg-box{
+      position:absolute; left:56px; right:56px; top:52px;
+      background:#fff; border:1px solid #e3e8f0; border-radius:12px;
+      box-shadow:0 18px 40px rgba(15,27,45,.14); z-index:1000; display:none;
+      max-height:340px; overflow:auto;
+    }
+    .sugg-item{ padding:10px 12px; display:flex; gap:10px; align-items:center; cursor:pointer; }
+    .sugg-item:hover, .sugg-item.active{ background:#f8fbff; }
+    .sugg-type{ font-size:10px; font-weight:700; color:#0ea5e9; text-transform:uppercase; letter-spacing:.04em; }
+    .sugg-label{ font-size:14px; color:#0f172a; }
+    .sugg-empty{ padding:10px 12px; color:#64748b; font-size:13px; }
+
+    .grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; margin-top:16px; }
     .tile.wide{ grid-column:1 / span 2; }
     @media (max-width: 900px){ .grid{ grid-template-columns:1fr; } .tile.wide{ grid-column:1 / span 1; } }
 
@@ -115,13 +132,19 @@
 
 <body>
   <header class="ph">
-    <div class="searchbar">
-      <button id="schoolBackLeft" class="btn-ghost" title="Kembali"><svg class="ico"><use href="#i-back"/></svg></button>
-      <input type="search" placeholder="Cari komponen atau daerah…" aria-label="Carian">
-      <button id="schoolSearchRight" title="Cari"><svg class="ico"><use href="#i-search"/></svg></button>
-    </div>
-    <h1>Kesihatan Pergigian — Sekolah</h1>
+    <!-- Title + subtitle FIRST (like Akses) -->
+    <h1>Kesihatan Pergigian Sekolah</h1>
     <p>Analitik ringkas untuk program pergigian sekolah mengikut daerah.</p>
+
+    <!-- Search BELOW title -->
+    <div class="searchwrap">
+      <div class="searchbar">
+        <button id="schoolBackLeft" class="btn-ghost" title="Kembali"><svg class="ico"><use href="#i-back"/></svg></button>
+        <input id="schoolSearchInput" type="search" placeholder="Cari komponen atau daerah…" aria-label="Carian" autocomplete="off">
+        <button id="schoolSearchRight" title="Cari"><svg class="ico"><use href="#i-search"/></svg></button>
+      </div>
+      <div id="suggBox" class="sugg-box"></div>
+    </div>
   </header>
 
   <main class="grid">
@@ -251,6 +274,8 @@
 
   <script>
     document.getElementById('schoolBackLeft')?.addEventListener('click', ()=>{ location.href='index.html'; });
+    // Global container for search suggestions and hooks
+    window.__sSearch = window.__sSearch || { suggestions: [] };
   </script>
 
   <!-- TILE 1 LOGIC -->
@@ -518,6 +543,14 @@
           renderMenu();
           draw();
           syncTagsAndVisibility();
+
+          // register suggestions (tile title + filters) and expose setter
+          window.__sSearch.suggestions.push(
+            {type:'tile', tile:'ps1-tile', label:'Pra Sekolah, Tadika & Tadika Swasta'}
+          );
+          METRICS.forEach(m=>{
+            window.__sSearch.suggestions.push({type:'filter', tile:'ps1', key:m.id, label:m.name});
+          });
         },
         error:(e)=>{
           const err = document.getElementById('ps1err');
@@ -526,6 +559,14 @@
         }
       });
     }
+
+    // expose global apply for search
+    window.__applyTile1Filter = function(metricId){
+      selectedGroups = new Set([metricId]);
+      renderMenu(); syncTagsAndVisibility();
+      document.getElementById('ps1-tile').scrollIntoView({behavior:'smooth', block:'start'});
+      dd.classList.add('open');
+    };
 
     document.getElementById('ps1expand').addEventListener('click', ()=>{
       document.getElementById('mtitle').textContent = 'Pra Sekolah, Tadika & Tadika Swasta';
@@ -698,7 +739,7 @@
             _group: cat.id, _pct:isPct,
             type:'line',
             label: line.label,
-            data: PAD(base),
+            data: [0, ...base, 0],
             borderColor: line.color,
             backgroundColor: isPct ? 'transparent' : grad(line.color),
             borderWidth: 3,
@@ -816,6 +857,12 @@
           rebuildTags();
           rebuildLegend();
           drawChart();
+
+          // register suggestions + expose setter
+          window.__sSearch.suggestions.push({type:'tile', tile:'sr2-tile', label:'Sekolah Rendah'});
+          CATS.forEach(c=>{
+            window.__sSearch.suggestions.push({type:'filter', tile:'s2', key:c.id, label:c.name});
+          });
         },
         error:(e)=>{
           const err = document.getElementById('s2err');
@@ -824,6 +871,13 @@
         }
       });
     }
+
+    window.__applyTile2Filter = function(catId){
+      selected = new Set([catId]);
+      renderMenu(); syncTagsLegendRedraw();
+      document.getElementById('sr2-tile').scrollIntoView({behavior:'smooth', block:'start'});
+      dd.classList.add('open');
+    };
 
     document.getElementById('s2refresh').addEventListener('click', loadAndDraw);
     document.getElementById('s2expand').addEventListener('click', ()=>{
@@ -1088,6 +1142,12 @@
           rebuildTags();
           rebuildLegend();
           drawChart();
+
+          // register suggestions + expose setter
+          window.__sSearch.suggestions.push({type:'tile', tile:'sm3-tile', label:'Sekolah Menengah'});
+          CATS.forEach(c=>{
+            window.__sSearch.suggestions.push({type:'filter', tile:'s3', key:c.id, label:c.name});
+          });
         },
         error:(e)=>{
           const err = document.getElementById('s3err');
@@ -1096,6 +1156,13 @@
         }
       });
     }
+
+    window.__applyTile3Filter = function(catId){
+      selected = new Set([catId]);
+      renderMenu(); syncTagsLegendRedraw();
+      document.getElementById('sm3-tile').scrollIntoView({behavior:'smooth', block:'start'});
+      dd.classList.add('open');
+    };
 
     document.getElementById('s3refresh').addEventListener('click', loadAndDraw);
     document.getElementById('s3expand').addEventListener('click', ()=>{
@@ -1111,6 +1178,122 @@
 
     loadAndDraw();
   })();
+  </script>
+
+  <!-- SMART SEARCH (tiles + filters, substring match) -->
+  <script>
+    (function(){
+      const box = document.getElementById('suggBox');
+      const inp = document.getElementById('schoolSearchInput');
+      const btn = document.getElementById('schoolSearchRight');
+
+      function norm(s){ return (s||'').toLowerCase(); }
+      function score(label, q){
+        const L = norm(label), Q = norm(q);
+        if(!Q) return 9999;
+        const idx = L.indexOf(Q);
+        if(idx === -1) return Infinity;
+        // prefer start-of-word, then earlier positions
+        const boundary = /\b/.test(L[idx-1] || ' ') ? 0 : 1;
+        return boundary*100 + idx;
+      }
+
+      function render(items){
+        if(!items.length){
+          box.innerHTML = `<div class="sugg-empty">Tiada cadangan ditemui.</div>`;
+          box.style.display = 'block';
+          return;
+        }
+        box.innerHTML = items.map((it,i)=>`
+          <div class="sugg-item" data-i="${i}">
+            <div class="sugg-type">${it.type==='tile'?'Tile':'Filter'}</div>
+            <div class="sugg-label">${it.label}</div>
+          </div>
+        `).join('');
+        box.style.display = 'block';
+      }
+
+      function closeBox(){ box.style.display = 'none'; box.innerHTML = ''; }
+
+      function allSuggestions(){
+        // plus the page title itself
+        const base = [{type:'tile', tile:'ps1-tile', label:'Kesihatan Pergigian Sekolah'}];
+        return base.concat(window.__sSearch.suggestions || []);
+      }
+
+      function search(q){
+        const list = allSuggestions()
+          .map(v => ({...v, _score:score(v.label, q)}))
+          .filter(v => v._score !== Infinity)
+          .sort((a,b)=> a._score - b._score)
+          .slice(0, 10);
+        render(list);
+
+        // click binding
+        Array.from(box.querySelectorAll('.sugg-item')).forEach((el, idx)=>{
+          el.addEventListener('click', ()=> apply(list[idx]));
+        });
+      }
+
+      function apply(item){
+        closeBox();
+        inp.blur();
+        if(!item) return;
+        if(item.type === 'tile'){
+          document.getElementById(item.tile)?.scrollIntoView({behavior:'smooth', block:'start'});
+          return;
+        }
+        if(item.type === 'filter'){
+          // route to correct tile apply
+          if(item.tile === 'ps1' && window.__applyTile1Filter) window.__applyTile1Filter(item.key);
+          if(item.tile === 's2'  && window.__applyTile2Filter) window.__applyTile2Filter(item.key);
+          if(item.tile === 's3'  && window.__applyTile3Filter) window.__applyTile3Filter(item.key);
+        }
+      }
+
+      let activeIdx = -1;
+      function highlight(i){
+        const els = box.querySelectorAll('.sugg-item');
+        els.forEach(el => el.classList.remove('active'));
+        if(i>=0 && i<els.length){ els[i].classList.add('active'); activeIdx = i; }
+      }
+
+      inp.addEventListener('input', (e)=>{
+        const q = e.target.value.trim();
+        if(!q){ closeBox(); return; }
+        search(q); activeIdx = -1;
+      });
+      inp.addEventListener('keydown', (e)=>{
+        const els = box.querySelectorAll('.sugg-item');
+        if(e.key==='ArrowDown'){ if(els.length){ activeIdx=(activeIdx+1)%els.length; highlight(activeIdx); e.preventDefault(); } }
+        else if(e.key==='ArrowUp'){ if(els.length){ activeIdx=(activeIdx-1+els.length)%els.length; highlight(activeIdx); e.preventDefault(); } }
+        else if(e.key==='Enter'){
+          if(box.style.display==='block'){
+            const q = inp.value.trim();
+            const items = allSuggestions()
+              .map(v => ({...v, _s:score(v.label, q)}))
+              .filter(v => v._s !== Infinity)
+              .sort((a,b)=> a._s - b._s)
+              .slice(0, 10);
+            apply(items[activeIdx>=0?activeIdx:0]);
+            e.preventDefault();
+          }
+        } else if(e.key==='Escape'){ closeBox(); }
+      });
+      btn.addEventListener('click', ()=>{
+        const q = inp.value.trim();
+        if(!q){ // open full list when empty
+          const list = allSuggestions().slice(0, 12);
+          render(list);
+          Array.from(box.querySelectorAll('.sugg-item')).forEach((el, idx)=>{
+            el.addEventListener('click', ()=> apply(list[idx]));
+          });
+        } else {
+          search(q);
+        }
+      });
+      document.addEventListener('click', (e)=>{ if(!box.contains(e.target) && e.target!==inp && e.target!==btn){ closeBox(); } });
+    })();
   </script>
 
   <footer class="wrap">
