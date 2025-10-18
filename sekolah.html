@@ -16,7 +16,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <!-- page-level tweaks to mirror akses header/grid/DD -->
+  <!-- page-level tweaks -->
   <style>
     header.ph, .grid{ max-width:1200px; margin:0 auto; padding:0 20px; width:100%; }
     header.ph{ display:flex; flex-direction:column; align-items:stretch; text-align:left; padding-top:24px; }
@@ -72,7 +72,7 @@
     .mchart canvas{ width:100% !important; height:100% !important; }
     .close{ border:1px solid #d7dee9; background:#fff; height:34px; padding:0 10px; border-radius:8px; }
 
-    /* small fixes */
+    /* legend & buttons */
     .legend{ display:flex; flex-wrap:wrap; gap:12px; margin-top:8px; }
     .legend .lg{ display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:600; color:#334155; background:#f8fafc; border:1px solid #e5edf7; padding:5px 10px; border-radius:999px; }
     .legend .lg .dot{ height:10px; width:10px; border-radius:999px; display:inline-block; }
@@ -83,7 +83,6 @@
     .th .sub{ font-size:12px; color:#5b6b83; display:flex; align-items:center; gap:6px; }
     .th .ico{ width:18px; height:18px; }
 
-    /* err */
     .err{ display:none; margin-top:10px; color:#b91c1c; font-weight:700; background:#fee2e2; border:1px solid #fecaca; padding:8px 10px; border-radius:10px; }
   </style>
 
@@ -201,18 +200,37 @@
       </div>
     </section>
 
-    <section class="tile">
+    <!-- TILE 3 — Sekolah Menengah -->
+    <section class="tile" id="sm3-tile">
       <div class="th">
         <div>
-          <h2 class="ttl">Intervensi Sekolah</h2>
+          <h2 class="ttl">Sekolah Menengah</h2>
           <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="s3time">—</span></div>
         </div>
         <div class="act">
+          <div class="dd" id="dds3">
+            <button class="btn dd-trigger" id="dds3btn" title="Tapis"><svg class="ico"><use href="#i-filter"/></svg></button>
+            <div class="menu" id="dds3menu">
+              <div class="menu-body" id="dds3body"></div>
+              <div class="mfoot">
+                <button class="icbtn" id="dds3all" title="Pilih Semua" aria-label="Pilih Semua">
+                  <img class="ico" src="assets/icons/selectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dds3none" title="Kosongkan" aria-label="Kosongkan">
+                  <img class="ico" src="assets/icons/unselectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="dds3close" title="Tutup" aria-label="Tutup">
+                  <svg class="ico"><use href="#i-x"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
           <button id="s3refresh" class="btn" title="Kemas Kini"><svg class="ico"><use href="#i-refresh"/></svg></button>
           <button id="s3expand" class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
         </div>
       </div>
       <div class="tb">
+        <div class="tags" id="dds3tags"></div>
         <div class="chart"><canvas id="s3"></canvas></div>
         <div class="legend" id="s3legend"></div>
         <div class="err" id="s3err"></div>
@@ -235,22 +253,20 @@
     document.getElementById('schoolBackLeft')?.addEventListener('click', ()=>{ location.href='index.html'; });
   </script>
 
-  <!-- TILE 1 LOGIC (dual-axis + simplified filter by 7 categories) -->
+  <!-- TILE 1 LOGIC -->
   <script>
   (function(){
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1190173258&single=true&output=csv';
 
     const AREAS = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
-    const LABELS_PAD = [' ', ...AREAS, ' ']; // padded ends so lines touch 0 grid line
+    const LABELS_PAD = [' ', ...AREAS, ' '];
 
-    /* Institution types (consistent colours across all metrics) */
     const INST = [
       { k:'A', name:'Pra sekolah di sekolah', color:'#0ea5e9' },
       { k:'B', name:'Tadika kerajaan',        color:'#22c55e' },
       { k:'C', name:'Tadika swasta',          color:'#a78bfa' }
     ];
 
-    /* 7 metrics; each provides A/B/C cells exactly per your mapping */
     const METRICS = [
       { id:'m1', name:'Bilangan institusi', cells:{
         A:['D5','E5','F5','G5','H5','I5','J5','K5','L5','M5','N5','O5'],
@@ -289,7 +305,6 @@
       }},
     ];
 
-    // Sasaran (dashed reference)
     const TARGETS = [
       {value:100, label:'% Liputan Tadika'},
       {value:80,  label:'% Liputan Murid'},
@@ -298,7 +313,6 @@
       {value:70,  label:'Kes Selesai Pra Sekolah & Tadika Kerajaan'}
     ];
 
-    // helpers
     const toNum = v => Number(String(v).replace(/\u00A0/g,'').replace(/[, ]/g,'').replace(/%/g,'').trim()) || 0;
 
     function dsFromCells(tbl, arr){ return arr.map(A1=>{
@@ -309,15 +323,14 @@
     function pad(a){ return [0, ...a, 0]; }
 
     let table = null, chart = null;
-    let selectedGroups = new Set(['m1']); // default select first group
+    let selectedGroups = new Set(['m1']);
 
-    // build chart for current selections
     function draw(){
       const ctx = document.getElementById('ps1').getContext('2d');
       if(chart) chart.destroy();
 
       const datasets=[];
-      const labels = [' ', ...AREAS, ' '];
+      const labels = LABELS_PAD;
 
       function addMetric(m){
         const cols = m.cells;
@@ -327,7 +340,7 @@
           { k:'C', col:cols.C, conf:INST.find(i=>i.k==='C') },
         ];
 
-        series.forEach((s,idx)=>{
+        series.forEach((s)=>{
           const arr = dsFromCells(table, s.col);
           const grad = ctx.createLinearGradient(0,0,0,360);
           const c = s.conf.color;
@@ -354,7 +367,6 @@
           });
         });
 
-        // overlay sasaran (for % metrics only)
         if(/^%/.test(m.name)){
           const t = TARGETS.find(tg => tg.label===m.name) || null;
           if(t){
@@ -392,7 +404,7 @@
                   const v=c.parsed.y;
                   const isTarget = (c.dataset.label||'').startsWith('Sasaran');
                   if(isTarget) return `${c.dataset.label}: ${v}%`;
-                  return c.dataset._pct ? `${c.dataset.label}: ${v}%` : `${c.dataset.label}: ${v.toLocaleString()}`;
+                  return c.dataset._pct ? `${c.dataset.label}: ${v}%` : `${v.toLocaleString()}`;
                 }
               },
               filter: (i)=> !(i.dataIndex===0 || i.dataIndex===labels.length-1)
@@ -401,17 +413,11 @@
           scales:{
             x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } },
             yPct:{ position:'left', beginAtZero:true, suggestedMax:100, ticks:{ callback:v=> `${v}%` } },
-            yCnt:{                       // RIGHT axis for counts
-              position:'right',
-              beginAtZero:true,
-              grid:{ drawOnChartArea:false },
-              ticks:{ callback:v=> v.toLocaleString() }
-            }
+            yCnt:{ position:'right', beginAtZero:true, grid:{ drawOnChartArea:false }, ticks:{ callback:v=> v.toLocaleString() } }
           }
         }
       });
 
-      // akses-style legend: only institution colours
       (function renderCustomLegend(){
         const host = document.getElementById('ps1legend');
         host.innerHTML = INST.map(e => `
@@ -439,7 +445,6 @@
     }
     let rto=null; window.addEventListener('resize', ()=>{ clearTimeout(rto); rto=setTimeout(adjustXAxisTicks, 120); });
 
-    // dropdown
     const dd = document.getElementById('dds1');
     const body = document.getElementById('dds1body');
     const menu = document.getElementById('dds1menu');
@@ -454,20 +459,17 @@
       }).join('');
     }
     function syncTagsAndVisibility(){
-      // tags
       (function(){
         const host = document.getElementById('dds1tags');
         if(selectedGroups.size === METRICS.length){
           host.innerHTML = '<span class="tag">Semua kategori</span>'; return;
         }
-        const tags = Array.from(selectedGroups).map(id=>{
+        host.innerHTML = Array.from(selectedGroups).map(id=>{
           const m = METRICS.find(x=>x.id===id);
           return `<span class="tag">${m.name}</span>`;
         }).join('');
-        host.innerHTML = tags;
       })();
 
-      // datasets visibility
       if(!chart) return;
       chart.data.datasets.forEach(ds=>{
         ds.hidden = !selectedGroups.has(ds._metric);
@@ -505,7 +507,6 @@
       e.stopPropagation(); selectedGroups = new Set(); renderMenu(); syncTagsAndVisibility();
     });
 
-    // load CSV and init chart
     function loadDataAndDraw(){
       Papa.parse(CSV_URL, {
         download:true,
@@ -526,7 +527,6 @@
       });
     }
 
-    // modal render
     document.getElementById('ps1expand').addEventListener('click', ()=>{
       document.getElementById('mtitle').textContent = 'Pra Sekolah, Tadika & Tadika Swasta';
       const modal = document.getElementById('modal');
@@ -542,7 +542,6 @@
         return g;
       }
 
-      // clone datasets with same visibility
       const datasets = chart.data.datasets.map(d=>({
         ...d,
         backgroundColor: d._pct ? 'transparent' : grad(d.borderColor),
@@ -569,7 +568,6 @@
       window.__mchart?.destroy();
     });
 
-    // init
     loadDataAndDraw();
   })();
   </script>
@@ -579,11 +577,9 @@
   (function(){
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=282265418&single=true&output=csv';
 
-    // Districts across columns D..O
     const AREAS = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
-    const LABELS_PAD = [' ', ...AREAS, ' ']; // padding for clean line caps
+    const LABELS_PAD = [' ', ...AREAS, ' '];
 
-    // Helpers
     function colRange(from, to){ const out=[]; for(let c=from.charCodeAt(0); c<=to.charCodeAt(0); c++) out.push(String.fromCharCode(c)); return out; }
     const COLS = colRange('D','O');
     function colIndex(A){ let n=0; for(let i=0;i<A.length;i++) n=n*26+(A.charCodeAt(i)-64); return n-1; }
@@ -597,7 +593,6 @@
     function rowSeries(tbl, row){ return COLS.map(L => toNum(getCell(tbl, L + String(row)))); }
     const PAD = arr => [0, ...arr, 0];
 
-    // Categories and targets
     const CATS = [
       { id:'c1', name:'Bilangan sekolah', type:'cnt', lines:[
         { label:'SR kerajaan', row:14, color:'#0ea5e9' },
@@ -626,12 +621,11 @@
       ]},
     ];
 
-    let selected = new Set(['c1']); // default
+    let selected = new Set(['c1']);
 
     const dd   = document.getElementById('dds2');
     const body = document.getElementById('dds2body');
     const tags = document.getElementById('dds2tags');
-    const menu = document.getElementById('dds2menu');
 
     function renderMenu(){
       body.innerHTML = CATS.map(c => {
@@ -754,7 +748,7 @@
                   const v = c.parsed.y;
                   const isTarget = (c.dataset.label||'').startsWith('Sasaran:');
                   if(isTarget) return `${c.dataset.label} — ${v}%`;
-                  return c.dataset._pct ? `${c.dataset.label}: ${v}%` : `${c.dataset.label}: ${Number(v).toLocaleString()}`;
+                  return c.dataset._pct ? `${c.dataset.label}: ${v}%` : `${Number(v).toLocaleString()}`;
                 }
               },
               filter: (i)=> !(i.dataIndex===0 || i.dataIndex===LABELS_PAD.length-1)
@@ -843,7 +837,278 @@
       };
     });
 
-    // init
+    loadAndDraw();
+  })();
+  </script>
+
+  <!-- TILE 3 LOGIC — Sekolah Menengah -->
+  <script>
+  (function(){
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1143057439&single=true&output=csv';
+
+    const AREAS = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
+    const LABELS_PAD = [' ', ...AREAS, ' '];
+
+    function colRange(from, to){ const out=[]; for(let c=from.charCodeAt(0); c<=to.charCodeAt(0); c++) out.push(String.fromCharCode(c)); return out; }
+    const COLS = colRange('D','O');
+    function colIndex(A){ let n=0; for(let i=0;i<A.length;i++) n=n*26+(A.charCodeAt(i)-64); return n-1; }
+    function getCell(table, A1){
+      const m=/^([A-Z]+)(\d+)$/.exec(A1); if(!m) return null;
+      const r=+m[2]-1, c=colIndex(m[1]);
+      return table[r] && table[r][c]!=null ? table[r][c] : null;
+    }
+    const toNum = v => Number(String(v).replace(/\u00A0/g,'').replace(/[, ]/g,'').replace(/%/g,'').trim()) || 0;
+
+    const PAD = arr => [0, ...arr, 0];
+    function rowSeries(tbl, row){ return COLS.map(L => toNum(getCell(tbl, L + String(row)))); }
+
+    const CATS = [
+      { id:'c1', name:'Bilangan sekolah', type:'cnt', lines:[
+        { label:'SM kerajaan', row:14, color:'#0ea5e9' },
+        { label:'SM swasta',  row:15, color:'#8b5cf6' },
+        { label:'Jumlah',     row:16, color:'#10b981' },
+      ]},
+      { id:'c2', name:'Jumlah enrolmen', type:'cnt', lines:[
+        { label:'SM kerajaan', row:17, color:'#0ea5e9' },
+        { label:'SM swasta',  row:18, color:'#8b5cf6' },
+        { label:'Jumlah',     row:19, color:'#10b981' },
+      ]},
+      { id:'c3', name:'Peratus SM dilawati', type:'pct', lines:[
+        { label:'Peratus SM dilawati', row:22, color:'#0ea5e9', target:100 }
+      ]},
+      { id:'c4', name:'Peratus murid SM mendapat liputan', type:'pct', lines:[
+        { label:'Peratus murid SM mendapat liputan', row:25, color:'#4f46e5', target:95 }
+      ]},
+      { id:'c5', name:'Peratus murid SM mencapai status orally fit', type:'pct', lines:[
+        { label:'Peratus murid SM mencapai status orally fit', row:28, color:'#10b981', target:95 }
+      ]},
+      { id:'c6', name:'Peratus murid SM kes selesai', type:'pct', lines:[
+        { label:'Peratus murid SM kes selesai', row:31, color:'#f59e0b', target:95 }
+      ]},
+      { id:'c7', name:'Peratus murid SM TPR', type:'pct', lines:[
+        { label:'Peratus murid SM TPR', row:34, color:'#ef4444', target:75 }
+      ]},
+      { id:'c8', name:'Kehilangan gigi kekal/100 murid 16 tahun', type:'cnt', lines:[
+        { label:'Kehilangan gigi kekal/100 murid 16 tahun', row:37, color:'#64748b' }
+      ]},
+    ];
+
+    let selected = new Set(['c1']);
+
+    const dd   = document.getElementById('dds3');
+    const body = document.getElementById('dds3body');
+    const tags = document.getElementById('dds3tags');
+
+    function renderMenu(){
+      body.innerHTML = CATS.map(c => {
+        const checked = selected.has(c.id) ? 'checked' : '';
+        return `<div class="opt" data-row="${c.id}">
+          <input type="checkbox" data-key="${c.id}" ${checked}>
+          <span>${c.name}</span>
+        </div>`;
+      }).join('');
+    }
+
+    body.addEventListener('change', (e)=>{
+      const cb = e.target.closest('input[type="checkbox"][data-key]'); if(!cb) return;
+      const k = cb.dataset.key;
+      if(cb.checked) selected.add(k); else selected.delete(k);
+      syncTagsLegendRedraw();
+    });
+
+    body.addEventListener('click',(e)=>{
+      const row = e.target.closest('.opt[data-row]'); if(!row) return;
+      const cb = row.querySelector('input[type="checkbox"][data-key]');
+      if(cb && e.target !== cb){ cb.checked = !cb.checked; cb.dispatchEvent(new Event('change',{bubbles:true})); }
+    });
+
+    document.getElementById('dds3btn').addEventListener('click', (e)=>{ e.stopPropagation(); dd.classList.toggle('open'); });
+    document.getElementById('dds3close').addEventListener('click', ()=> dd.classList.remove('open'));
+    document.addEventListener('click', (e)=>{ if(!dd.contains(e.target)) dd.classList.remove('open'); });
+    document.getElementById('dds3all').addEventListener('click', (e)=>{ e.stopPropagation(); selected = new Set(CATS.map(x=>x.id)); renderMenu(); syncTagsLegendRedraw(); });
+    document.getElementById('dds3none').addEventListener('click', (e)=>{ e.stopPropagation(); selected = new Set(); renderMenu(); syncTagsLegendRedraw(); });
+
+    function rebuildTags(){
+      if(selected.size === CATS.length){ tags.innerHTML = '<span class="tag">Semua kategori</span>'; return; }
+      tags.innerHTML = Array.from(selected).map(id => {
+        const c = CATS.find(x=>x.id===id);
+        return `<span class="tag">${c.name}</span>`;
+      }).join('');
+    }
+
+    function rebuildLegend(){
+      const leg = document.getElementById('s3legend');
+      const first = CATS.find(c => selected.has(c.id));
+      if(!first){ leg.innerHTML = ''; return; }
+      leg.innerHTML = first.lines.map(l => `
+        <span class="lg"><span class="dot" style="background:${l.color}"></span>${l.label}</span>
+      `).join('');
+    }
+
+    let chart, TABLE=null;
+
+    function datasetsFor(ctx){
+      const ds = [];
+      const last = LABELS_PAD.length - 1;
+      const pointR = x => (x.dataIndex===0 || x.dataIndex===last ? 0 : 3);
+
+      function grad(hex){
+        const g = ctx.createLinearGradient(0,0,0,300);
+        const c = parseInt(hex.slice(1),16), r=(c>>16)&255, g1=(c>>8)&255, b=c&255;
+        const rgba = a=>`rgba(${r},${g1},${b},${a})`;
+        g.addColorStop(0, rgba(.35));
+        g.addColorStop(1, rgba(.04));
+        return g;
+      }
+
+      CATS.forEach(cat=>{
+        const show = selected.has(cat.id);
+        cat.lines.forEach(line=>{
+          const base = rowSeries(TABLE, line.row);
+          const isPct = cat.type==='pct';
+          ds.push({
+            _group: cat.id, _pct:isPct,
+            type:'line',
+            label: line.label,
+            data: PAD(base),
+            borderColor: line.color,
+            backgroundColor: isPct ? 'transparent' : grad(line.color),
+            borderWidth: 3,
+            tension: .45,
+            fill: !isPct,
+            pointRadius: pointR,
+            pointHoverRadius: 3,
+            hidden: !show,
+            yAxisID: isPct ? 'yPct' : 'yCnt'
+          });
+
+          if(isPct && typeof line.target==='number'){
+            ds.push({
+              _group: cat.id, _pct:true,
+              type:'line',
+              label:`Sasaran: ${cat.name}`,
+              data: new Array(LABELS_PAD.length).fill(line.target),
+              borderColor:'#475569',
+              borderDash:[4,4],
+              borderWidth:2,
+              pointRadius:0,
+              tension:0,
+              fill:false,
+              hidden: !show,
+              yAxisID:'yPct'
+            });
+          }
+        });
+      });
+      return ds;
+    }
+
+    function drawChart(){
+      const ctx = document.getElementById('s3').getContext('2d');
+      if(chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type:'line',
+        data:{ labels: LABELS_PAD, datasets: datasetsFor(ctx) },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          plugins:{
+            legend:{ display:false },
+            tooltip:{
+              mode:'index', intersect:false,
+              callbacks:{
+                label:(c)=>{
+                  const v = c.parsed.y;
+                  const isTarget = (c.dataset.label||'').startsWith('Sasaran:');
+                  if(isTarget) return `${c.dataset.label} — ${v}%`;
+                  return c.dataset._pct ? `${c.dataset.label}: ${v}%` : `${Number(v).toLocaleString()}`;
+                }
+              },
+              filter: (i)=> !(i.dataIndex===0 || i.dataIndex===LABELS_PAD.length-1)
+            }
+          },
+          scales:{
+            x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } },
+            yPct:{ position:'left', beginAtZero:true, suggestedMax:100, ticks:{ callback:v=>`${v}%` } },
+            yCnt:{ position:'right', beginAtZero:true, grid:{ drawOnChartArea:false }, ticks:{ callback:v=>Number(v).toLocaleString() } }
+          }
+        }
+      });
+      document.getElementById('s3time').textContent = new Date().toLocaleString();
+      setTimeout(adjustXAxisTicks, 0);
+    }
+
+    function adjustXAxisTicks(){
+      if(!chart || !chart.chartArea) return;
+      const n = AREAS.length;
+      const w = chart.chartArea.width;
+      const pxPerLabel = w / n;
+      const shouldRotate = (pxPerLabel < 70) || (window.innerWidth < 900);
+      const ticks = chart.options.scales.x.ticks;
+      ticks.maxRotation = shouldRotate ? 90 : 0;
+      ticks.minRotation = shouldRotate ? 90 : 0;
+      ticks.autoSkip   = !shouldRotate;
+      chart.update();
+    }
+    let __rto;
+    window.addEventListener('resize', ()=>{ clearTimeout(__rto); __rto = setTimeout(adjustXAxisTicks, 120); });
+
+    function syncTagsLegendRedraw(){
+      rebuildTags();
+      rebuildLegend();
+      if(!chart) return;
+      chart.data.datasets.forEach(ds => { ds.hidden = !selected.has(ds._group); });
+      chart.update();
+    }
+
+    function drawInModal(){
+      const mctx = document.getElementById('mcanvas').getContext('2d');
+      if(window.__mchart) window.__mchart.destroy();
+      window.__mchart = new Chart(mctx, {
+        type:'line',
+        data:{ labels: LABELS_PAD, datasets: datasetsFor(mctx) },
+        options:{
+          plugins:{ legend:{ display:false } },
+          scales:{
+            x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } },
+            yPct:{ position:'left', beginAtZero:true, suggestedMax:100, ticks:{ callback:v=>`${v}%` } },
+            yCnt:{ position:'right', beginAtZero:true, grid:{ drawOnChartArea:false }, ticks:{ callback:v=>Number(v).toLocaleString() } }
+          }
+        }
+      });
+    }
+
+    function loadAndDraw(){
+      Papa.parse(CSV_URL, {
+        download:true, skipEmptyLines:true,
+        complete:(res)=>{
+          const err = document.getElementById('s3err');
+          err.textContent=''; err.style.display='none';
+          TABLE = res.data;
+          renderMenu();
+          rebuildTags();
+          rebuildLegend();
+          drawChart();
+        },
+        error:(e)=>{
+          const err = document.getElementById('s3err');
+          err.textContent = 'Gagal memuatkan CSV (Tile 3: Sekolah Menengah).';
+          err.style.display = 'block';
+        }
+      });
+    }
+
+    document.getElementById('s3refresh').addEventListener('click', loadAndDraw);
+    document.getElementById('s3expand').addEventListener('click', ()=>{
+      document.getElementById('mtitle').textContent = 'Sekolah Menengah';
+      const modal = document.getElementById('modal');
+      modal.classList.add('open');
+      drawInModal();
+      document.getElementById('mclose').onclick = ()=>{
+        modal.classList.remove('open');
+        window.__mchart?.destroy();
+      };
+    });
+
     loadAndDraw();
   })();
   </script>
