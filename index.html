@@ -116,7 +116,7 @@
       <div class="gs-box">
         <div class="searchbar">
           <!-- Back button intentionally removed -->
-          <input id="globalSearch" type="search" placeholder="Cari halaman, jubin atau penapis…" autocomplete="off" />
+          <input id="globalSearch" type="search" placeholder="Cari halaman, graf atau saringan…" autocomplete="off" />
           <button class="search" id="goBtn" title="Cari">
             <svg class="ico"><use href="#i-search" /></svg>
           </button>
@@ -361,7 +361,7 @@
       }
       box.innerHTML = list.map((it,i)=>`
         <div class="opt" data-url="${it.url}">
-          <span class="type">${it.type === 'filter' ? 'Penapis' : 'Jubin'}</span>
+          <span class="type">${it.type === 'filter' ? 'Saringan' : 'Graf'}</span>
           <span class="lbl">${it.label}</span>
           <span class="sub">${it.sub || ''}</span>
         </div>
