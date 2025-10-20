@@ -16,7 +16,7 @@
       --page-max:1200px; --gap:20px; --ctl:44px;
       --ink:#0f172a; --muted:#64748b; --bd:#e5e7eb;
       --panel:#ffffff; --bg:#f7f7fb;
-      --accent:#0ea5a0; /* keep existing teal family */
+      --accent:#0ea5a0;
       --accent-2:#34d399;
       --shadow-1:0 1px 2px rgba(15,23,42,.06),0 8px 16px rgba(15,23,42,.05);
     }
@@ -36,7 +36,7 @@
     /* Search row in hero (back button removed) */
     .searchbar{ display:grid; grid-template-columns:1fr auto; align-items:center; gap:12px; margin-top:8px; }
     .searchbar input{ height:var(--ctl); border-radius:12px; border:1px solid #d1d5db; padding:0 14px; background:#fff; box-shadow:var(--shadow-1); }
-    .searchbar button.search{ height:var(--ctl); width:var(--ctl); border-radius:12px; border:1px solid var(--accent); background:var(--accent); color:#fff; box-shadow:0 4px 14px rgba(14,165,160,.25); }
+    .searchbar button.search{ height:var(--ctl); width:var(--ctl); border-radius:12px; border:1px solid var(--accent); background:var(--accent); color:#fff; box-shadow:0 4px 14px rgba(14,165,160,.25); cursor:pointer; }
 
     /* Suggestion dropdown */
     .gs-box{ position:relative; }
@@ -55,34 +55,39 @@
     @media (max-width:720px){ .tiles{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
     @media (max-width:420px){ .tiles{ grid-template-columns:1fr; } }
 
-    /* ====== Card look to match screenshot theme ====== */
+    /* ===== Card look (top bar removed, icon centered & larger) ===== */
     .tile-card{
       position:relative;
       background:var(--panel);
       border:1px solid var(--bd);
       border-radius:16px;
       box-shadow:var(--shadow-1);
-      display:flex; flex-direction:column;
-      padding:16px 14px 14px;
+      display:flex; flex-direction:column; align-items:center; text-align:center;
+      padding:20px 16px 16px;
       text-decoration:none; color:inherit;
       transition: box-shadow .2s ease, transform .2s ease;
     }
-    /* slim accent bar on top */
-    .tile-card::before{
-      content:"";
-      position:absolute; left:0; right:0; top:0; height:4px;
-      background:linear-gradient(90deg, var(--accent), var(--accent-2));
-      border-top-left-radius:16px; border-top-right-radius:16px;
+    /* Remove previous green top accent */
+    .tile-card::before{ content:none; }
+
+    /* Centered bigger icon */
+    .tile-card .icon{
+      width:64px; height:64px; display:block;
+      filter: grayscale(1) brightness(0) opacity(.88);
+      margin:6px auto 12px;
+    }
+
+    .tile-card .title{ margin:0 0 6px; font-weight:800; font-size:18px; }
+    .tile-card .subtitle{ margin:0 0 10px; color:var(--muted); font-size:12px; min-height:30px; }
+
+    .tile-card .cta{
+      margin-top:auto;
+      display:inline-flex; align-items:center; gap:8px;
+      font-weight:700; font-size:13px; color:var(--accent);
+      align-self:center;
     }
     .tile-card:hover{ box-shadow:0 8px 28px rgba(2,6,23,.14); transform: translateY(-1px); }
 
-    /* Icons: darker monochrome to align with overall theme */
-    .tile-card .icon{ width:36px; height:36px; display:block;
-      filter: grayscale(1) brightness(0) opacity(.88); }
-
-    .tile-card .title{ margin:10px 0 2px; font-weight:800; font-size:16px; }
-    .tile-card .subtitle{ margin:0; color:var(--muted); font-size:12px; min-height:30px; }
-    .tile-card .cta{ margin-top:auto; display:inline-flex; align-items:center; gap:8px; font-weight:700; font-size:13px; color:var(--accent); }
     .square{ aspect-ratio:1/1; }
 
     footer.wrap{ max-width:var(--page-max); margin: 8px auto 20px; padding: 0 var(--gap); color:#94a3b8; font-size:12px; text-align:center; }
@@ -110,8 +115,8 @@
 
       <div class="gs-box">
         <div class="searchbar">
-          <!-- Back button removed as requested -->
-          <input id="globalSearch" type="search" placeholder="Cari halaman, graf atau saringan…" autocomplete="off" />
+          <!-- Back button intentionally removed -->
+          <input id="globalSearch" type="search" placeholder="Cari halaman, jubin atau penapis…" autocomplete="off" />
           <button class="search" id="goBtn" title="Cari">
             <svg class="ico"><use href="#i-search" /></svg>
           </button>
@@ -167,7 +172,6 @@
 
   <script>
     // ---------- SEARCH MANIFEST ----------
-    // Helper to craft deep-link URLs
     function link(page, tile, key){
       const u = new URL(page, location.href);
       if (tile)   u.searchParams.set('tile', tile);
@@ -175,13 +179,10 @@
       return u.pathname.replace(location.pathname.split('/').pop(),'') + u.search;
     }
 
-    // Build searchable items: page title tiles + filter lists for each page/tile.
-    // A K S E S
     const AKSES = [
       { type:'tile', page:'akses.html', tile:'', key:'', label:'Akses Perkhidmatan Pergigian', sub:'Halaman' },
     ];
 
-    // S E K O L A H
     const SEKOLAH = [
       { type:'tile', page:'sekolah.html', tile:'ps1-tile', key:'', label:'Pra Sekolah, Tadika & Tadika Swasta', sub:'Halaman Sekolah' },
       { type:'filter', page:'sekolah.html', tile:'ps1', key:'m1', label:'Bilangan institusi', sub:'Pra Sekolah' },
@@ -212,7 +213,6 @@
       { type:'filter', page:'sekolah.html', tile:'s3', key:'sm_kehilangan', label:'Kehilangan gigi kekal/100 murid 16 tahun', sub:'Sekolah Menengah' },
     ];
 
-    // K P I
     const KPI = [
       { type:'tile', page:'kpi.html', tile:'k1-tile', key:'', label:'KEY ORAL HEALTH GOALS', sub:'Halaman KPI' },
       { type:'filter', page:'kpi.html', tile:'k1', key:'cf6', label:'6-year-olds Caries free', sub:'Key Goals' },
@@ -230,13 +230,12 @@
 
       { type:'tile', page:'kpi.html', tile:'k3-tile', key:'', label:'SUPPORTING ORAL HEALTH GOALS', sub:'Halaman KPI' },
       { type:'filter', page:'kpi.html', tile:'k3', key:'dfx6',   label:'6-year-olds - mean dfx', sub:'Supporting Goals' },
-      { type:'filter', page:'kpi.html', tile:'k3', key:'dmfx12', label:'12-year-olds - mean DMFX', sub:'Supporting Goals' },
-      { type:'filter', page:'kpi.html', tile:'k3', key:'dmfx16', label:'16-year-olds - mean DMFX', sub:'Supporting Goals' },
+      { type:'filter', page:'kpi.html', tile:'k3', key:'dmfx12', label:'12-year-olds - mean DMFX', sub:'Supporting Goals' }
+      ,{ type:'filter', page:'kpi.html', tile:'k3', key:'dmfx16', label:'16-year-olds - mean DMFX', sub:'Supporting Goals' },
       { type:'filter', page:'kpi.html', tile:'k3', key:'m16',    label:'16-year-olds - mean M', sub:'Supporting Goals' },
       { type:'filter', page:'kpi.html', tile:'k3', key:'m0_16',  label:'16-year-olds with M = 0', sub:'Supporting Goals' },
     ];
 
-    // W O R K F O R C E
     const WORKFORCE = [
       { type:'tile', page:'workforce.html', tile:'tkp1-tile', key:'', label:'Latihan Dalam Perkhidmatan', sub:'Tenaga Kerja' },
       { type:'filter', page:'workforce.html', tile:'t1', key:'c1', label:'% of courses/training conduct using LDP allocation', sub:'LDP' },
@@ -280,7 +279,6 @@
       { type:'filter', page:'workforce.html', tile:'t3', key:'jp_kes_rate',      label:'Kes selesai (Purata/JP)', sub:'Juruterapi' },
     ];
 
-    // P R E V E N T I O N
     const PREVENTION = [
       { type:'tile', page:'prevention.html', tile:'p1-tile', key:'', label:'Clinical Prevention Program for Caries', sub:'Pencegahan' },
       { type:'filter', page:'prevention.html', tile:'p1', key:'cohort_jj23', label:'Cohort Jan-Jun 2023', sub:'Clinical Prevention' },
@@ -332,10 +330,8 @@
     ];
 
     const SEARCH_INDEX = [
-      // tile titles
       ...AKSES, ...SEKOLAH.filter(x=>x.type==='tile'), ...KPI.filter(x=>x.type==='tile'),
       ...WORKFORCE.filter(x=>x.type==='tile'), ...PREVENTION.filter(x=>x.type==='tile'),
-      // all filters
       ...SEKOLAH.filter(x=>x.type==='filter'), ...KPI.filter(x=>x.type==='filter'),
       ...WORKFORCE.filter(x=>x.type==='filter'), ...PREVENTION.filter(x=>x.type==='filter'),
     ].map(item => ({ ...item, url: link(item.page, item.tile, item.key) }));
@@ -353,7 +349,6 @@
       const parts = t.split(/\s+/).filter(Boolean);
       return SEARCH_INDEX.filter(item=>{
         const hay = normalize(item.label + ' ' + (item.sub||''));
-        // substring match for middle words too
         return parts.every(p => hay.includes(p));
       }).slice(0, 50);
     }
@@ -366,7 +361,7 @@
       }
       box.innerHTML = list.map((it,i)=>`
         <div class="opt" data-url="${it.url}">
-          <span class="type">${it.type === 'filter' ? 'Saringan' : 'Graf'}</span>
+          <span class="type">${it.type === 'filter' ? 'Penapis' : 'Jubin'}</span>
           <span class="lbl">${it.label}</span>
           <span class="sub">${it.sub || ''}</span>
         </div>
