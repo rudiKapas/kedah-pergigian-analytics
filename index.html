@@ -13,12 +13,14 @@
 
   <style>
     :root{
-      --page-max:1200px; --gap:20px; --ctl:44px; /* --ctl matches the search button size */
+      --page-max:1200px; --gap:20px; --ctl:44px;
       --ink:#0f172a; --muted:#64748b; --bd:#e5e7eb;
       --panel:#ffffff; --bg:#f7f7fb;
       --accent:#0ea5a0;
       --accent-2:#34d399;
       --shadow-1:0 1px 2px rgba(15,23,42,.06),0 8px 16px rgba(15,23,42,.05);
+      /* Uniform tile height (big enough so long titles are 2 lines on FHD) */
+      --tile-h: 340px;
     }
     body{ margin:0; background:var(--bg); color:var(--ink); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial; }
 
@@ -48,28 +50,15 @@
     .gs-suggest .sub{ font-size:12px; color:#64748b; }
     .gs-suggest .empty{ padding:10px 12px; color:#64748b; font-size:13px; }
 
-    /* Tiles layout
-       Align the grid area with the search input: start at wrap's left padding,
-       end at the LEFT side of the search button (subtract button width + 12px gap).
-    */
+    /* ===== Tiles layout (centered under the search area) ===== */
     .tiles{
-      max-width:var(--page-max);
-      margin:14px auto 24px;
-      padding-left:0; /* align to wrap's left edge (same as search input) */
-      padding-right: calc(var(--gap) + var(--ctl) + 12px); /* wrap padding + button + gap */
+      max-width:var(--page-max); margin:14px auto 24px; padding:0 var(--gap);
       display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:14px;
-      align-items:start; /* keep rows compact so more tiles can follow below */
+      align-items:stretch; justify-items:stretch;
     }
     @media (max-width:1100px){ .tiles{ grid-template-columns:repeat(3, minmax(0,1fr)); } }
-    @media (max-width:720px){
-      .tiles{
-        grid-template-columns:repeat(2, minmax(0,1fr));
-        padding-right: calc(var(--gap) + var(--ctl) + 12px); /* keep same alignment on mobile */
-      }
-    }
-    @media (max-width:420px){
-      .tiles{ grid-template-columns:1fr; padding-right: calc(var(--gap) + var(--ctl) + 12px); }
-    }
+    @media (max-width:720px){ .tiles{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+    @media (max-width:420px){ .tiles{ grid-template-columns:1fr; } }
 
     /* ===== Card look (top bar removed, icon centered & larger) ===== */
     .tile-card{
@@ -82,7 +71,7 @@
       padding:20px 16px 16px;
       text-decoration:none; color:inherit;
       transition: box-shadow .2s ease, transform .2s ease;
-      /* No fixed height — stays compact so more rows can be added later */
+      min-height: var(--tile-h);   /* <<< make all tiles same height */
     }
     .tile-card::before{ content:none; } /* top accent removed */
 
@@ -104,8 +93,8 @@
     }
     .tile-card:hover{ box-shadow:0 8px 28px rgba(2,6,23,.14); transform: translateY(-1px); }
 
-    /* Enforce square tiles */
-    .square{ aspect-ratio:1/1; }
+    /* Squares removed to allow uniform height while keeping layout compact */
+    .square{ aspect-ratio:auto; }
 
     footer.wrap{ max-width:var(--page-max); margin: 8px auto 20px; padding: 0 var(--gap); color:#94a3b8; font-size:12px; text-align:center; }
 
@@ -133,7 +122,8 @@
       <div class="gs-box">
         <div class="searchbar">
           <!-- Back button intentionally removed -->
-          <input id="globalSearch" type="search" placeholder="Cari halaman, jubin atau penapis…" autocomplete="off" />
+          <!-- jubin -> graf, penapis -> saringan -->
+          <input id="globalSearch" type="search" placeholder="Cari halaman, graf atau saringan…" autocomplete="off" />
           <button class="search" id="goBtn" title="Cari">
             <svg class="ico"><use href="#i-search" /></svg>
           </button>
@@ -276,7 +266,6 @@
       { type:'filter', page:'workforce.html', tile:'t2', key:'fisur_total',   label:'Fisur Sealan (Jumlah)', sub:'Pegawai' },
       { type:'filter', page:'workforce.html', tile:'t2', key:'fisur_rate',    label:'Fisur Sealan (Purata)', sub:'Pegawai' },
       { type:'filter', page:'workforce.html', tile:'t2', key:'varnis_total',  label:'Florida varnis (Jumlah)', sub:'Pegawai' },
-      { type:'filter', page:'workforce.html', tile:'t2', key:'varnis_rate',   label:'Florida varnis (Purata)', sub:'Pegawai' },
 
       { type:'tile', page:'workforce.html', tile:'tkp3-tile', key:'', label:'PURATA HASIL KERJA Juruterapi Pergigian', sub:'Tenaga Kerja' },
       { type:'filter', page:'workforce.html', tile:'t3', key:'jp_on_duty',      label:'Bil. JP yang bertugas', sub:'Juruterapi' },
@@ -378,7 +367,7 @@
       }
       box.innerHTML = list.map((it,i)=>`
         <div class="opt" data-url="${it.url}">
-          <span class="type">${it.type === 'filter' ? 'Penapis' : 'Jubin'}</span>
+          <span class="type">${it.type === 'filter' ? 'Saringan' : 'Graf'}</span>
           <span class="lbl">${it.label}</span>
           <span class="sub">${it.sub || ''}</span>
         </div>
