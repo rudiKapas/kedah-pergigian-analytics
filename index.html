@@ -13,7 +13,7 @@
 
   <style>
     :root{
-      --page-max:1200px; --gap:20px; --ctl:44px;
+      --page-max:1200px; --gap:20px; --ctl:44px; /* --ctl matches the search button size */
       --ink:#0f172a; --muted:#64748b; --bd:#e5e7eb;
       --panel:#ffffff; --bg:#f7f7fb;
       --accent:#0ea5a0;
@@ -48,15 +48,28 @@
     .gs-suggest .sub{ font-size:12px; color:#64748b; }
     .gs-suggest .empty{ padding:10px 12px; color:#64748b; font-size:13px; }
 
-    /* Tiles layout */
+    /* Tiles layout
+       Align the grid area with the search input: start at wrap's left padding,
+       end at the LEFT side of the search button (subtract button width + 12px gap).
+    */
     .tiles{
-      max-width:var(--page-max); margin:14px auto 24px; padding:0 var(--gap);
+      max-width:var(--page-max);
+      margin:14px auto 24px;
+      padding-left:0; /* align to wrap's left edge (same as search input) */
+      padding-right: calc(var(--gap) + var(--ctl) + 12px); /* wrap padding + button + gap */
       display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:14px;
-      grid-auto-rows:1fr; align-items:stretch;
+      align-items:start; /* keep rows compact so more tiles can follow below */
     }
     @media (max-width:1100px){ .tiles{ grid-template-columns:repeat(3, minmax(0,1fr)); } }
-    @media (max-width:720px){ .tiles{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
-    @media (max-width:420px){ .tiles{ grid-template-columns:1fr; } }
+    @media (max-width:720px){
+      .tiles{
+        grid-template-columns:repeat(2, minmax(0,1fr));
+        padding-right: calc(var(--gap) + var(--ctl) + 12px); /* keep same alignment on mobile */
+      }
+    }
+    @media (max-width:420px){
+      .tiles{ grid-template-columns:1fr; padding-right: calc(var(--gap) + var(--ctl) + 12px); }
+    }
 
     /* ===== Card look (top bar removed, icon centered & larger) ===== */
     .tile-card{
@@ -69,10 +82,9 @@
       padding:20px 16px 16px;
       text-decoration:none; color:inherit;
       transition: box-shadow .2s ease, transform .2s ease;
-      /* height removed so aspect-ratio can enforce perfect squares */
+      /* No fixed height — stays compact so more rows can be added later */
     }
-    /* Remove previous green top accent */
-    .tile-card::before{ content:none; }
+    .tile-card::before{ content:none; } /* top accent removed */
 
     /* Centered bigger icon */
     .tile-card .icon{
