@@ -3,366 +3,178 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dashboard Pergigian Kedah</title>
+  <title>Infografik Data Teknikal Kesihatan Pergigian Negeri Kedah</title>
 
-  <!-- Favicon from assets/icons -->
-  <link rel="icon" type="image/svg+xml" href="assets/icons/access.svg" />
-
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=1" />
+  <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --page-max:1200px; --gap:20px; --ctl:44px;
-      --ink:#0f172a; --muted:#64748b; --bd:#e5e7eb;
-      --panel:#ffffff; --bg:#f7f7fb;
+      /* Kedah paddy greens */
+      --hero:#0f766e;          /* teal-700 */
+      --hero-2:#10b981;        /* emerald-500 */
+      --accent:#10b981;
+
+      /* Layout */
+      --page-max: 1100px;      /* outer page width */
+      --content-max: 980px;    /* inner rail (hero + tiles share this) */
+      --gap: 16px;
+
+      /* Neutral palette (matches dashboard) */
+      --bg:#f7f7fb; --panel:#fff; --ink:#0f172a; --muted:#64748b; --bd:#e5e7eb;
       --shadow-1:0 1px 2px rgba(15,23,42,.06),0 8px 16px rgba(15,23,42,.05);
+      --shadow-2:0 8px 22px rgba(2,6,23,.15);
     }
-    body{ margin:0; background:var(--bg); color:var(--ink); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial; }
+    *{box-sizing:border-box}
+    body{
+      margin:0; background:var(--bg); color:var(--ink);
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      display:flex; min-height:100vh; flex-direction:column;
+    }
 
-    header.wrap{ max-width:var(--page-max); margin:28px auto 14px; padding:0 var(--gap); }
-    header.wrap h1{ margin:0 0 4px; font-size:28px; font-weight:800; }
-    header.wrap p{ margin:0; color:var(--muted) }
+    /* Outer page wrapper */
+    .wrap{max-width:var(--page-max); margin:0 auto; padding:0 var(--gap)}
 
-    /* Search row */
-    .searchbar{ display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:12px; margin-top:10px; }
-    .btn-ghost{ height:var(--ctl); width:var(--ctl); border-radius:12px; background:#fff; color:#0f172a; border:1px solid #d1d5db; box-shadow:var(--shadow-1); }
-    .btn-ghost:hover{ box-shadow:0 0 0 4px rgba(16,185,129,.15), var(--shadow-1); }
-    .searchbar input{ height:var(--ctl); border-radius:12px; border:1px solid #d1d5db; padding:0 14px; background:#fff; box-shadow:var(--shadow-1); }
-    .searchbar button.search{ height:var(--ctl); width:var(--ctl); border-radius:12px; border:1px solid #0ea5a0; background:#0ea5a0; color:#fff; box-shadow:0 4px 14px rgba(14,165,160,.25); }
+    /* Inner content rail used by BOTH hero & cards (so edges match) */
+    .content{max-width:var(--content-max); margin:0 auto}
 
-    /* Suggestion dropdown */
-    .gs-box{ position:relative; }
-    .gs-suggest{ position:absolute; left:56px; right:56px; top:calc(var(--ctl) + 8px); background:#fff; border:1px solid var(--bd); border-radius:12px; box-shadow:0 18px 40px rgba(2,6,23,.18); z-index:50; display:none; max-height:320px; overflow:auto; }
-    .gs-suggest .opt{ display:flex; flex-direction:column; gap:2px; padding:10px 12px; cursor:pointer; }
-    .gs-suggest .opt:hover, .gs-suggest .opt.active{ background:#f7fafc; }
-    .gs-suggest .type{ font-size:10px; font-weight:800; color:#0ea5e9; text-transform:uppercase; letter-spacing:.04em; }
-    .gs-suggest .lbl{ font-size:14px; color:#0f172a; }
-    .gs-suggest .sub{ font-size:12px; color:#64748b; }
-    .gs-suggest .empty{ padding:10px 12px; color:#64748b; font-size:13px; }
+    /* Shared 2-column grid */
+    .grid{display:grid; gap:var(--gap); grid-template-columns:1fr}
+    @media (min-width:900px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
 
-    /* 5-square tiles in a single row (wrap on small screens) */
-    .tiles{ max-width:var(--page-max); margin:8px auto 24px; padding:0 var(--gap);
-      display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:14px; }
-    @media (max-width:1100px){ .tiles{ grid-template-columns:repeat(3, minmax(0,1fr)); } }
-    @media (max-width:720px){ .tiles{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
-    @media (max-width:420px){ .tiles{ grid-template-columns:1fr; } }
+    /* HERO */
+    header{
+      background:linear-gradient(180deg,var(--hero),var(--hero-2));
+      color:#fff; padding:22px 0 24px;
+      box-shadow:inset 0 -1px 0 rgba(255,255,255,.18);
+    }
+    .title{grid-column:1 / -1; margin:0; font-weight:800; line-height:1.2; font-size:28px}
+    .subtitle{grid-column:1 / -1; margin:2px 0 6px; color:#e6fffb}
+    .search{grid-column:1 / -1; display:flex; gap:10px}
+    .search input{
+      flex:1; height:46px; border-radius:12px; border:1px solid #d1d5db;
+      padding:0 14px; font-size:15px; background:#fff; box-shadow:var(--shadow-1);
+    }
+    .search button{
+      height:46px; padding:0 16px; border-radius:12px; border:1px solid #0ea5a0;
+      background:#0ea5a0; color:#fff; font-weight:800; cursor:pointer; box-shadow:var(--shadow-1);
+    }
+    .search button:hover{filter:brightness(.96)}
 
-    .tile-card{ background:var(--panel); border:1px solid var(--bd); border-radius:16px; box-shadow:var(--shadow-1); display:flex; flex-direction:column; padding:14px; text-decoration:none; color:inherit; }
-    .tile-card:hover{ box-shadow:0 0 0 4px rgba(16,185,129,.15), var(--shadow-1); }
-    .tile-card .icon{ width:36px; height:36px; }
-    .tile-card .title{ margin:10px 0 2px; font-weight:800; font-size:16px; }
-    .tile-card .subtitle{ margin:0; color:var(--muted); font-size:12px; min-height:30px; }
-    .tile-card .cta{ margin-top:auto; display:inline-flex; align-items:center; gap:8px; font-weight:700; font-size:13px; color:#0ea5a0; }
-    .square{ aspect-ratio:1/1; }
+    main{flex:1}
+    .cards{margin:14px 0 18px}
 
-    footer.wrap{ max-width:var(--page-max); margin: 8px auto 20px; padding: 0 var(--gap); color:#94a3b8; font-size:12px; text-align:center; }
-    .ico{ width:18px; height:18px; }
+    /* Card style */
+    a.card{
+      text-decoration:none; color:inherit; background:var(--panel); border:1px solid var(--bd);
+      border-radius:14px; padding:16px; display:grid; grid-template-columns:auto 1fr; gap:14px;
+      box-shadow:var(--shadow-1); transition:transform .08s ease, box-shadow .08s ease;
+    }
+    a.card:hover{transform:translateY(-2px); box-shadow:var(--shadow-2)}
+    .icoblock{
+      width:56px; height:56px; border-radius:12px; display:grid; place-items:center;
+      background:#ecfdf5; border:1px solid #bbf7d0;
+    }
+    .icoblock svg{width:28px; height:28px; stroke:#334155}
+    .ctitle{margin:2px 0 2px; font-weight:800; font-size:20px}
+    .cdesc{margin:0; color:var(--muted); font-size:14px}
+    .badge{display:inline-block; margin-top:10px; padding:4px 10px; border-radius:999px;
+      background:#f0fdf4; border:1px solid #bbf7d0; font-size:12px; color:#065f46; font-weight:700}
+
+    footer{margin:8px 0 20px; color:#94a3b8; font-size:12px}
   </style>
 
-  <!-- icons -->
+  <!-- Icons with subtle green accents -->
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
-    <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M15 18l-6-6 6-6"/><path d="M21 12H9"/>
+    <symbol id="i-access" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="9"/><path d="M9 12h6M12 9v6"/><circle cx="18" cy="6" r="2" fill="#10b981" stroke="none"/>
     </symbol>
-    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
+    <symbol id="i-school" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 10l9-6 9 6-9 6-9-6z"/><path d="M21 10v6M3 10v6"/><path d="M12 16v6"/><path d="M17 6v5" stroke="#10b981"/>
+    </symbol>
+    <symbol id="i-kpi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 3v18h18"/><path d="M6 15l4-4 3 2 4-6"/><circle cx="13" cy="13" r="2" fill="#10b981" stroke="none"/>
+    </symbol>
+    <symbol id="i-work" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M8 7h8" stroke="#10b981"/>
     </symbol>
   </svg>
 </head>
 <body>
-
-  <header class="wrap">
-    <h1>Dashboard Pergigian Kedah</h1>
-    <p>Ringkasan analitik untuk perkhidmatan dan program pergigian negeri Kedah.</p>
-
-    <div class="gs-box">
-      <div class="searchbar">
-        <a class="btn-ghost" href="#" onclick="history.back();return false;" title="Kembali">
-          <svg class="ico"><use href="#i-back" /></svg>
-        </a>
-        <input id="globalSearch" type="search" placeholder="Cari halaman, jubin atau penapis…" autocomplete="off" />
-        <button class="search" id="goBtn" title="Cari">
-          <svg class="ico"><use href="#i-search" /></svg>
-        </button>
+  <!-- HERO on the same inner content rail -->
+  <header>
+    <div class="wrap">
+      <div class="content grid">
+        <h1 class="title">Infografik Data Teknikal Kesihatan Pergigian Negeri Kedah</h1>
+        <p class="subtitle">Sumber: Google Sheets (Publish to Web)</p>
+        <div class="search" role="search">
+          <input id="q" type="search" placeholder="Cari modul… (akses, sekolah, KPI, tenaga kerja)" aria-label="Cari modul">
+          <button id="btnSearch" type="button" aria-label="Laksanakan carian">Cari</button>
+        </div>
       </div>
-      <div class="gs-suggest" id="suggestBox"></div>
     </div>
   </header>
 
-  <main class="tiles">
-    <!-- Akses -->
-    <a class="tile-card square" href="akses.html">
-      <img class="icon" src="assets/icons/access.svg" alt="Akses" />
-      <h3 class="title">Akses Perkhidmatan Pergigian</h3>
-      <p class="subtitle">Status akses perkhidmatan mengikut daerah.</p>
-      <span class="cta">info lanjut</span>
-    </a>
+  <!-- Cards on the SAME content rail (edges now match perfectly) -->
+  <main class="wrap">
+    <div class="content grid cards" id="cards">
+      <a class="card" href="akses.html" data-key="akses perkhidmatan pergigian capaian utiliti rawatan daerah liputan">
+        <div class="icoblock"><svg><use href="#i-access"/></svg></div>
+        <div>
+          <h3 class="ctitle">Akses Perkhidmatan Pergigian</h3>
+          <p class="cdesc">Liputan, utiliti & metrik akses mengikut daerah.</p>
+          <span class="badge">Klik untuk buka</span>
+        </div>
+      </a>
 
-    <!-- Sekolah -->
-    <a class="tile-card square" href="sekolah.html">
-      <img class="icon" src="assets/icons/sekolah.svg" alt="Sekolah" />
-      <h3 class="title">Kesihatan Pergigian Sekolah</h3>
-      <p class="subtitle">Pra sekolah, sekolah rendah dan menengah.</p>
-      <span class="cta">info lanjut</span>
-    </a>
+      <a class="card" href="sekolah.html" data-key="sekolah rendah menengah program murid intervensi">
+        <div class="icoblock"><svg><use href="#i-school"/></svg></div>
+        <div>
+          <h3 class="ctitle">Kesihatan Pergigian Sekolah</h3>
+          <p class="cdesc">Rendah & menengah: saringan, fluoride, status oral.</p>
+          <span class="badge">Akan datang</span>
+        </div>
+      </a>
 
-    <!-- KPI -->
-    <a class="tile-card square" href="kpi.html">
-      <img class="icon" src="assets/icons/kpi.svg" alt="KPI" />
-      <h3 class="title">Indikator Prestasi Utama (KPI)</h3>
-      <p class="subtitle">Sasaran utama kesihatan pergigian.</p>
-      <span class="cta">info lanjut</span>
-    </a>
+      <a class="card" href="kpi.html" data-key="kpi indikator prestasi utama sasaran pencapaian">
+        <div class="icoblock"><svg><use href="#i-kpi"/></svg></div>
+        <div>
+          <h3 class="ctitle">Indikator Prestasi Utama (KPI)</h3>
+          <p class="cdesc">Sasaran & pencapaian indikator perkhidmatan.</p>
+          <span class="badge">Akan datang</span>
+        </div>
+      </a>
 
-    <!-- Tenaga Kerja -->
-    <a class="tile-card square" href="workforce.html">
-      <img class="icon" src="assets/icons/workforce.svg" alt="Tenaga Kerja" />
-      <h3 class="title">Tenaga Kerja Pergigian</h3>
-      <p class="subtitle">Latihan & purata hasil kerja.</p>
-      <span class="cta">info lanjut</span>
-    </a>
-
-    <!-- Program Pencegahan -->
-    <a class="tile-card square" href="prevention.html">
-      <img class="icon" src="assets/icons/prevention.svg" alt="Pencegahan" />
-      <h3 class="title">Program Pencegahan Pergigian</h3>
-      <p class="subtitle">MMI, klinikal pencegahan karies & outreach.</p>
-      <span class="cta">info lanjut</span>
-    </a>
+      <a class="card" href="workforce.html" data-key="tenaga kerja workforce sumber manusia agihan">
+        <div class="icoblock"><svg><use href="#i-work"/></svg></div>
+        <div>
+          <h3 class="ctitle">Tenaga Kerja Pergigian</h3>
+          <p class="cdesc">Bilangan, agihan & nisbah staf di negeri.</p>
+          <span class="badge">Akan datang</span>
+        </div>
+      </a>
+    </div>
   </main>
 
-  <footer class="wrap">© Pejabat Kesihatan Pergigian Negeri Kedah</footer>
+   <footer class="wrap">
+    <div class="content">© Kedah Oral Health Analytics • Optimum viewing recommended via desktop web browser.</div>
+   </footer>
 
   <script>
-    // ---------- SEARCH MANIFEST ----------
-    // Helper to craft deep-link URLs
-    function link(page, tile, key){
-      const u = new URL(page, location.href);
-      if (tile)   u.searchParams.set('tile', tile);
-      if (key)    u.searchParams.set('filter', key);
-      return u.pathname.replace(location.pathname.split('/').pop(),'') + u.search;
+    // Simple card filter
+    const q = document.getElementById('q');
+    const btn = document.getElementById('btnSearch');
+    const cards = Array.from(document.querySelectorAll('.card'));
+    function filter(){
+      const term = q.value.toLowerCase().trim();
+      cards.forEach(c=>{
+        const key = (c.textContent + ' ' + (c.dataset.key||'')).toLowerCase();
+        c.style.display = !term || key.includes(term) ? '' : 'none';
+      });
     }
-
-    // Build searchable items: page title tiles + filter lists for each page/tile.
-    // A K S E S  (tile titles only here)
-    const AKSES = [
-      { type:'tile', page:'akses.html', tile:'', key:'', label:'Akses Perkhidmatan Pergigian', sub:'Halaman' },
-    ];
-
-    // S E K O L A H
-    const SEKOLAH = [
-      { type:'tile', page:'sekolah.html', tile:'ps1-tile', key:'', label:'Pra Sekolah, Tadika & Tadika Swasta', sub:'Halaman Sekolah' },
-      { type:'filter', page:'sekolah.html', tile:'ps1', key:'m1', label:'Bilangan institusi', sub:'Pra Sekolah' },
-      { type:'filter', page:'sekolah.html', tile:'ps1', key:'m2', label:'Jumlah enrolmen', sub:'Pra Sekolah' },
-      { type:'filter', page:'sekolah.html', tile:'ps1', key:'m3', label:'% Liputan Tadika', sub:'Pra Sekolah' },
-      { type:'filter', page:'sekolah.html', tile:'ps1', key:'m4', label:'% Liputan Murid', sub:'Pra Sekolah' },
-      { type:'filter', page:'sekolah.html', tile:'ps1', key:'m5', label:'% TPR', sub:'Pra Sekolah' },
-      { type:'filter', page:'sekolah.html', tile:'ps1', key:'m6', label:'% MBK', sub:'Pra Sekolah' },
-      { type:'filter', page:'sekolah.html', tile:'ps1', key:'m7', label:'% Kes selesai', sub:'Pra Sekolah' },
-
-      { type:'tile', page:'sekolah.html', tile:'sr2-tile', key:'', label:'Sekolah Rendah', sub:'Halaman Sekolah' },
-      { type:'filter', page:'sekolah.html', tile:'s2', key:'sr_bil', label:'Bilangan sekolah', sub:'Sekolah Rendah' },
-      { type:'filter', page:'sekolah.html', tile:'s2', key:'sr_enrol', label:'Jumlah enrolmen', sub:'Sekolah Rendah' },
-      { type:'filter', page:'sekolah.html', tile:'s2', key:'sr_dilawati', label:'Peratus SR dilawati', sub:'Sekolah Rendah' },
-      { type:'filter', page:'sekolah.html', tile:'s2', key:'sr_liputan', label:'Peratus murid SR mendapat liputan', sub:'Sekolah Rendah' },
-      { type:'filter', page:'sekolah.html', tile:'s2', key:'sr_orallyfit', label:'Peratus murid SR mencapai status orally fit', sub:'Sekolah Rendah' },
-      { type:'filter', page:'sekolah.html', tile:'s2', key:'sr_kesselesai', label:'Peratus murid SR kes selesai', sub:'Sekolah Rendah' },
-      { type:'filter', page:'sekolah.html', tile:'s2', key:'sr_tpr', label:'Peratus murid SR TPR', sub:'Sekolah Rendah' },
-
-      { type:'tile', page:'sekolah.html', tile:'sm3-tile', key:'', label:'Sekolah Menengah', sub:'Halaman Sekolah' },
-      { type:'filter', page:'sekolah.html', tile:'s3', key:'sm_bil', label:'Bilangan sekolah (SM)', sub:'Sekolah Menengah' },
-      { type:'filter', page:'sekolah.html', tile:'s3', key:'sm_enrol', label:'Jumlah enrolmen (SM)', sub:'Sekolah Menengah' },
-      { type:'filter', page:'sekolah.html', tile:'s3', key:'sm_dilawati', label:'Peratus SM dilawati', sub:'Sekolah Menengah' },
-      { type:'filter', page:'sekolah.html', tile:'s3', key:'sm_liputan', label:'Peratus murid SM mendapat liputan', sub:'Sekolah Menengah' },
-      { type:'filter', page:'sekolah.html', tile:'s3', key:'sm_orallyfit', label:'Peratus murid SM mencapai status orally fit', sub:'Sekolah Menengah' },
-      { type:'filter', page:'sekolah.html', tile:'s3', key:'sm_kesselesai', label:'Peratus liputan murid SM mencapai status orally fit (kes selesai)', sub:'Sekolah Menengah' },
-      { type:'filter', page:'sekolah.html', tile:'s3', key:'sm_tpr', label:'Peratus murid SM TPR', sub:'Sekolah Menengah' },
-      { type:'filter', page:'sekolah.html', tile:'s3', key:'sm_kehilangan', label:'Kehilangan gigi kekal/100 murid 16 tahun', sub:'Sekolah Menengah' },
-    ];
-
-    // K P I
-    const KPI = [
-      { type:'tile', page:'kpi.html', tile:'k1-tile', key:'', label:'KEY ORAL HEALTH GOALS', sub:'Halaman KPI' },
-      { type:'filter', page:'kpi.html', tile:'k1', key:'cf6', label:'6-year-olds Caries free', sub:'Key Goals' },
-      { type:'filter', page:'kpi.html', tile:'k1', key:'cf12', label:'12-year-olds Caries free', sub:'Key Goals' },
-      { type:'filter', page:'kpi.html', tile:'k1', key:'cf16', label:'16-year-olds Caries free', sub:'Key Goals' },
-      { type:'filter', page:'kpi.html', tile:'k1', key:'hp12', label:'12-year-olds with healthy periodontium', sub:'Key Goals' },
-      { type:'filter', page:'kpi.html', tile:'k1', key:'hp16', label:'16-year-olds with healthy periodontium', sub:'Key Goals' },
-      { type:'filter', page:'kpi.html', tile:'k1', key:'ft20', label:'60-year-old and above with minimum 20 functional teeth', sub:'Key Goals' },
-      { type:'filter', page:'kpi.html', tile:'k1', key:'oc_stage1', label:'Oral cancers detected at stage 1', sub:'Key Goals' },
-
-      { type:'tile', page:'kpi.html', tile:'k2-tile', key:'', label:'NIA', sub:'Halaman KPI' },
-      { type:'filter', page:'kpi.html', tile:'k2', key:'nia_primary_tpr',   label:'Percentage of Primary School Children Maintaining Orally Fit Status', sub:'NIA' },
-      { type:'filter', page:'kpi.html', tile:'k2', key:'nia_secondary_tpr', label:'Percentage of Secondary School Children Maintaining Orally Fit Status', sub:'NIA' },
-      { type:'filter', page:'kpi.html', tile:'k2', key:'nia_under5_cariesfree', label:'Percentage of Children below 5 years examined with Caries Free Mouth', sub:'NIA' },
-
-      { type:'tile', page:'kpi.html', tile:'k3-tile', key:'', label:'SUPPORTING ORAL HEALTH GOALS', sub:'Halaman KPI' },
-      { type:'filter', page:'kpi.html', tile:'k3', key:'dfx6',   label:'6-year-olds - mean dfx', sub:'Supporting Goals' },
-      { type:'filter', page:'kpi.html', tile:'k3', key:'dmfx12', label:'12-year-olds - mean DMFX', sub:'Supporting Goals' },
-      { type:'filter', page:'kpi.html', tile:'k3', key:'dmfx16', label:'16-year-olds - mean DMFX', sub:'Supporting Goals' },
-      { type:'filter', page:'kpi.html', tile:'k3', key:'m16',    label:'16-year-olds - mean M', sub:'Supporting Goals' },
-      { type:'filter', page:'kpi.html', tile:'k3', key:'m0_16',  label:'16-year-olds with M = 0', sub:'Supporting Goals' },
-    ];
-
-    // W O R K F O R C E
-    const WORKFORCE = [
-      { type:'tile', page:'workforce.html', tile:'tkp1-tile', key:'', label:'Latihan Dalam Perkhidmatan', sub:'Tenaga Kerja' },
-      { type:'filter', page:'workforce.html', tile:'t1', key:'c1', label:'% of courses/training conduct using LDP allocation', sub:'LDP' },
-      { type:'filter', page:'workforce.html', tile:'t1', key:'c2', label:'% of LDP allocation spend', sub:'LDP' },
-      { type:'filter', page:'workforce.html', tile:'t1', key:'c3', label:'% of staffs with 3 days in-service training', sub:'Latihan' },
-      { type:'filter', page:'workforce.html', tile:'t1', key:'c4', label:'% of staffs with 7 days in-service training', sub:'Latihan' },
-      { type:'filter', page:'workforce.html', tile:'t1', key:'c5', label:'% of MyCPD users with 0 MyCPD point', sub:'MyCPD' },
-
-      { type:'tile', page:'workforce.html', tile:'tkp2-tile', key:'', label:'PURATA HASIL KERJA Pegawai Pergigian', sub:'Tenaga Kerja' },
-      { type:'filter', page:'workforce.html', tile:'t2', key:'pp_on_duty',    label:'Bil. PP yang bertugas', sub:'Pegawai' },
-      { type:'filter', page:'workforce.html', tile:'t2', key:'pasien_total',  label:'Pesakit Baru + Ulangan (Jumlah)', sub:'Pegawai' },
-      { type:'filter', page:'workforce.html', tile:'t2', key:'pasien_rate',   label:'Pesakit Baru + Ulangan (Purata/PP)', sub:'Pegawai' },
-      { type:'filter', page:'workforce.html', tile:'t2', key:'tampalan_total', label:'Tampalan Gigi Kekal + Desidus (Jumlah)', sub:'Pegawai' },
-      { type:'filter', page:'workforce.html', tile:'t2', key:'tampalan_rate',  label:'Tampalan Gigi Kekal + Desidus (Purata/PP)', sub:'Pegawai' },
-      { type:'filter', page:'workforce.html', tile:'t2', key:'cabut_total',   label:'Cabutan (Jumlah)', sub:'Pegawai' },
-      { type:'filter', page:'workforce.html', tile:'t2', key:'cabut_rate',    label:'Cabutan (Purata/PP)', sub:'Pegawai' },
-      { type:'filter', page:'workforce.html', tile:'t2', key:'skaler_total',  label:'Penskaleran (Jumlah)', sub:'Pegawai' },
-      { type:'filter', page:'workforce.html', tile:'t2', key:'skaler_rate',   label:'Penskaleran (Purata/PP)', sub:'Pegawai' },
-      { type:'filter', page:'workforce.html', tile:'t2', key:'dentur_total',  label:'Dentur (penuh+separa) (Jumlah)', sub:'Pegawai' },
-      { type:'filter', page:'workforce.html', tile:'t2', key:'dentur_rate',   label:'Dentur (penuh+separa) (Purata/PP)', sub:'Pegawai' },
-      { type:'filter', page:'workforce.html', tile:'t2', key:'fisur_total',   label:'Fisur Sealan (Jumlah)', sub:'Pegawai' },
-      { type:'filter', page:'workforce.html', tile:'t2', key:'fisur_rate',    label:'Fisur Sealan (Purata)', sub:'Pegawai' },
-      { type:'filter', page:'workforce.html', tile:'t2', key:'varnis_total',  label:'Florida varnis (Jumlah)', sub:'Pegawai' },
-      { type:'filter', page:'workforce.html', tile:'t2', key:'varnis_rate',   label:'Florida varnis (Purata)', sub:'Pegawai' },
-
-      { type:'tile', page:'workforce.html', tile:'tkp3-tile', key:'', label:'PURATA HASIL KERJA Juruterapi Pergigian', sub:'Tenaga Kerja' },
-      { type:'filter', page:'workforce.html', tile:'t3', key:'jp_on_duty',      label:'Bil. JP yang bertugas', sub:'Juruterapi' },
-      { type:'filter', page:'workforce.html', tile:'t3', key:'jp_pasien_total', label:'Pesakit Baru + Ulangan (Jumlah)', sub:'Juruterapi' },
-      { type:'filter', page:'workforce.html', tile:'t3', key:'jp_pasien_rate',  label:'Pesakit Baru + Ulangan (Purata/JP)', sub:'Juruterapi' },
-      { type:'filter', page:'workforce.html', tile:'t3', key:'jp_tampalan_total', label:'Tampalan Gigi Kekal + Desidus (Jumlah)', sub:'Juruterapi' },
-      { type:'filter', page:'workforce.html', tile:'t3', key:'jp_tampalan_rate',  label:'Tampalan Gigi Kekal + Desidus (Purata/JP)', sub:'Juruterapi' },
-      { type:'filter', page:'workforce.html', tile:'t3', key:'jp_cabut_total',   label:'Cabutan (Jumlah)', sub:'Juruterapi' },
-      { type:'filter', page:'workforce.html', tile:'t3', key:'jp_cabut_rate',    label:'Cabutan (Purata/JP)', sub:'Juruterapi' },
-      { type:'filter', page:'workforce.html', tile:'t3', key:'jp_skal_total',    label:'Penskaleran (Jumlah)', sub:'Juruterapi' },
-      { type:'filter', page:'workforce.html', tile:'t3', key:'jp_skal_rate',     label:'Penskaleran (Purata/JP)', sub:'Juruterapi' },
-      { type:'filter', page:'workforce.html', tile:'t3', key:'jp_fisur_total',   label:'Fisur Sealan (Jumlah)', sub:'Juruterapi' },
-      { type:'filter', page:'workforce.html', tile:'t3', key:'jp_fisur_rate',    label:'Fisur Sealan (Purata)', sub:'Juruterapi' },
-      { type:'filter', page:'workforce.html', tile:'t3', key:'jp_varnis_total',  label:'Florida varnis (Jumlah)', sub:'Juruterapi' },
-      { type:'filter', page:'workforce.html', tile:'t3', key:'jp_varnis_rate',   label:'Florida varnis (Purata)', sub:'Juruterapi' },
-      { type:'filter', page:'workforce.html', tile:'t3', key:'jp_kes_total',     label:'Kes selesai (Jumlah)', sub:'Juruterapi' },
-      { type:'filter', page:'workforce.html', tile:'t3', key:'jp_kes_rate',      label:'Kes selesai (Purata/JP)', sub:'Juruterapi' },
-    ];
-
-    // P R E V E N T I O N
-    const PREVENTION = [
-      { type:'tile', page:'prevention.html', tile:'p1-tile', key:'', label:'Clinical Prevention Program for Caries', sub:'Pencegahan' },
-      { type:'filter', page:'prevention.html', tile:'p1', key:'cohort_jj23', label:'Cohort Jan-Jun 2023', sub:'Clinical Prevention' },
-      { type:'filter', page:'prevention.html', tile:'p1', key:'cohort_jd23', label:'Cohort Jul-Dis 2023', sub:'Clinical Prevention' },
-      { type:'filter', page:'prevention.html', tile:'p1', key:'cohort_jj24', label:'Cohort Jan-Jun 2024', sub:'Clinical Prevention' },
-      { type:'filter', page:'prevention.html', tile:'p1', key:'cohort_jd24', label:'Cohort Jul-Dis 2024', sub:'Clinical Prevention' },
-      { type:'filter', page:'prevention.html', tile:'p1', key:'cohort_jj25', label:'Cohort Jan-Jun 2025', sub:'Clinical Prevention' },
-      { type:'filter', page:'prevention.html', tile:'p1', key:'cohort_jd25', label:'Cohort Jul-Dis 2025', sub:'Clinical Prevention' },
-
-      { type:'filter', page:'prevention.html', tile:'p1', key:'paa_mbk',                 label:'Program Anak Angkat — % anak angkat dengan status MBK', sub:'Clinical Prevention' },
-      { type:'filter', page:'prevention.html', tile:'p1', key:'fv_pre',                  label:'% of pre-schoolchildren rendered FV', sub:'Clinical Prevention' },
-      { type:'filter', page:'prevention.html', tile:'p1', key:'fv_primary',              label:'% of primary schoolchildren rendered FV', sub:'Clinical Prevention' },
-      { type:'filter', page:'prevention.html', tile:'p1', key:'fs_pre',                  label:'% of pre-schoolchildren rendered FS', sub:'Clinical Prevention' },
-      { type:'filter', page:'prevention.html', tile:'p1', key:'fs_teeth_preschool',      label:'% of teeth rendered FS (Preschool)', sub:'Clinical Prevention' },
-      { type:'filter', page:'prevention.html', tile:'p1', key:'fs_primary',              label:'% of primary schoolchildren rendered FS', sub:'Clinical Prevention' },
-      { type:'filter', page:'prevention.html', tile:'p1', key:'fs_teeth_primary',        label:'% of teeth rendered FS (Primary school)', sub:'Clinical Prevention' },
-      { type:'filter', page:'prevention.html', tile:'p1', key:'fs_secondary',            label:'% of secondary schoolchildren rendered FS', sub:'Clinical Prevention' },
-      { type:'filter', page:'prevention.html', tile:'p1', key:'fs_teeth_secondary',      label:'% of teeth rendered FS (Secondary school)', sub:'Clinical Prevention' },
-      { type:'filter', page:'prevention.html', tile:'p1', key:'prr_primary',             label:'% of primary schoolchildren rendered PRR', sub:'Clinical Prevention' },
-      { type:'filter', page:'prevention.html', tile:'p1', key:'prr_teeth_primary',       label:'% of teeth rendered PRR (Primary school)', sub:'Clinical Prevention' },
-      { type:'filter', page:'prevention.html', tile:'p1', key:'prr_secondary',           label:'% of secondary schoolchildren rendered PRR', sub:'Clinical Prevention' },
-      { type:'filter', page:'prevention.html', tile:'p1', key:'prr_teeth_secondary',     label:'% of teeth rendered PRR (Secondary school)', sub:'Clinical Prevention' },
-
-      { type:'tile', page:'prevention.html', tile:'p2-tile', key:'', label:'Malaysian Modified ICDAS', sub:'Pencegahan' },
-      { type:'filter', page:'prevention.html', tile:'p2', key:'mmi_primary_schools',     label:'primary schools screened using MMI', sub:'MMI' },
-      { type:'filter', page:'prevention.html', tile:'p2', key:'mmi_primary_children',    label:'primary school children screened using MMI', sub:'MMI' },
-      { type:'filter', page:'prevention.html', tile:'p2', key:'mmi_primary_E',           label:'primary schoolchildren with E', sub:'MMI' },
-      { type:'filter', page:'prevention.html', tile:'p2', key:'mmi_primary_meanD',       label:'Mean D of primary schoolchildren', sub:'MMI' },
-      { type:'filter', page:'prevention.html', tile:'p2', key:'mmi_secondary_schools',   label:'secondary schools screened using MMI', sub:'MMI' },
-      { type:'filter', page:'prevention.html', tile:'p2', key:'mmi_secondary_children',  label:'secondary school children screened using MMI', sub:'MMI' },
-      { type:'filter', page:'prevention.html', tile:'p2', key:'mmi_secondary_E',         label:'secondary schoolchildren with E', sub:'MMI' },
-      { type:'filter', page:'prevention.html', tile:'p2', key:'mmi_secondary_meanD',     label:'Mean D of secondary schoolchildren', sub:'MMI' },
-      { type:'filter', page:'prevention.html', tile:'p2', key:'mmi_staff_trained',       label:'staff trained with MMI', sub:'MMI' },
-      { type:'filter', page:'prevention.html', tile:'p2', key:'mmi_calibration_sessions',label:'No of calibration session conducted', sub:'MMI' },
-
-      { type:'tile', page:'prevention.html', tile:'p3-tile', key:'', label:'Outreach', sub:'Pencegahan' },
-      { type:'filter', page:'prevention.html', tile:'p3', key:'new_patient',             label:"new patient at UTC/RTC", sub:'Outreach' },
-      { type:'filter', page:'prevention.html', tile:'p3', key:'repeat_patient',          label:"repeat patient at UTC/RTC", sub:'Outreach' },
-      { type:'filter', page:'prevention.html', tile:'p3', key:'attendance',              label:"patients' attendance at UTC/RTC", sub:'Outreach' },
-      { type:'filter', page:'prevention.html', tile:'p3', key:'kg_angkat_screening',     label:"% Kg. Angkat visited with oral cancer screening", sub:'Outreach' },
-      { type:'filter', page:'prevention.html', tile:'p3', key:'homevisit_2021',          label:"% of homevisit done to the family in Kg Angkat Pergigian 2021", sub:'Outreach' },
-      { type:'filter', page:'prevention.html', tile:'p3', key:'homevisit_2022',          label:"% of homevisit done to the family in Kg Angkat Pergigian 2022", sub:'Outreach' },
-      { type:'filter', page:'prevention.html', tile:'p3', key:'homevisit_2023',          label:"% of homevisit done to the family in Kg Angkat Pergigian 2023", sub:'Outreach' },
-      { type:'filter', page:'prevention.html', tile:'p3', key:'homevisit_2024',          label:"% of homevisit done to the family in Kg Angkat Pergigian 2024", sub:'Outreach' },
-      { type:'filter', page:'prevention.html', tile:'p3', key:'homevisit_2025',          label:"% of homevisit done to the family in Kg Angkat Pergigian 2025", sub:'Outreach' },
-      { type:'filter', page:'prevention.html', tile:'p3', key:'bilangan_selesai_baharu', label:"% Bilangan selesai kes / kehadiran baharu", sub:'Outreach' },
-      { type:'filter', page:'prevention.html', tile:'p3', key:'ppr_homevisit',           label:"% of homevisit done to the family in PPR", sub:'Outreach' },
-      { type:'filter', page:'prevention.html', tile:'p3', key:'ppr_kes_selesai',         label:"% Kes Selesai in PPR", sub:'Outreach' },
-    ];
-
-    const SEARCH_INDEX = [
-      // tile titles
-      ...AKSES, ...SEKOLAH.filter(x=>x.type==='tile'), ...KPI.filter(x=>x.type==='tile'),
-      ...WORKFORCE.filter(x=>x.type==='tile'), ...PREVENTION.filter(x=>x.type==='tile'),
-      // all filters
-      ...SEKOLAH.filter(x=>x.type==='filter'), ...KPI.filter(x=>x.type==='filter'),
-      ...WORKFORCE.filter(x=>x.type==='filter'), ...PREVENTION.filter(x=>x.type==='filter'),
-    ].map(item => ({ ...item, url: link(item.page, item.tile, item.key) }));
-
-    // ---------- AUTOCOMPLETE ----------
-    const q = document.getElementById('globalSearch');
-    const box = document.getElementById('suggestBox');
-    const goBtn = document.getElementById('goBtn');
-
-    function normalize(s){ return (s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,''); }
-
-    function search(term){
-      const t = normalize(term).trim();
-      if(!t) return [];
-      const parts = t.split(/\s+/).filter(Boolean);
-      return SEARCH_INDEX.filter(item=>{
-        const hay = normalize(item.label + ' ' + (item.sub||''));
-        // substring match for middle words too
-        return parts.every(p => hay.includes(p));
-      }).slice(0, 50);
-    }
-
-    function render(list){
-      if(!list.length){
-        box.innerHTML = '<div class="empty">Tiada cadangan.</div>';
-        box.style.display = 'block';
-        return;
-      }
-      box.innerHTML = list.map((it,i)=>`
-        <div class="opt" data-url="${it.url}">
-          <span class="type">${it.type === 'filter' ? 'Penapis' : 'Jubin'}</span>
-          <span class="lbl">${it.label}</span>
-          <span class="sub">${it.sub || ''}</span>
-        </div>
-      `).join('');
-      box.style.display = 'block';
-    }
-
-    let current=-1, currentList=[];
-    q.addEventListener('input', () => { current=-1; currentList = search(q.value); render(currentList); });
-    q.addEventListener('focus', () => { if(q.value) { currentList = search(q.value); render(currentList); } });
-
-    box.addEventListener('mousedown', (e)=>{
-      const opt = e.target.closest('.opt'); if(!opt) return;
-      location.href = opt.getAttribute('data-url');
-    });
-
-    q.addEventListener('keydown', (e)=>{
-      if(box.style.display!=='block') return;
-      const opts = [...box.querySelectorAll('.opt')];
-      if(e.key==='ArrowDown'){ e.preventDefault(); current = (current+1) % opts.length; opts.forEach(o=>o.classList.remove('active')); opts[current].classList.add('active'); opts[current].scrollIntoView({block:'nearest'}); }
-      else if(e.key==='ArrowUp'){ e.preventDefault(); current = (current-1+opts.length) % opts.length; opts.forEach(o=>o.classList.remove('active')); opts[current].classList.add('active'); opts[current].scrollIntoView({block:'nearest'}); }
-      else if(e.key==='Enter'){ e.preventDefault(); if(current>=0){ location.href = opts[current].getAttribute('data-url'); } else if(currentList[0]) { location.href = currentList[0].url; } }
-      else if(e.key==='Escape'){ box.style.display='none'; }
-    });
-
-    document.addEventListener('click', (e)=>{ if(!document.querySelector('.gs-box').contains(e.target)) box.style.display='none'; });
-    goBtn.addEventListener('click', ()=>{ const list = search(q.value); if(list[0]) location.href = list[0].url; });
+    q.addEventListener('input', filter);
+    q.addEventListener('keydown', e=>{ if(e.key==='Enter') filter(); });
+    btn.addEventListener('click', filter);
   </script>
 </body>
 </html>
