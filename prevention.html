@@ -6,7 +6,7 @@
   <title>Program Pencegahan Pergigian Negeri Kedah</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=1">
+  <link rel="stylesheet" href="styles.css">
 
   <!-- libs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -82,7 +82,6 @@
     .mchart canvas{ width:100% !important; height:100% !important; }
     .close{ border:1px solid #d7dee9; background:#fff; height:34px; padding:0 10px; border-radius:8px; }
 
-    /* legend & buttons */
     .legend{ display:flex; flex-wrap:wrap; gap:12px; margin-top:8px; }
     .legend .lg{ display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:600; color:#334155; background:#f8fafc; border:1px solid #e5edf7; padding:5px 10px; border-radius:999px; }
     .legend .lg .dot{ height:10px; width:10px; border-radius:999px; display:inline-block; }
@@ -255,6 +254,9 @@
 
   <!-- Helpers shared by tiles -->
   <script>
+    // Keep chart instances here (avoid clashing with global variables created from element IDs)
+    const CHARTS = {};
+
     // general helpers
     const COLORS_PALETTE = ['#0ea5e9','#10b981','#8b5cf6','#ef4444','#f59e0b','#22c55e','#64748b','#a855f7','#06b6d4','#e11d48','#14b8a6','#7c3aed','#16a34a','#3b82f6','#f97316','#065f46','#374151','#eab308','#9d174d','#1d4ed8','#059669','#9333ea','#2563eb','#dc2626','#4b5563','#0891b2','#fb7185','#84cc16','#7dd3fc','#d946ef'];
     function colIndex(A){ let n=0; for(let i=0;i<A.length;i++) n=n*26+(A.charCodeAt(i)-64); return n-1; }
@@ -271,12 +273,12 @@
       return g;
     }
 
-    // Smart dynamic Y max for visible datasets
+    // Dynamic Y max ignoring padded edges
     function setDynamicYMax(chart){
       const vis = chart.data.datasets.filter(d=>!d.hidden);
       let cntMax = 0, pctMax = 100;
       vis.forEach(d=>{
-        const arr = d.data.filter((_,i)=>!(i===0||i===d.data.length-1));
+        const arr = d.data.map(Number).filter((_,i)=>!(i===0||i===d.data.length-1));
         const m = Math.max(...arr);
         if(d.yAxisID==='yCnt') cntMax = Math.max(cntMax, m);
         if(d.yAxisID==='yPct') pctMax = Math.max(pctMax, m);
@@ -286,11 +288,18 @@
       chart.options.scales.yPct.suggestedMax = Math.max(100, Math.ceil(pctMax/10)*10);
     }
 
+    // padded labels
+    const AREAS12 = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
+    const LABELS_PAD_12 = [' ', ...AREAS12, ' '];
+    const PAD_LAST_INDEX = LABELS_PAD_12.length - 1;
+
     // Generic chart drawer
     function drawLineChart(canvasId, labels, datasets, timeHolder){
       const ctx=document.getElementById(canvasId).getContext('2d');
-      if(window[canvasId]) window[canvasId].destroy();
-      window[canvasId] = new Chart(ctx,{
+      if (CHARTS[canvasId] && typeof CHARTS[canvasId].destroy === 'function') {
+        CHARTS[canvasId].destroy();
+      }
+      CHARTS[canvasId] = new Chart(ctx,{
         type:'line',
         data:{ labels, datasets },
         options:{
@@ -313,16 +322,15 @@
           }
         }
       });
-      setDynamicYMax(window[canvasId]);
+      setDynamicYMax(CHARTS[canvasId]);
       document.getElementById(timeHolder).textContent=new Date().toLocaleString();
       setTimeout(()=>{
-        // rotate labels if crowded
-        const n=labels.length-2, w=window[canvasId].chartArea?.width||600, px=w/n;
+        const n=labels.length-2, w=CHARTS[canvasId].chartArea?.width||600, px=w/n;
         const rot=(px<70)||(window.innerWidth<900);
-        const t=window[canvasId].options.scales.x.ticks; t.maxRotation=rot?90:0; t.minRotation=rot?90:0; t.autoSkip=!rot;
-        window[canvasId].update();
+        const t=CHARTS[canvasId].options.scales.x.ticks; t.maxRotation=rot?90:0; t.minRotation=rot?90:0; t.autoSkip=!rot;
+        CHARTS[canvasId].update();
       },0);
-      return window[canvasId];
+      return CHARTS[canvasId];
     }
 
     // Modal helpers
@@ -346,17 +354,14 @@
       setDynamicYMax(window.__mchart);
       document.getElementById('mclose').onclick=()=>{ document.getElementById('modal').classList.remove('open'); window.__mchart?.destroy(); };
     }
-
-    // padded labels
-    const AREAS12 = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
-    const LABELS_PAD_12 = [' ', ...AREAS12, ' '];
   </script>
 
-  <!-- TILE 2: Malaysian Modified ICDAS (kept first for smaller size to test quickly) -->
+  <!-- TILE 2: Malaysian Modified ICDAS -->
   <script>
   (function(){
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=3425549&single=true&output=csv';
     const COLS = ['F','G','H','I','J','K','L','M','N','O','P','Q'];
+    const ctx = document.getElementById('p2').getContext('2d');
 
     function cellsForRow(row){ return COLS.map(c=>`${c}${row}`); }
     function series(tbl, row){ return cellsForRow(row).map(a1=> toNum(getCell(tbl,a1))); }
@@ -416,7 +421,7 @@
 
     let TABLE=null, chart=null;
 
-    function buildDatasets(ctx){
+    function buildDatasets(){
       const ds=[]; let colorIdx=0;
       CATS.forEach(c=>{
         const show = selected.has(c.id);
@@ -426,13 +431,13 @@
           data:['0', ...series(TABLE,c.row), '0'],
           borderColor: col, backgroundColor: makeGrad(ctx, col),
           borderWidth:3, tension:.45, fill:true,
-          pointRadius:(p)=> (p.dataIndex===0||p.dataIndex===12+1?0:3),
+          pointRadius:(p)=> (p.dataIndex===0||p.dataIndex===PAD_LAST_INDEX?0:3),
           pointHoverRadius:3, hidden:!show, yAxisID:c.y
         });
         if(typeof c.target!=='undefined'){
           ds.push({
             _group:c.id, type:'line', label:`Sasaran: ${c.name}`,
-            data: new Array(14).fill(c.target), borderColor:'#475569', borderDash:[4,4],
+            data: new Array(LABELS_PAD_12.length).fill(c.target), borderColor:'#475569', borderDash:[4,4],
             borderWidth:2, tension:0, pointRadius:0, hidden:!show, yAxisID:c.y, fill:false
           });
         }
@@ -454,8 +459,7 @@
         complete:(res)=>{
           document.getElementById('p2err').style.display='none';
           TABLE=res.data; renderMenu(); rebuildTags(); rebuildLegend();
-          const datasets = buildDatasets(document.getElementById('p2').getContext('2d'));
-          chart = drawLineChart('p2', LABELS_PAD_12, datasets, 'p2time');
+          chart = drawLineChart('p2', LABELS_PAD_12, buildDatasets(), 'p2time');
           // search suggestions
           window.__prevSearch.suggestions.push({type:'tile', tile:'prev2-tile', label:'Malaysian Modified ICDAS'});
           CATS.forEach(c=> window.__prevSearch.suggestions.push({type:'filter', tile:'p2', key:c.id, label:c.name}));
@@ -466,9 +470,7 @@
 
     document.getElementById('p2refresh').addEventListener('click', loadAndDraw);
     document.getElementById('p2expand').addEventListener('click',()=>{
-      const ctx=document.createElement('canvas').getContext('2d');
-      const ds = buildDatasets(ctx).map(d=> ({...d, pointRadius:0}));
-      openModal('Malaysian Modified ICDAS', LABELS_PAD_12, ds);
+      openModal('Malaysian Modified ICDAS', LABELS_PAD_12, buildDatasets().map(d=> ({...d, pointRadius:0})));
     });
 
     window.__applyPrev2 = function(catId){
@@ -485,6 +487,7 @@
   (function(){
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1006276802&single=true&output=csv';
     const COLS = ['F','G','H','I','J','K','L','M','N','O','P','Q'];
+    const ctx = document.getElementById('p1').getContext('2d');
 
     function cellsForRow(row){ return COLS.map(c=>`${c}${row}`); }
     function series(tbl, row){ return cellsForRow(row).map(a1=> toNum(getCell(tbl,a1))); }
@@ -525,7 +528,7 @@
         { label:'Jul-Dis 2025',  row:62 },
         { label:'Jan-Jun 2026',  row:65 },
         { label:'Jul-Dis 2026',  row:68 },
-        { label:'Jul-Dis 2025',  row:71 }, // per provided mapping
+        { label:'Jul-Dis 2025',  row:71 },
       ]},
 
       // FV / FS / PRR programme metrics (single-line each)
@@ -580,7 +583,6 @@
     }
     function rebuildLegend(){
       const leg=document.getElementById('p1legend'); leg.innerHTML='';
-      // show legend of the first selected category
       const first = CATS.find(c=>selected.has(c.id));
       if(!first) return;
       first.lines.forEach((ln,i)=>{
@@ -591,7 +593,7 @@
 
     let TABLE=null, chart=null;
 
-    function buildDatasets(ctx){
+    function buildDatasets(){
       const ds=[];
       CATS.forEach(cat=>{
         const show = selected.has(cat.id);
@@ -602,14 +604,14 @@
             data:['0', ...series(TABLE, ln.row), '0'],
             borderColor: color, backgroundColor: makeGrad(ctx, color),
             borderWidth:3, tension:.45, fill:true,
-            pointRadius:(p)=> (p.dataIndex===0||p.dataIndex===12+1?0:3),
+            pointRadius:(p)=> (p.dataIndex===0||p.dataIndex===PAD_LAST_INDEX?0:3),
             pointHoverRadius:3, hidden:!show, yAxisID:cat.y
           });
         });
         if(typeof cat.target!=='undefined'){
           ds.push({
             _group:cat.id, type:'line', label:`Sasaran: ${cat.name}`,
-            data: new Array(14).fill(cat.target), borderColor:'#475569', borderDash:[4,4],
+            data: new Array(LABELS_PAD_12.length).fill(cat.target), borderColor:'#475569', borderDash:[4,4],
             borderWidth:2, tension:0, pointRadius:0, hidden:!show, yAxisID:cat.y, fill:false
           });
         }
@@ -631,8 +633,7 @@
         complete:(res)=>{
           document.getElementById('p1err').style.display='none';
           TABLE=res.data; renderMenu(); rebuildTags(); rebuildLegend();
-          const datasets = buildDatasets(document.getElementById('p1').getContext('2d'));
-          chart = drawLineChart('p1', LABELS_PAD_12, datasets, 'p1time');
+          chart = drawLineChart('p1', LABELS_PAD_12, buildDatasets(), 'p1time');
           // search suggestions
           window.__prevSearch.suggestions.push({type:'tile', tile:'prev1-tile', label:'Clinical Prevention Program for Caries'});
           CATS.forEach(c=> window.__prevSearch.suggestions.push({type:'filter', tile:'p1', key:c.id, label:c.name}));
@@ -643,9 +644,7 @@
 
     document.getElementById('p1refresh').addEventListener('click', loadAndDraw);
     document.getElementById('p1expand').addEventListener('click',()=>{
-      const ctx=document.createElement('canvas').getContext('2d');
-      const ds = buildDatasets(ctx).map(d=> ({...d, pointRadius:0}));
-      openModal('Clinical Prevention Program for Caries', LABELS_PAD_12, ds);
+      openModal('Clinical Prevention Program for Caries', LABELS_PAD_12, buildDatasets().map(d=> ({...d, pointRadius:0})));
     });
 
     window.__applyPrev1 = function(catId){
@@ -662,6 +661,7 @@
   (function(){
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=529560061&single=true&output=csv';
     const COLS = ['F','G','H','I','J','K','L','M','N','O','P','Q'];
+    const ctx = document.getElementById('p3').getContext('2d');
 
     function cellsForRow(row){ return COLS.map(c=>`${c}${row}`); }
     function series(tbl, row){ return cellsForRow(row).map(a1=> toNum(getCell(tbl,a1))); }
@@ -723,7 +723,7 @@
 
     let TABLE=null, chart=null;
 
-    function buildDatasets(ctx){
+    function buildDatasets(){
       const ds=[]; let idx=0;
       CATS.forEach(c=>{
         const col = COLORS_PALETTE[idx++ % COLORS_PALETTE.length];
@@ -733,13 +733,13 @@
           data:['0', ...series(TABLE, c.row), '0'],
           borderColor: col, backgroundColor: makeGrad(ctx, col),
           borderWidth:3, tension:.45, fill:true,
-          pointRadius:(p)=> (p.dataIndex===0||p.dataIndex===12+1?0:3),
+          pointRadius:(p)=> (p.dataIndex===0||p.dataIndex===PAD_LAST_INDEX?0:3),
           pointHoverRadius:3, hidden:!show, yAxisID:c.y
         });
         if(typeof c.target!=='undefined'){
           ds.push({
             _group:c.id, type:'line', label:`Sasaran: ${c.name}`,
-            data:new Array(14).fill(c.target), borderColor:'#475569', borderDash:[4,4],
+            data:new Array(LABELS_PAD_12.length).fill(c.target), borderColor:'#475569', borderDash:[4,4],
             borderWidth:2, tension:0, pointRadius:0, hidden:!show, yAxisID:c.y, fill:false
           });
         }
@@ -761,8 +761,7 @@
         complete:(res)=>{
           document.getElementById('p3err').style.display='none';
           TABLE=res.data; renderMenu(); rebuildTags(); rebuildLegend();
-          const datasets = buildDatasets(document.getElementById('p3').getContext('2d'));
-          chart = drawLineChart('p3', LABELS_PAD_12, datasets, 'p3time');
+          chart = drawLineChart('p3', LABELS_PAD_12, buildDatasets(), 'p3time');
           // search suggestions
           window.__prevSearch.suggestions.push({type:'tile', tile:'prev3-tile', label:'Outreach'});
           CATS.forEach(c=> window.__prevSearch.suggestions.push({type:'filter', tile:'p3', key:c.id, label:c.name}));
@@ -773,9 +772,7 @@
 
     document.getElementById('p3refresh').addEventListener('click', loadAndDraw);
     document.getElementById('p3expand').addEventListener('click',()=>{
-      const ctx=document.createElement('canvas').getContext('2d');
-      const ds = buildDatasets(ctx).map(d=> ({...d, pointRadius:0}));
-      openModal('Outreach', LABELS_PAD_12, ds);
+      openModal('Outreach', LABELS_PAD_12, buildDatasets().map(d=> ({...d, pointRadius:0})));
     });
 
     window.__applyPrev3 = function(catId){
