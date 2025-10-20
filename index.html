@@ -19,8 +19,8 @@
       --accent:#0ea5a0;
       --accent-2:#34d399;
       --shadow-1:0 1px 2px rgba(15,23,42,.06),0 8px 16px rgba(15,23,42,.05);
-      /* Uniform tile height (big enough so long titles are 2 lines on FHD) */
-      --tile-h: 340px;
+      /* SHORTER UNIFORM TILE HEIGHT */
+      --tile-h: 240px;
     }
     body{ margin:0; background:var(--bg); color:var(--ink); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial; }
 
@@ -50,7 +50,7 @@
     .gs-suggest .sub{ font-size:12px; color:#64748b; }
     .gs-suggest .empty{ padding:10px 12px; color:#64748b; font-size:13px; }
 
-    /* ===== Tiles layout (centered under the search area) ===== */
+    /* ===== Tiles layout ===== */
     .tiles{
       max-width:var(--page-max); margin:14px auto 24px; padding:0 var(--gap);
       display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:14px;
@@ -71,7 +71,7 @@
       padding:20px 16px 16px;
       text-decoration:none; color:inherit;
       transition: box-shadow .2s ease, transform .2s ease;
-      min-height: var(--tile-h);   /* <<< make all tiles same height */
+      height: var(--tile-h);        /* fixed shorter height for all tiles */
     }
     .tile-card::before{ content:none; } /* top accent removed */
 
@@ -93,7 +93,7 @@
     }
     .tile-card:hover{ box-shadow:0 8px 28px rgba(2,6,23,.14); transform: translateY(-1px); }
 
-    /* Squares removed to allow uniform height while keeping layout compact */
+    /* Keep aspect flexible */
     .square{ aspect-ratio:auto; }
 
     footer.wrap{ max-width:var(--page-max); margin: 8px auto 20px; padding: 0 var(--gap); color:#94a3b8; font-size:12px; text-align:center; }
@@ -122,7 +122,6 @@
       <div class="gs-box">
         <div class="searchbar">
           <!-- Back button intentionally removed -->
-          <!-- jubin -> graf, penapis -> saringan -->
           <input id="globalSearch" type="search" placeholder="Cari halaman, graf atau saringan…" autocomplete="off" />
           <button class="search" id="goBtn" title="Cari">
             <svg class="ico"><use href="#i-search" /></svg>
