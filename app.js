@@ -191,7 +191,10 @@ function layoutFor(labels) {
     $(btnNone).addEventListener("click", () =>
       menu.querySelectorAll("input").forEach((i) => (i.checked = false))
     );
-    $(btnClose).addEventListener("click", () => menu.classList.remove("open"));
+       $(btnClose).addEventListener("click", () => {
+      const box = menu.closest(".dd");
+      if (box) box.classList.remove("open");
+    });
   }
   function chosen(menuId, fb) {
     const s = new Set();
@@ -551,7 +554,7 @@ function layoutFor(labels) {
       RAW2 = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
       refreshT2Tags();
       drawT2(computeT2(RAW2, chosen2()), "t2", "main");
-      if ($("dd2btn")) $("dd2btn").onclick = () => $("dd2menu") && $("dd2menu").classList.toggle("open");
+      if ($("dd2btn")) $("dd2btn").onclick = () => $("dd2") && $("dd2").classList.toggle("open");
       if ($("dd2menu")) $("dd2menu").querySelectorAll("input").forEach((i) =>
           i.addEventListener("change", () => {
             refreshT2Tags();drawT2(computeT2(RAW2, chosen2()), "t2", "main");
@@ -559,7 +562,7 @@ function layoutFor(labels) {
         );
       document.addEventListener("click", (e) => {
         const box = $("dd2");
-        if (box && !box.contains(e.target)) $("dd2menu") && $("dd2menu").classList.remove("open");
+        if (box && !box.contains(e.target)) box.classList.remove("open");
       });
       $("t2time").textContent = new Date().toLocaleString();
     } catch (e) {
@@ -725,7 +728,7 @@ function layoutFor(labels) {
       RAW3 = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
       refreshT3Tags();
       drawT3(computeT3(RAW3, chosen3()), "t3", "main");
-      if ($("dd3btn")) $("dd3btn").onclick = () => $("dd3menu") && $("dd3menu").classList.toggle("open");
+      if ($("dd3btn")) $("dd3btn").onclick = () => $("dd3") && $("dd3").classList.toggle("open");
       if ($("dd3menu")) $("dd3menu").querySelectorAll("input").forEach((i) =>
           i.addEventListener("change", () => {
             refreshT3Tags();drawT3(computeT3(RAW3, chosen3()), "t3", "main");
@@ -733,7 +736,7 @@ function layoutFor(labels) {
         );
       document.addEventListener("click", (e) => {
         const box = $("dd3");
-        if (box && !box.contains(e.target)) $("dd3menu") && $("dd3menu").classList.remove("open");
+        if (box && !box.contains(e.target)) box.classList.remove("open");
       });
       $("t3time").textContent = new Date().toLocaleString();
     } catch (e) {
@@ -967,7 +970,7 @@ function layoutFor(labels) {
       RAW4S = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
       refreshT4STags();
       drawT4S(computeT4S(RAW4S, chosen4S()), "t4", "main");
-      if ($("dd4btn")) $("dd4btn").onclick = () => $("dd4menu") && $("dd4menu").classList.toggle("open");
+      if ($("dd4btn")) $("dd4btn").onclick = () => $("dd4") && $("dd4").classList.toggle("open");
       if ($("dd4menu")) $("dd4menu").querySelectorAll("input").forEach((i) =>
           i.addEventListener("change", () => {
             refreshT4STags();drawT4S(computeT4S(RAW4S, chosen4S()), "t4", "main");
@@ -975,7 +978,7 @@ function layoutFor(labels) {
         );
       document.addEventListener("click", (e) => {
         const box = $("dd4");
-        if (box && !box.contains(e.target)) $("dd4menu") && $("dd4menu").classList.remove("open");
+        if (box && !box.contains(e.target)) box.classList.remove("open");
       });
       $("t4time").textContent = new Date().toLocaleString();
     } catch (e) {
@@ -1149,7 +1152,7 @@ function layoutFor(labels) {
       buildDD5();
       const csv = await fetchCSV(CSV_TOD);
       RAW_TOD = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
-      if ($("dd5btn")) $("dd5btn").onclick = () => $("dd5menu") && $("dd5menu").classList.toggle("open");
+      if ($("dd5btn")) $("dd5btn").onclick = () => $("dd5") && $("dd5").classList.toggle("open");
       if ($("dd5menu")) $("dd5menu").querySelectorAll("input").forEach((i) =>
           i.addEventListener("change", () => {
             refreshT5Tags();drawT5(computeT5(RAW_TOD, chosen5()), "t5", "main");
@@ -1157,7 +1160,7 @@ function layoutFor(labels) {
         );
       document.addEventListener("click", (e) => {
         const box = $("dd5");
-        if (box && !box.contains(e.target)) $("dd5menu") && $("dd5menu").classList.remove("open");
+        if (box && !box.contains(e.target)) $("dd5menu") && $("dd5") && $("dd5").classList.remove("open");
       });
       refreshT5Tags();
       drawT5(computeT5(RAW_TOD, chosen5()), "t5", "main");
@@ -1331,7 +1334,7 @@ function layoutFor(labels) {
       RAW_PREG = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
       refreshT6Tags();
       drawT6(computeT6(RAW_PREG, chosen6()), "t6", "main");
-      if ($("dd6btn")) $("dd6btn").onclick = () => $("dd6menu") && $("dd6menu").classList.toggle("open");
+      if ($("dd6btn")) $("dd6btn").onclick = () => $("dd6") && $("dd6").classList.toggle("open");
       if ($("dd6menu")) $("dd6menu").querySelectorAll("input").forEach((i) =>
           i.addEventListener("change", () => {
             refreshT6Tags();drawT6(computeT6(RAW_PREG, chosen6()), "t6", "main");
@@ -1339,7 +1342,7 @@ function layoutFor(labels) {
         );
       document.addEventListener("click", (e) => {
         const box = $("dd6");
-        if (box && !box.contains(e.target)) $("dd6menu") && $("dd6menu").classList.remove("open");
+        if (box && !box.contains(e.target)) $("dd6menu") && $("dd6") && $("dd6").classList.remove("open");
       });
       $("t6time").textContent = new Date().toLocaleString();
     } catch (e) {
@@ -1502,7 +1505,7 @@ function layoutFor(labels) {
       RAW_YA = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
       refreshT7Tags();
       drawT7(computeT7(RAW_YA, chosen7()), "t7", "main");
-      if ($("dd7btn")) $("dd7btn").onclick = () => $("dd7menu") && $("dd7menu").classList.toggle("open");
+      if ($("dd7btn")) $("dd7btn").onclick = () => $("dd7") && $("dd7").classList.toggle("open");
       if ($("dd7menu")) $("dd7menu").querySelectorAll("input").forEach((i) =>
           i.addEventListener("change", () => {
             refreshT7Tags();drawT7(computeT7(RAW_YA, chosen7()), "t7", "main");
@@ -1510,7 +1513,7 @@ function layoutFor(labels) {
         );
       document.addEventListener("click", (e) => {
         const box = $("dd7");
-        if (box && !box.contains(e.target)) $("dd7menu") && $("dd7menu").classList.remove("open");
+        if (box && !box.contains(e.target)) box.classList.remove("open");
       });
       $("t7time").textContent = new Date().toLocaleString();
     } catch (e) {
@@ -1658,7 +1661,7 @@ function layoutFor(labels) {
       RAW_BPE = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
       refreshT8Tags();
       drawT8(computeT8(RAW_BPE, chosen8()), "t8", "main");
-      if ($("dd8btn")) $("dd8btn").onclick = () => $("dd8menu") && $("dd8menu").classList.toggle("open");
+      if ($("dd8btn")) $("dd8btn").onclick = () => $("dd8") && $("dd8").classList.toggle("open");
       if ($("dd8menu")) $("dd8menu").querySelectorAll("input").forEach((i) =>
           i.addEventListener("change", () => {
             refreshT8Tags();drawT8(computeT8(RAW_BPE, chosen8()), "t8", "main");
@@ -1666,7 +1669,7 @@ function layoutFor(labels) {
         );
       document.addEventListener("click", (e) => {
         const box = $("dd8");
-        if (box && !box.contains(e.target)) $("dd8menu") && $("dd8menu").classList.remove("open");
+        if (box && !box.contains(e.target)) box.classList.remove("open");
       });
       $("t8time").textContent = new Date().toLocaleString();
     } catch (e) {
@@ -1857,7 +1860,7 @@ function layoutFor(labels) {
       RAW_WE = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
       refreshT9Tags();
       drawT9(computeT9(RAW_WE, chosen9()), "t9", "main");
-      if ($("dd9btn")) $("dd9btn").onclick = () => $("dd9menu") && $("dd9menu").classList.toggle("open");
+      if ($("dd9btn")) $("dd9btn").onclick = () => $("dd9") && $("dd9").classList.toggle("open");
       if ($("dd9menu")) $("dd9menu").querySelectorAll("input").forEach((i) =>
           i.addEventListener("change", () => {
             refreshT9Tags();drawT9(computeT9(RAW_WE, chosen9()), "t9", "main");
@@ -1865,7 +1868,7 @@ function layoutFor(labels) {
         );
       document.addEventListener("click", (e) => {
         const box = $("dd9");
-        if (box && !box.contains(e.target)) $("dd9menu") && $("dd9menu").classList.remove("open");
+        if (box && !box.contains(e.target)) box.classList.remove("open");
       });
       $("t9time").textContent = new Date().toLocaleString();
     } catch (e) {
@@ -2034,6 +2037,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
