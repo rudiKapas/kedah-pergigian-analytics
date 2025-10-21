@@ -551,18 +551,15 @@ function layoutFor(labels) {
       RAW2 = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
       refreshT2Tags();
       drawT2(computeT2(RAW2, chosen2()), "t2", "main");
-      $("dd2btn").onclick = () => $("dd2menu").classList.toggle("open");
-      $("dd2menu")
-        .querySelectorAll("input")
-        .forEach((i) =>
+      if ($("dd2btn")) $("dd2btn").onclick = () => $("dd2menu") && $("dd2menu").classList.toggle("open");
+      if ($("dd2menu")) $("dd2menu").querySelectorAll("input").forEach((i) =>
           i.addEventListener("change", () => {
-            refreshT2Tags();
-            drawT2(computeT2(RAW2, chosen2()), "t2", "main");
+            refreshT2Tags();drawT2(computeT2(RAW2, chosen2()), "t2", "main");
           })
         );
       document.addEventListener("click", (e) => {
         const box = $("dd2");
-        if (box && !box.contains(e.target)) $("dd2menu").classList.remove("open");
+        if (box && !box.contains(e.target)) $("dd2menu") && $("dd2menu").classList.remove("open");
       });
       $("t2time").textContent = new Date().toLocaleString();
     } catch (e) {
@@ -728,18 +725,15 @@ function layoutFor(labels) {
       RAW3 = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
       refreshT3Tags();
       drawT3(computeT3(RAW3, chosen3()), "t3", "main");
-      $("dd3btn").onclick = () => $("dd3menu").classList.toggle("open");
-      $("dd3menu")
-        .querySelectorAll("input")
-        .forEach((i) =>
+      if ($("dd3btn")) $("dd3btn").onclick = () => $("dd3menu") && $("dd3menu").classList.toggle("open");
+      if ($("dd3menu")) $("dd3menu").querySelectorAll("input").forEach((i) =>
           i.addEventListener("change", () => {
-            refreshT3Tags();
-            drawT3(computeT3(RAW3, chosen3()), "t3", "main");
+            refreshT3Tags();drawT3(computeT3(RAW3, chosen3()), "t3", "main");
           })
         );
       document.addEventListener("click", (e) => {
         const box = $("dd3");
-        if (box && !box.contains(e.target)) $("dd3menu").classList.remove("open");
+        if (box && !box.contains(e.target)) $("dd3menu") && $("dd3menu").classList.remove("open");
       });
       $("t3time").textContent = new Date().toLocaleString();
     } catch (e) {
@@ -973,18 +967,15 @@ function layoutFor(labels) {
       RAW4S = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
       refreshT4STags();
       drawT4S(computeT4S(RAW4S, chosen4S()), "t4", "main");
-      $("dd4btn").onclick = () => $("dd4menu").classList.toggle("open");
-      $("dd4menu")
-        .querySelectorAll("input")
-        .forEach((i) =>
+      if ($("dd4btn")) $("dd4btn").onclick = () => $("dd4menu") && $("dd4menu").classList.toggle("open");
+      if ($("dd4menu")) $("dd4menu").querySelectorAll("input").forEach((i) =>
           i.addEventListener("change", () => {
-            refreshT4STags();
-            drawT4S(computeT4S(RAW4S, chosen4S()), "t4", "main");
+            refreshT4STags();drawT4S(computeT4S(RAW4S, chosen4S()), "t4", "main");
           })
         );
       document.addEventListener("click", (e) => {
         const box = $("dd4");
-        if (box && !box.contains(e.target)) $("dd4menu").classList.remove("open");
+        if (box && !box.contains(e.target)) $("dd4menu") && $("dd4menu").classList.remove("open");
       });
       $("t4time").textContent = new Date().toLocaleString();
     } catch (e) {
@@ -1158,18 +1149,15 @@ function layoutFor(labels) {
       buildDD5();
       const csv = await fetchCSV(CSV_TOD);
       RAW_TOD = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
-      $("dd5btn").onclick = () => $("dd5menu").classList.toggle("open");
-      $("dd5menu")
-        .querySelectorAll("input")
-        .forEach((i) =>
+      if ($("dd5btn")) $("dd5btn").onclick = () => $("dd5menu") && $("dd5menu").classList.toggle("open");
+      if ($("dd5menu")) $("dd5menu").querySelectorAll("input").forEach((i) =>
           i.addEventListener("change", () => {
-            refreshT5Tags();
-            drawT5(computeT5(RAW_TOD, chosen5()), "t5", "main");
+            refreshT5Tags();drawT5(computeT5(RAW_TOD, chosen5()), "t5", "main");
           })
         );
       document.addEventListener("click", (e) => {
         const box = $("dd5");
-        if (box && !box.contains(e.target)) $("dd5menu").classList.remove("open");
+        if (box && !box.contains(e.target)) $("dd5menu") && $("dd5menu").classList.remove("open");
       });
       refreshT5Tags();
       drawT5(computeT5(RAW_TOD, chosen5()), "t5", "main");
@@ -1343,18 +1331,15 @@ function layoutFor(labels) {
       RAW_PREG = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
       refreshT6Tags();
       drawT6(computeT6(RAW_PREG, chosen6()), "t6", "main");
-      $("dd6btn").onclick = () => $("dd6menu").classList.toggle("open");
-      $("dd6menu")
-        .querySelectorAll("input")
-        .forEach((i) =>
+      if ($("dd6btn")) $("dd6btn").onclick = () => $("dd6menu") && $("dd6menu").classList.toggle("open");
+      if ($("dd6menu")) $("dd6menu").querySelectorAll("input").forEach((i) =>
           i.addEventListener("change", () => {
-            refreshT6Tags();
-            drawT6(computeT6(RAW_PREG, chosen6()), "t6", "main");
+            refreshT6Tags();drawT6(computeT6(RAW_PREG, chosen6()), "t6", "main");
           })
         );
       document.addEventListener("click", (e) => {
         const box = $("dd6");
-        if (box && !box.contains(e.target)) $("dd6menu").classList.remove("open");
+        if (box && !box.contains(e.target)) $("dd6menu") && $("dd6menu").classList.remove("open");
       });
       $("t6time").textContent = new Date().toLocaleString();
     } catch (e) {
@@ -1517,18 +1502,15 @@ function layoutFor(labels) {
       RAW_YA = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
       refreshT7Tags();
       drawT7(computeT7(RAW_YA, chosen7()), "t7", "main");
-      $("dd7btn").onclick = () => $("dd7menu").classList.toggle("open");
-      $("dd7menu")
-        .querySelectorAll("input")
-        .forEach((i) =>
+      if ($("dd7btn")) $("dd7btn").onclick = () => $("dd7menu") && $("dd7menu").classList.toggle("open");
+      if ($("dd7menu")) $("dd7menu").querySelectorAll("input").forEach((i) =>
           i.addEventListener("change", () => {
-            refreshT7Tags();
-            drawT7(computeT7(RAW_YA, chosen7()), "t7", "main");
+            refreshT7Tags();drawT7(computeT7(RAW_YA, chosen7()), "t7", "main");
           })
         );
       document.addEventListener("click", (e) => {
         const box = $("dd7");
-        if (box && !box.contains(e.target)) $("dd7menu").classList.remove("open");
+        if (box && !box.contains(e.target)) $("dd7menu") && $("dd7menu").classList.remove("open");
       });
       $("t7time").textContent = new Date().toLocaleString();
     } catch (e) {
@@ -1676,18 +1658,15 @@ function layoutFor(labels) {
       RAW_BPE = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
       refreshT8Tags();
       drawT8(computeT8(RAW_BPE, chosen8()), "t8", "main");
-      $("dd8btn").onclick = () => $("dd8menu").classList.toggle("open");
-      $("dd8menu")
-        .querySelectorAll("input")
-        .forEach((i) =>
+      if ($("dd8btn")) $("dd8btn").onclick = () => $("dd8menu") && $("dd8menu").classList.toggle("open");
+      if ($("dd8menu")) $("dd8menu").querySelectorAll("input").forEach((i) =>
           i.addEventListener("change", () => {
-            refreshT8Tags();
-            drawT8(computeT8(RAW_BPE, chosen8()), "t8", "main");
+            refreshT8Tags();drawT8(computeT8(RAW_BPE, chosen8()), "t8", "main");
           })
         );
       document.addEventListener("click", (e) => {
         const box = $("dd8");
-        if (box && !box.contains(e.target)) $("dd8menu").classList.remove("open");
+        if (box && !box.contains(e.target)) $("dd8menu") && $("dd8menu").classList.remove("open");
       });
       $("t8time").textContent = new Date().toLocaleString();
     } catch (e) {
@@ -1878,18 +1857,15 @@ function layoutFor(labels) {
       RAW_WE = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
       refreshT9Tags();
       drawT9(computeT9(RAW_WE, chosen9()), "t9", "main");
-      $("dd9btn").onclick = () => $("dd9menu").classList.toggle("open");
-      $("dd9menu")
-        .querySelectorAll("input")
-        .forEach((i) =>
+      if ($("dd9btn")) $("dd9btn").onclick = () => $("dd9menu") && $("dd9menu").classList.toggle("open");
+      if ($("dd9menu")) $("dd9menu").querySelectorAll("input").forEach((i) =>
           i.addEventListener("change", () => {
-            refreshT9Tags();
-            drawT9(computeT9(RAW_WE, chosen9()), "t9", "main");
+            refreshT9Tags();drawT9(computeT9(RAW_WE, chosen9()), "t9", "main");
           })
         );
       document.addEventListener("click", (e) => {
         const box = $("dd9");
-        if (box && !box.contains(e.target)) $("dd9menu").classList.remove("open");
+        if (box && !box.contains(e.target)) $("dd9menu") && $("dd9menu").classList.remove("open");
       });
       $("t9time").textContent = new Date().toLocaleString();
     } catch (e) {
