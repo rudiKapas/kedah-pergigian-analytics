@@ -185,12 +185,15 @@ function layoutFor(labels) {
     });
     body.appendChild(frag);
     menu.dataset.built = "1";
-    $(btnAll).addEventListener("click", () =>
-      menu.querySelectorAll("input").forEach((i) => (i.checked = true))
-    );
-    $(btnNone).addEventListener("click", () =>
-      menu.querySelectorAll("input").forEach((i) => (i.checked = false))
-    );
+      // Select All — set checked and trigger 'change' so tile updates run
+      $(btnAll).addEventListener("click", () => {
+        menu.querySelectorAll("input").forEach((i) => {
+          if (!i.checked) {
+            i.checked = true;
+            i.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+        });
+      });
        $(btnClose).addEventListener("click", () => {
       const box = menu.closest(".dd");
       if (box) box.classList.remove("open");
@@ -2037,6 +2040,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
