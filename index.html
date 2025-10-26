@@ -96,104 +96,82 @@
     /* Keep aspect flexible */
     .square{ aspect-ratio:auto; }
 
-    /* ---- Grid spans for dataviz row ---- */
+    /* ---- footer centered relative to page (not limited by tiles width) ---- */
+    footer.wrap{
+      width:100%; max-width:100%;
+      margin: 8px auto 20px; padding: 0 var(--gap);
+      color:#94a3b8; font-size:12px; text-align:center;
+    }
+
+    .ico{ width:18px; height:18px; }
+
+    /* ========= NEW: dataviz tile styles (added, non-breaking) ========= */
+
+    /* grid spans for the second row */
     .span-3{ grid-column: span 3; }
     .span-2{ grid-column: span 2; }
 
-    /* ---- Dataviz Tile (left) ---- */
-    .data-tile{
-      height: 300px;
-      overflow: hidden;
-      padding: 16px;
-    }
+    /* dataviz tile and inside box */
+    .data-tile{ height:360px; overflow:visible; padding:20px; }
     .data-frame{
-      position:relative;
-      width:100%; height:100%;
-      background:#f9fafb;
-      border:1px solid #eef2f7;
-      border-radius:18px;
+      position:relative; width:100%; height:100%;
+      background:linear-gradient(180deg,#f9fbff 0%, #f4f7fb 100%);
+      border-radius:28px;
       box-shadow:
-        inset 0 2px 6px rgba(15,23,42,.06),
-        inset 0 -2px 6px rgba(15,23,42,.04);
-      display:flex; align-items:center; justify-content:center;
+        inset 0 1px 0 rgba(255,255,255,0.9),
+        inset 0 -1px 0 rgba(2,6,23,0.05),
+        inset 0 24px 40px rgba(2,6,23,0.05),
+        inset 0 -20px 36px rgba(2,6,23,0.04);
+      border:1px solid #e9eef6;
     }
 
+    /* bars layout, leaving space at left/right for the 'touching' KPI chips */
     .bars{
-      position:relative;
-      width:70%;
-      max-width:520px;
-      min-width:260px;
-      height:70%;
-      display:grid;
-      grid-template-columns:repeat(7,1fr);
-      align-items:end;
-      gap:10px;
-      transform: translateY(4px);
+      position:absolute; inset:26px 84px 40px 84px;
+      display:grid; grid-template-columns:repeat(8,1fr); align-items:end; gap:18px;
+      pointer-events:none;
     }
-
-    .bar{
-      grid-column: span 1;
-      height:100%;
-      display:flex; align-items:flex-end; justify-content:center;
-      --pct: 0; /* will be set in JS */
-    }
+    .bar{ grid-column: span 1; height:100%; display:flex; align-items:flex-end; justify-content:center; position:relative; }
     .bar .track{
-      width:16px; border-radius:12px; height:100%;
-      background:linear-gradient(180deg,#fff, #eef2f7);
-      box-shadow: inset 0 0 0 1px #e5e7eb, inset 0 -12px 18px rgba(15,23,42,.06);
+      width:22px; height:100%; border-radius:12px;
+      background:linear-gradient(180deg,#ffffff 0%, #eef3f9 100%);
+      box-shadow: inset 0 0 0 1px #e6ebf2, inset 0 -14px 22px rgba(15,23,42,.06);
       position:relative;
     }
     .bar .fill{
-      position:absolute; bottom:0; left:0; right:0;
-      margin:auto; width:16px; border-radius:12px;
-      height:0%;
-      background: var(--color, #0ea5a0);
-      box-shadow: 0 6px 14px rgba(14,165,233,.22);
+      position:absolute; bottom:0; left:0; right:0; margin:auto; width:22px; border-radius:12px;
+      height:0%; background: var(--color, #0ea5a0); box-shadow: 0 8px 16px rgba(2,6,23,.12);
       transition: height 1.1s cubic-bezier(.22,.75,.15,1.0);
     }
-
-    /* Put labels under bars */
     .bar .lbl{
-      position:absolute; bottom:-22px; width:60px; text-align:center;
-      font-size:11px; color:#64748b;
-      transform: translateX(-22px);
+      position:absolute; bottom:-26px; left:50%; transform:translateX(-50%);
+      font-size:12px; color:#334155; white-space:nowrap; font-weight:700;
     }
+    .bar.b1{ grid-column:2; } .bar.b2{ grid-column:4; } .bar.b3{ grid-column:6; } .bar.b4{ grid-column:8; }
 
-    /* push bars to center columns 2,4,6,8 (with spaces) */
-    .bar.b1{ grid-column:2; }
-    .bar.b2{ grid-column:4; }
-    .bar.b3{ grid-column:6; }
-    .bar.b4{ grid-column:8; }
-
-    /* ---- KPI chips around the frame ---- */
+    /* KPI chips that 'kiss' the inside box + colored badge behind each icon */
     .kpi{
-      position:absolute; display:flex; align-items:center; gap:10px;
-      padding:10px 12px; border-radius:12px; background:#fff;
-      border:1px solid #e5e7eb; box-shadow:var(--shadow-1);
-      text-decoration:none; color:inherit;
-      opacity:0; transform: translateY(6px); animation: fadeUp .7s ease forwards; 
+      position:absolute; display:flex; align-items:center; gap:12px;
+      padding:14px 18px; border-radius:18px; background:#fff;
+      border:1px solid #e7ecf3; box-shadow:0 8px 24px rgba(2,6,23,.12);
+      text-decoration:none; color:inherit; opacity:0; transform: translateY(6px);
+      animation: fadeUp .7s ease forwards; pointer-events:auto;
     }
-    .kpi .mini{ width:28px; height:28px; }
+    .kpi.tl{ top:36px; left:-6px; animation-delay:.12s; }
+    .kpi.tr{ top:36px; right:-6px; animation-delay:.22s; }
+    .kpi.bl{ bottom:36px; left:-6px; animation-delay:.32s; }
+    .kpi.br{ bottom:36px; right:-6px; animation-delay:.42s; }
+
+    .badge{
+      width:32px; height:32px; border-radius:10px; background:var(--badge, #94a3b8);
+      display:grid; place-items:center; box-shadow:0 6px 14px rgba(2,6,23,.15), inset 0 1px 0 rgba(255,255,255,.9);
+    }
+    .kpi .mini{ width:18px; height:18px; filter: invert(1) brightness(2); }
     .kpi .vals{ display:flex; flex-direction:column; align-items:flex-start; }
-    .kpi .big{ font-weight:800; font-size:16px; line-height:1.1; }
-    .kpi .small{ font-size:11px; color:#64748b; }
+    .kpi .big{ font-weight:800; font-size:20px; line-height:1.15; }
+    .kpi .small{ font-size:13px; color:#475569; }
 
-    .kpi.tl{ top:14px; left:14px; animation-delay:.15s; }   /* top-left */
-    .kpi.tr{ top:14px; right:14px; animation-delay:.25s; }  /* top-right */
-    .kpi.br{ bottom:14px; right:14px; animation-delay:.35s;}/* bottom-right */
-    .kpi.bl{ bottom:14px; left:14px; animation-delay:.45s; }/* bottom-left */
-
-    /* simple key legend under the bars (optional) */
-    .legend{
-      position:absolute; bottom:8px; left:50%; transform:translateX(-50%);
-      display:flex; gap:14px; font-size:10px; color:#64748b;
-    }
-    .dot{ width:8px; height:8px; border-radius:4px; display:inline-block; margin-right:6px; }
-
-    @keyframes fadeUp{
-      from{ opacity:0; transform:translateY(8px); }
-      to{ opacity:1; transform:translateY(0); }
-    }
+    @keyframes fadeUp{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0);} }
   </style>
 
   <!-- icons -->
@@ -268,74 +246,67 @@
       <span class="cta">info lanjut</span>
     </a>
 
-    <!-- ====== NEW ROW: Data Visualization Tiles ====== -->
+    <!-- ================= NEW SECOND ROW ================= -->
 
-    <!-- Left Data Viz Tile (bars + KPI chips) -->
+    <!-- Left: Data Visualization (replicated design) -->
     <div class="tile-card data-tile span-3" id="dv1">
       <div class="data-frame">
+        <!-- Bars area -->
         <div class="bars" id="bars">
           <div class="bar b1" style="--color:#F0668F">
             <div class="track"><div class="fill"></div></div>
-            <div class="lbl">Data 01</div>
+            <div class="lbl">Akses</div>
           </div>
           <div class="bar b2" style="--color:#FBAC45">
             <div class="track"><div class="fill"></div></div>
-            <div class="lbl">Data 02</div>
+            <div class="lbl">% Toddler TPR</div>
           </div>
           <div class="bar b3" style="--color:#42BC9E">
             <div class="track"><div class="fill"></div></div>
-            <div class="lbl">Data 03</div>
+            <div class="lbl">Ibu Mengandung OF</div>
           </div>
           <div class="bar b4" style="--color:#59AFE2">
             <div class="track"><div class="fill"></div></div>
-            <div class="lbl">Data 04</div>
+            <div class="lbl">Warga Emas ≥20 gigi</div>
           </div>
         </div>
 
-        <!-- KPI chips (clickable icons) -->
-        <a class="kpi tl" id="kpi1" href="akses.html?tile=1" title="Akses Perkhidmatan Pergigian">
-          <img class="mini" src="assets/icons/aksesPendudukKedah.svg" alt="Akses icon" />
+        <!-- KPI chips 'touching' inner box + colored icon badge -->
+        <a class="kpi tl" id="kpi1" href="akses.html?tile=1" title="Akses Perkhidmatan Pergigian" style="--badge:#F0668F">
+          <span class="badge"><img class="mini" src="assets/icons/aksesPendudukKedah.svg" alt="Akses icon" /></span>
           <div class="vals">
             <div class="big" data-val="1">--%</div>
             <div class="small"><span data-ten="1">-</span> daripada 10 orang</div>
           </div>
         </a>
 
-        <a class="kpi tr" id="kpi2" href="akses.html?tile=5&filter=maintaining_orally_fit" title="% Toddler TPR">
-          <img class="mini" src="assets/icons/babyToddler.svg" alt="Toddler icon" />
+        <a class="kpi tr" id="kpi2" href="akses.html?tile=5&filter=maintaining_orally_fit" title="% Toddler TPR" style="--badge:#FBAC45">
+          <span class="badge"><img class="mini" src="assets/icons/babyToddler.svg" alt="Toddler icon" /></span>
           <div class="vals">
             <div class="big" data-val="2">--%</div>
             <div class="small"><span data-ten="2">-</span> daripada 10 toddler</div>
           </div>
         </a>
 
-        <a class="kpi br" id="kpi3" href="akses.html?tile=6&filter=ibu_orally_fit" title="% Ibu Mengandung Orally Fit">
-          <img class="mini" src="assets/icons/pregnantWoman.svg" alt="Ibu Mengandung icon" />
+        <a class="kpi br" id="kpi3" href="akses.html?tile=6&filter=ibu_orally_fit" title="% Ibu Mengandung Orally Fit" style="--badge:#42BC9E">
+          <span class="badge"><img class="mini" src="assets/icons/pregnantWoman.svg" alt="Ibu Mengandung icon" /></span>
           <div class="vals">
             <div class="big" data-val="3">--%</div>
             <div class="small"><span data-ten="3">-</span> daripada 10 Ibu Mengandung</div>
           </div>
         </a>
 
-        <a class="kpi bl" id="kpi4" href="akses.html?tile=9&filter=wargaemas_gigi20" title="% Warga Emas ≥20 gigi">
-          <img class="mini" src="assets/icons/wargaEmas.svg" alt="Warga Emas icon" />
+        <a class="kpi bl" id="kpi4" href="akses.html?tile=9&filter=wargaemas_gigi20" title="% Warga Emas ≥20 gigi" style="--badge:#59AFE2">
+          <span class="badge"><img class="mini" src="assets/icons/wargaEmas.svg" alt="Warga Emas icon" /></span>
           <div class="vals">
             <div class="big" data-val="4">--%</div>
             <div class="small"><span data-ten="4">-</span> daripada 10 Warga Emas</div>
           </div>
         </a>
-
-        <!-- Optional tiny legend -->
-        <div class="legend">
-          <span><i class="dot" style="background:#F0668F"></i>Akses</span>
-          <span><i class="dot" style="background:#FBAC45"></i>Toddler TPR</span>
-          <span><i class="dot" style="background:#42BC9E"></i>Ibu Mengandung OF</span>
-          <span><i class="dot" style="background:#59AFE2"></i>Warga Emas ≥20 gigi</span>
-        </div>
       </div>
     </div>
 
-    <!-- Right Empty Tile (reserved) -->
+    <!-- Right: Empty placeholder -->
     <div class="tile-card span-2" id="dv2">
       <img class="icon" src="assets/icons/kpi.svg" alt="Kosong" />
       <h3 class="title">Data Visualization</h3>
@@ -563,74 +534,54 @@
 
     document.addEventListener('click', (e)=>{ if(!document.querySelector('.gs-box').contains(e.target)) box.style.display='none'; });
     goBtn.addEventListener('click', ()=>{ const list = search(q.value); if(list[0]) location.href = list[0].url; });
+  </script>
 
-    // ============== DATA VIZ (left tile) ==============
-    const series = [
+  <!-- ======== NEW: dataviz fetch + animation (appended; does not alter existing code) ======== -->
+  <script>
+    // Four series mapping as requested
+    const DV_SERIES = [
       {
         color:'#F0668F',
         url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1057141723&single=true&output=csv',
         cell:'N11',
         valueElQ:'[data-val="1"]',
-        tenElQ:'[data-ten="1"]',
-        noun:'orang'
+        tenElQ:'[data-ten="1"]'
       },
       {
         color:'#FBAC45',
         url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1851801564&single=true&output=csv',
         cell:'O28',
         valueElQ:'[data-val="2"]',
-        tenElQ:'[data-ten="2"]',
-        noun:'toddler'
+        tenElQ:'[data-ten="2"]'
       },
       {
         color:'#42BC9E',
         url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=205423549&single=true&output=csv',
         cell:'O19',
         valueElQ:'[data-val="3"]',
-        tenElQ:'[data-ten="3"]',
-        noun:'Ibu Mengandung'
+        tenElQ:'[data-ten="3"]'
       },
       {
         color:'#59AFE2',
         url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=480846724&single=true&output=csv',
         cell:'O39',
         valueElQ:'[data-val="4"]',
-        tenElQ:'[data-ten="4"]',
-        noun:'Warga Emas'
+        tenElQ:'[data-ten="4"]'
       }
     ];
 
-    function colToIndex(col){
-      // e.g., A->0, N->13, AA->26
-      let n=0;
-      for(let i=0;i<col.length;i++){
-        n = n*26 + (col.charCodeAt(i)-64);
-      }
-      return n-1;
-    }
-    function parseCellRef(ref){
-      const m = ref.match(/^([A-Z]+)(\d+)$/i);
-      return { c: colToIndex(m[1].toUpperCase()), r: parseInt(m[2],10)-1 };
-    }
+    // helpers to read single cell from "publish to web" CSV
+    function colToIndex(col){ let n=0; for(let i=0;i<col.length;i++){ n = n*26 + (col.charCodeAt(i)-64);} return n-1; }
+    function parseCellRef(ref){ const m = ref.match(/^([A-Z]+)(\d+)$/i); return { c: colToIndex(m[1].toUpperCase()), r: parseInt(m[2],10)-1 }; }
     function simpleCSVParse(txt){
-      // Basic CSV parser for numeric simple sheets
-      const rows = [];
-      let row=[], cur='', inQ=false;
-      for(let i=0;i<txt.length;i++){
-        const ch = txt[i], next = txt[i+1];
-        if(ch === '"'){
-          if(inQ && next === '"'){ cur+='"'; i++; }
-          else inQ = !inQ;
-        }else if(ch === ',' && !inQ){
-          row.push(cur); cur='';
-        }else if((ch === '\n' || ch === '\r') && !inQ){
-          if(cur!=='' || row.length){ row.push(cur); rows.push(row); row=[]; cur=''; }
-          if(ch === '\r' && next === '\n'){ i++; }
-        }else{
-          cur+=ch;
-        }
+      const rows=[]; let row=[],cur='',inQ=false;
+      for(let i=0;i<txt.length;i++){ const ch=txt[i],nx=txt[i+1];
+        if(ch=='"'){ if(inQ && nx=='"'){cur+='"'; i++;} else inQ=!inQ; }
+        else if(ch==',' && !inQ){ row.push(cur); cur=''; }
+        else if((ch=='\n'||ch=='\r') && !inQ){ if(cur!==''||row.length){ row.push(cur); rows.push(row); row=[]; cur=''; } if(ch=='\r'&&nx=='\n'){ i++; } }
+        else cur+=ch;
       }
-      if(cur!=='' || row.length) row.push(cur), rows.push(row);
+      if(cur!==''||row.length){ row.push(cur); rows.push(row); }
       return rows;
     }
     async function fetchCell(url, cellRef){
@@ -649,28 +600,23 @@
       }
     }
     function fmtPct(v){ return (v!=null && isFinite(v)) ? (Math.round(v*10)/10).toFixed(1).replace(/\.0$/,'') + '%' : '--%'; }
-    function perTen(v){ if(v==null || !isFinite(v)) return '-'; const x = v/10; const dec = (Math.abs(x - Math.round(x)) < 1e-6) ? 0 : 1; return x.toFixed(dec); }
+    function perTen(v){ if(v==null || !isFinite(v)) return '-'; const x=v/10; const dec=(Math.abs(x-Math.round(x))<1e-6)?0:1; return x.toFixed(dec); }
 
     async function loadViz(){
       const bars = document.querySelectorAll('#bars .bar');
-      await Promise.all(series.map(async (s, i)=>{
+      if(!bars.length) return;
+      await Promise.all(DV_SERIES.map(async (s,i)=>{
         const v = await fetchCell(s.url, s.cell);
-        // update KPI chip
-        const valEl = document.querySelector(s.valueElQ);
-        const tenEl = document.querySelector(s.tenElQ);
-        if(valEl) valEl.textContent = fmtPct(v);
-        if(tenEl) tenEl.textContent = perTen(v);
-
-        // animate bar
-        const fill = bars[i].querySelector('.fill');
-        if(fill){
-          // slight stagger
-          setTimeout(()=>{ fill.style.height = (v? v:0) + '%'; }, 120 + i*120);
-        }
+        // numbers
+        const ve = document.querySelector(s.valueElQ);
+        const te = document.querySelector(s.tenElQ);
+        if(ve) ve.textContent = fmtPct(v);
+        if(te) te.textContent = perTen(v);
+        // bars
+        const fill = bars[i]?.querySelector('.fill');
+        if(fill) setTimeout(()=>{ fill.style.height = (v? v:0) + '%'; }, 120 + i*140);
       }));
     }
-
-    // fire on ready
     if(document.readyState !== 'loading') loadViz();
     else document.addEventListener('DOMContentLoaded', loadViz);
   </script>
