@@ -174,12 +174,11 @@
     </a>
 
 <!-- =========================================================
-===== START DATAVIZ TILE SECTION (repaired vertical labels) ===
-   • Chips outside the inner frame, inside the tile
-   • Bar labels sit flush to the bottom of the graph
-   • Labels rotated 90°, wider to avoid ugly breaks
-   • Extra headroom at the top of the graph
-   • All classes prefixed .dv-* (self-contained)
+===== START DATAVIZ TILE SECTION (labels inside frame) =======
+   • Taller graph (tile height 420px)
+   • Bars and labels live INSIDE .dv-frame (cannot spill out)
+   • Dedicated bottom label strip; long text wraps to 2–3 lines
+   • All classes prefixed .dv-* and self-contained
 ========================================================== -->
 
 <style>
@@ -188,28 +187,30 @@
 
   .tile-card.dv{
     position:relative;
-    height:360px;
+    height:420px;              /* taller */
     padding:20px;
     overflow:visible;
     /* master knobs */
     --chip-w: 156px;        /* chip width */
     --chip-gap: 8px;        /* gap between chip and frame edge */
     /* inner frame insets from tile edge (top | right | bottom | left) */
-    --frame-top: 76px;
-    --frame-right: 210px;
-    --frame-bottom: 92px;
-    --frame-left: 210px;
-    --label-strip: 104px;
+    --frame-top: 72px;
+    --frame-right: 168px;
+    --frame-bottom: 88px;
+    --frame-left: 168px;
+    /* layout inside frame */
+    --side-pad: 28px;       /* horizontal padding inside frame */
+    --label-strip:80px;   /* reserved space for vertical labels */
   }
 
-  /* inner frame */
+  /* inner frame (container for bars + labels) */
   .dv-frame{
     position:absolute;
     inset: var(--frame-top) var(--frame-right) var(--frame-bottom) var(--frame-left);
     border-radius:24px;
     background:linear-gradient(180deg,#fbfcff 0%, #f3f6fb 100%);
     border:1px solid #e8edf5;
-    overflow: hidden;
+    overflow:hidden; /* ensures nothing can escape the frame */
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,.9),
       inset 0 -1px 0 rgba(2,6,23,.06),
@@ -217,17 +218,17 @@
       inset 0 -18px 36px rgba(2,6,23,.05);
   }
 
-  /* bars area — extra TOP headroom + bottom strip for labels */
+  /* bars area — leaves a bottom strip for labels */
   .dv-bars{
     position:absolute;
-    /* +46px headroom at the top of the frame for knobs */
-    inset: calc(var(--frame-top) + 46px)
-           calc(var(--frame-right) + 20px)
-           calc(var(--frame-bottom) + var(--label-strip))
-           calc(var(--frame-left) + 20px);
-    display:grid; grid-template-columns:repeat(8,1fr);
+    left:  var(--side-pad);
+    right: var(--side-pad);
+    top:   40px;                    /* headroom for knobs inside frame */
+    bottom: calc(var(--label-strip) + 8px);
+    display:grid; grid-template-columns:repeat(4,1fr);
     align-items:end; gap:22px; pointer-events:none; z-index:1;
   }
+
   .dv-bar{ grid-column: span 1; height:100%; display:flex; align-items:flex-end; justify-content:center; position:relative; }
   .dv-track{
     width:22px; height:100%; border-radius:12px; position:relative;
@@ -251,29 +252,53 @@
   }
   .dv-fill::after{ content:''; position:absolute; top:-5px; left:50%; transform:translateX(-50%); width:18px; height:9px; border-radius:6px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.06); }
 
-  /* === vertical labels (90°) — repaired ===
-     - anchored flush to the bottom of the frame (no overlap)
-     - wider to avoid awkward breaks (“Mengandung” etc.)
-  */
-.dv-lbl{
+  /* map bars to columns */
+  .dv-bar.b1{ grid-column:1; }
+  .dv-bar.b2{ grid-column:2; }
+  .dv-bar.b3{ grid-column:3; }
+  .dv-bar.b4{ grid-column:4; }
+
+
+/* bottom label strip INSIDE the frame */
+.dv-labels{
   position:absolute;
-  bottom:0;                                 /* stay inside inner frame */
-  left:50%;
-  transform-origin: bottom center;
-  /* globally move labels farther from the bar feet */
-  transform: translate(-50%, calc(100% + 18px)) rotate(-90deg);
-  width:96px;
-  text-align:right;
-  white-space:normal; word-break:break-word; overflow-wrap:anywhere;
-  font-size:12px; line-height:1.12; font-weight:800; color:#0f172a;
-  pointer-events:none;
+  left:  var(--side-pad);
+  right: var(--side-pad);
+  bottom: 0;
+  height: var(--label-strip);
+  display:grid;
+  grid-template-columns: repeat(4, 1fr);  /* wider cells so text fits */
+  align-items:flex-start;
+  justify-items:center;
+  padding-top:6px;
+  align-items:flex-start; justify-items:center; padding-top:4px;
+  pointer-events:none; z-index:2;
+}
+/* one label per quarter; centers line up with bar centers */
+.dv-labels .c1{ grid-column:1; }
+.dv-labels .c2{ grid-column:2; }
+.dv-labels .c3{ grid-column:3; }
+.dv-labels .c4{ grid-column:4; }
+
+/* horizontal labels: smaller type, wrap to 2 lines, no ellipsis */
+.dv-lbl{
+  transform:none;
+  width:95%; 
+  max-width:150px;                /* stay within the cell */
+  text-align:center;
+  font-size:10.5px;          /* smaller so two lines fit */
+  line-height:1.05;
+  font-weight:800;
+  text-wrap:balance;
+  white-space:normal;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+  hyphens:auto;
+  min-height: calc(2 * 1.05em);  /* reserve space for two lines */
+  /* no line-clamp => no "..." */
 }
 
-
-  /* allow an even wider label when needed */
-  .dv-lbl[data-wide="1"]{ width:104px; }
-
-  .dv-bar.b1{ grid-column:2; } .dv-bar.b2{ grid-column:4; } .dv-bar.b3{ grid-column:6; } .dv-bar.b4{ grid-column:8; }
+.dv-lbl[data-wide="1"]{ max-width:136px; }  /* optional for very long labels */
 
   /* anchor layer matches inner frame; chips sit OUTSIDE it */
   .dv-anchors{
@@ -294,7 +319,6 @@
   .dv-chip.top   { top:   var(--row1); transform: translateY(-50%); }
   .dv-chip.bottom{ top:   var(--row2); transform: translateY(-50%); }
 
-  /* connector notch */
   .dv-chip::after{
     content:''; position:absolute; top:50%; transform:translateY(-50%);
     width:22px; height:10px; border-radius:7px; background:#fff;
@@ -303,7 +327,6 @@
   .dv-chip.left::after  { right:-6px; }
   .dv-chip.right::after { left:-6px; }
 
-  /* compact text & badges */
   .dv-badge{
     width:36px; height:36px; border-radius:12px; flex:0 0 auto;
     display:grid; place-items:center; background:var(--badge,#94a3b8);
@@ -321,38 +344,40 @@
   }
 
   @media (max-width:1200px){
-    .tile-card.dv{ --frame-right: 196px; --frame-left: 196px; --chip-w: 150px; }
+    .tile-card.dv{ --frame-right: 160px; --frame-left: 160px; --chip-w: 150px; }
   }
   @media (max-width:1024px){
-    .tile-card.dv{ --frame-right: 186px; --frame-left: 186px; --chip-w: 146px; }
+    .tile-card.dv{ --frame-right: 150px; --frame-left: 150px; --chip-w: 146px; }
   }
 </style>
 
 <!-- LEFT: Data Visualization tile -->
 <div class="tile-card dv dv-span-3" id="dv1">
-  <div class="dv-frame"></div>
+  <div class="dv-frame">
+    <!-- bars INSIDE the frame -->
+    <div class="dv-bars" id="dvBars">
+      <div class="dv-bar b1" style="--dv-color:#F0668F">
+        <div class="dv-track"><div class="dv-fill"></div></div>
+      </div>
+      <div class="dv-bar b2" style="--dv-color:#FBAC45">
+        <div class="dv-track"><div class="dv-fill"></div></div>
+      </div>
+      <div class="dv-bar b3" style="--dv-color:#42BC9E">
+        <div class="dv-track"><div class="dv-fill"></div></div>
+      </div>
+      <div class="dv-bar b4" style="--dv-color:#59AFE2">
+        <div class="dv-track"><div class="dv-fill"></div></div>
+      </div>
+    </div>
 
-<!-- bars inside frame -->
-<div class="dv-bars" id="dvBars">
-  <div class="dv-bar b1" style="--dv-color:#F0668F">
-    <div class="dv-track"><div class="dv-fill"></div></div>
-    <div class="dv-lbl">Akses</div>
+    <!-- labels INSIDE the frame in a dedicated strip -->
+    <div class="dv-labels" id="dvLabels">
+      <div class="c1"><span class="dv-lbl">Akses</span></div>
+      <div class="c2"><span class="dv-lbl">Toddler TPR</span></div>
+      <div class="c3"><span class="dv-lbl" data-wide="1">Ibu Mengandung</span></div>
+      <div class="c4"><span class="dv-lbl" data-wide="1">Warga Emas ≥20 gigi</span></div>
+    </div>
   </div>
-  <div class="dv-bar b2" style="--dv-color:#FBAC45">
-    <div class="dv-track"><div class="dv-fill"></div></div>
-    <div class="dv-lbl">% Toddler TPR</div>
-  </div>
-  <div class="dv-bar b3" style="--dv-color:#42BC9E">
-    <div class="dv-track"><div class="dv-fill"></div></div>
-    <div class="dv-lbl" data-wide="1">Ibu Mengandung</div>
-  </div>
-  <div class="dv-bar b4" style="--dv-color:#59AFE2">
-    <div class="dv-track"><div class="dv-fill"></div></div>
-    <div class="dv-lbl" data-wide="1">Warga Emas ≥20 gigi</div>
-  </div>
-</div>
-
-
 
   <!-- chips positioned relative to the frame and placed OUTSIDE it -->
   <div class="dv-anchors">
@@ -364,7 +389,7 @@
       <span class="dv-badge"><img class="dv-ico" src="assets/icons/aksesPendudukKedah.svg" alt="Akses" /></span>
     </a>
 
-    <a class="dv-chip right top" href="akses.html?tile=5&filter=maintaining_orally_fit" style="--badge:#FBAC45" title="% Toddler TPR">
+    <a class="dv-chip right top" href="akses.html?tile=5&filter=maintaining_orally_fit" style="--badge:#FBAC45" title="Toddler TPR">
       <span class="dv-badge"><img class="dv-ico" src="assets/icons/babyToddler.svg" alt="Toddler" /></span>
       <div class="dv-valbox">
         <div class="dv-val" data-dv-val="2">--%</div>
@@ -398,57 +423,58 @@
 </div>
 
 <script>
-  /* ===== Dataviz fetch + animation (isolated) ===== */
-  const DV_SERIES = [
-    { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1057141723&single=true&output=csv', cell:'N11', valSel:'[data-dv-val="1"]', tenSel:'[data-dv-ten="1"]' },
-    { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1851801564&single=true&output=csv', cell:'O28', valSel:'[data-dv-val="2"]', tenSel:'[data-dv-ten="2"]' },
-    { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=205423549&single=true&output=csv', cell:'O19', valSel:'[data-dv-val="3"]', tenSel:'[data-dv-ten="3"]' },
-    { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=480846724&single=true&output=csv', cell:'O39', valSel:'[data-dv-val="4"]', tenSel:'[data-dv-ten="4"]' }
-  ];
+  /* ===== Dataviz fetch + animation (isolated, no globals) ===== */
+  (function(){
+    const SERIES = [
+      { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1057141723&single=true&output=csv', cell:'N11', valSel:'[data-dv-val="1"]', tenSel:'[data-dv-ten="1"]' }, // Akses
+      { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1851801564&single=true&output=csv', cell:'O28', valSel:'[data-dv-val="2"]', tenSel:'[data-dv-ten="2"]' }, // Toddler TPR
+      { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=205423549&single=true&output=csv', cell:'O19', valSel:'[data-dv-val="3"]', tenSel:'[data-dv-ten="3"]' }, // Ibu Mengandung
+      { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=480846724&single=true&output=csv', cell:'O39', valSel:'[data-dv-val="4"]', tenSel:'[data-dv-ten="4"]' }  // Warga Emas ≥20 gigi
+    ];
 
-  function dvColToIndex(col){ let n=0; for(let i=0;i<col.length;i++) n=n*26+(col.charCodeAt(i)-64); return n-1; }
-  function dvParseCell(ref){ const m=ref.match(/^([A-Z]+)(\d+)$/i); return { c: dvColToIndex(m[1].toUpperCase()), r: +m[2]-1 }; }
-  function dvCSV(txt){
-    const rows=[]; let row=[],cur='',q=false;
-    for(let i=0;i<txt.length;i++){ const ch=txt[i],nx=txt[i+1];
-      if(ch=='"'){ if(q && nx=='"'){cur+='"'; i++;} else q=!q; }
-      else if(ch==',' && !q){ row.push(cur); cur=''; }
-      else if((ch=='\n'||ch=='\r')&&!q){ if(cur!==''||row.length){ row.push(cur); rows.push(row); row=[]; cur=''; } if(ch=='\r'&&nx=='\n') i++; }
-      else cur+=ch;
+    function colToIndex(col){ let n=0; for(let i=0;i<col.length;i++) n=n*26+(col.charCodeAt(i)-64); return n-1; }
+    function parseCell(ref){ const m=ref.match(/^([A-Z]+)(\d+)$/i); return { c: colToIndex(m[1].toUpperCase()), r: +m[2]-1 }; }
+    function parseCSV(txt){
+      const rows=[]; let row=[],cur='',q=false;
+      for(let i=0;i<txt.length;i++){ const ch=txt[i],nx=txt[i+1];
+        if(ch=='"'){ if(q && nx=='"'){cur+='"'; i++;} else q=!q; }
+        else if(ch==',' && !q){ row.push(cur); cur=''; }
+        else if((ch=='\n'||ch=='\r')&&!q){ if(cur!==''||row.length){ row.push(cur); rows.push(row); row=[]; cur=''; } if(ch=='\r'&&nx=='\n') i++; }
+        else cur+=ch;
+      }
+      if(cur!==''||row.length){ row.push(cur); rows.push(row); }
+      return rows;
     }
-    if(cur!==''||row.length){ row.push(cur); rows.push(row); }
-    return rows;
-  }
-  async function dvGet(url, cell){
-    try{
-      const t = await (await fetch(url,{cache:'no-store'})).text();
-      const a = dvCSV(t), {r,c} = dvParseCell(cell);
-      let raw = (a[r] && a[r][c]) || '';
-      raw = (''+raw).replace('%','').trim();
-      const v = parseFloat(raw);
-      return isNaN(v)? null : v;
-    }catch(e){ console.error('CSV fetch error', e); return null; }
-  }
-  const dvPct = v => (v!=null && isFinite(v)) ? (Math.round(v*10)/10).toFixed(1).replace(/\.0$/,'')+'%' : '--%';
-  const dvTen = v => (v==null || !isFinite(v)) ? '-' : ((v/10)%1===0 ? (v/10).toFixed(0) : (v/10).toFixed(1));
+    async function getCell(url, cell){
+      try{
+        const t = await (await fetch(url,{cache:'no-store'})).text();
+        const a = parseCSV(t), {r,c} = parseCell(cell);
+        let raw = (a[r] && a[r][c]) || '';
+        raw = (''+raw).replace('%','').trim();
+        const v = parseFloat(raw);
+        return isNaN(v)? null : v;
+      }catch(e){ console.error('CSV fetch error', e); return null; }
+    }
+    const pct = v => (v!=null && isFinite(v)) ? (Math.round(v*10)/10).toFixed(1).replace(/\.0$/,'')+'%' : '--%';
+    const ten = v => (v==null || !isFinite(v)) ? '-' : ((v/10)%1===0 ? (v/10).toFixed(0) : (v/10).toFixed(1));
 
-  async function dvLoad(){
-    const fills = document.querySelectorAll('#dvBars .dv-fill');
-    await Promise.all(DV_SERIES.map(async (s,i)=>{
-      const v = await dvGet(s.url, s.cell);
-      const valEl = document.querySelector(s.valSel);
-      const tenEl = document.querySelector(s.tenSel);
-      if(valEl) valEl.textContent = dvPct(v);
-      if(tenEl) tenEl.textContent = dvTen(v);
-      if(fills[i]) setTimeout(()=>{ fills[i].style.height = (v||0)+'%'; }, 100 + i*140);
-    }));
-  }
-  if(document.readyState!=='loading') dvLoad();
-  else document.addEventListener('DOMContentLoaded', dvLoad);
+    async function load(){
+      const fills = document.querySelectorAll('#dvBars .dv-fill');
+      await Promise.all(SERIES.map(async (s,i)=>{
+        const v = await getCell(s.url, s.cell);
+        const valEl = document.querySelector(s.valSel);
+        const tenEl = document.querySelector(s.tenSel);
+        if(valEl) valEl.textContent = pct(v);
+        if(tenEl) tenEl.textContent = ten(v);
+        if(fills[i]) setTimeout(()=>{ fills[i].style.height = (v||0)+'%'; }, 100 + i*140);
+      }));
+    }
+    if(document.readyState!=='loading') load();
+    else document.addEventListener('DOMContentLoaded', load);
+  })();
 </script>
 
 <!-- ===== END DATAVIZ TILE SECTION ===== -->
-
 
 
 
@@ -719,6 +745,7 @@
       await Promise.all(DV_SERIES.map(async (s,i)=>{
         const v = await dvGet(s.url, s.cell);
         const valEl = document.querySelector(s.valSel);
+        the
         const tenEl = document.querySelector(s.tenSel);
         if(valEl) valEl.textContent = dvPct(v);
         if(tenEl) tenEl.textContent = dvTen(v);
