@@ -244,29 +244,46 @@
     box-shadow: 0 8px 18px rgba(2,6,23,.06);
     overflow: hidden;                        /* clip inner fill to rounded edge */
   }
+  /* track keeps the full bar white border + clipping */
+  .dv-track{ --p:0%; }  /* percent height of the coloured fill */
+  
+  /* STOPPER body (slightly wider than the coloured bar) */
   .dv-track::after{
-    content:''; position:absolute; top:-22px; left:50%; transform:translateX(-50%);
-    width:26px; height:40px; border-radius:14px; background:linear-gradient(180deg,#fff,#e8eef6);
-    box-shadow:0 8px 16px rgba(2,6,23,.10), inset 0 0 0 1px #e8edf4;
+    content:"";
+    position:absolute;
+    left:50%; transform:translateX(-50%);
+    /* position the center of the stopper on the top of the fill */
+    top: calc(100% - var(--p) - 9px);     /* 9px = half of height below */
+    width: calc(100% + 8px);              /* wider than inner bar */
+    height:18px;
+    border-radius:12px;
+    background:#fff;
+    box-shadow:0 1px 2px rgba(2,6,23,.12), inset 0 0 0 1px #e8edf4;
+    z-index:2;
   }
+  
+  /* grey line inside the stopper */
   .dv-track::before{
-    content:''; position:absolute; top:-2px; left:50%; transform:translateX(-50%);
-    width:28px; height:11px; border-radius:6px; background:#fff; box-shadow:0 2px 3px rgba(2,6,23,.10), inset 0 0 0 1px #e8edf4;
+    content:"";
+    position:absolute;
+    left:50%; transform:translateX(-50%);
+    top: calc(100% - var(--p) - 1px);
+    width:26px; height:3px;
+    border-radius:2px;
+    background:#9aa6b2;
+    z-index:3;
   }
-  .dv-track::after,
-  .dv-track::before{
-    content: none !important;
-  }
+
   /* full-width coloured fill inside the white-bordered track */
   .dv-fill{
     position:absolute;
     bottom:0;
-    left: var(--track-border);   /* full inner width */
-    right:var(--track-border);
-    height:0%;                   /* animated by JS */
+    left:0;                 /* <-- was var(--track-border) */
+    right:0;                /* <-- was var(--track-border) */
+    height:0%;              /* animated by JS */
     background: var(--dv-color, #0ea5a0);
     border:none;
-    /* square top, rounded bottom so it hugs the sides */
+    /* square top so it doesn’t pinch in when short */
     border-radius: 0 0 calc(var(--track-radius) - var(--track-border))
                        calc(var(--track-radius) - var(--track-border));
     box-shadow:none;
@@ -505,17 +522,24 @@
     const pct = v => (v!=null && isFinite(v)) ? (Math.round(v*10)/10).toFixed(1).replace(/\.0$/,'')+'%' : '--%';
     const ten = v => (v==null || !isFinite(v)) ? '-' : ((v/10)%1===0 ? (v/10).toFixed(0) : (v/10).toFixed(1));
 
-    async function load(){
-      const fills = document.querySelectorAll('#dvBars .dv-fill');
-      await Promise.all(SERIES.map(async (s,i)=>{
-        const v = await getCell(s.url, s.cell);
-        const valEl = document.querySelector(s.valSel);
-        const tenEl = document.querySelector(s.tenSel);
-        if(valEl) valEl.textContent = pct(v);
-        if(tenEl) tenEl.textContent = ten(v);
-        if(fills[i]) setTimeout(()=>{ fills[i].style.height = (v||0)+'%'; }, 100 + i*140);
-      }));
-    }
+  async function load(){
+    const fills = document.querySelectorAll('#dvBars .dv-fill');
+    await Promise.all(SERIES.map(async (s,i)=>{
+      const v = await getCell(s.url, s.cell);
+      const valEl = document.querySelector(s.valSel);
+      const tenEl = document.querySelector(s.tenSel);
+      if(valEl) valEl.textContent = pct(v);
+      if(tenEl) tenEl.textContent = ten(v);
+      if (fills[i]) {
+        const p = (v || 0) + '%';
+        setTimeout(()=>{
+          fills[i].style.height = p;                         // animate colour
+          const track = fills[i].closest('.dv-track');       // <-- add
+          if (track) track.style.setProperty('--p', p);      // <-- add
+        }, 100 + i*140);
+      }
+    }));
+  }
     if(document.readyState!=='loading') load();
     else document.addEventListener('DOMContentLoaded', load);
   })();
@@ -792,7 +816,6 @@
       await Promise.all(DV_SERIES.map(async (s,i)=>{
         const v = await dvGet(s.url, s.cell);
         const valEl = document.querySelector(s.valSel);
-        the
         const tenEl = document.querySelector(s.tenSel);
         if(valEl) valEl.textContent = dvPct(v);
         if(tenEl) tenEl.textContent = dvTen(v);
