@@ -20,6 +20,9 @@
       --accent-2:#34d399;
       --shadow-1:0 1px 2px rgba(15,23,42,.06),0 8px 16px rgba(15,23,42,.05);
       --tile-h: 240px;
+      --neu-surface: #f2f5fb;                            /* base surface */
+      --neu-dark: rgba(15,23,42,.12);                    /* shadow color */
+      --neu-light: rgba(255,255,255,.90);                /* highlight */
     }
     body{ margin:0; background:var(--bg); color:var(--ink); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial; }
 
@@ -211,16 +214,33 @@
     position:absolute;
     inset: var(--frame-top) var(--frame-right) var(--frame-bottom) var(--frame-left);
     border-radius:24px;
-    background:linear-gradient(180deg,#fbfcff 0%, #f3f6fb 100%);
-    border:1px solid #e8edf5;
-    overflow:hidden; /* ensures nothing can escape the frame */
+    background: var(--neu-surface);
+    border: 0;
+    overflow:hidden;                                    /* keep bars/labels inside */
+  
+    /* raised (extruded) look — light top-left, dark bottom-right */
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.9),
-      inset 0 -1px 0 rgba(2,6,23,.06),
-      inset 0 20px 32px rgba(2,6,23,.06),
-      inset 0 -18px 36px rgba(2,6,23,.05);
+      16px 16px 32px var(--neu-dark),
+      -16px -16px 32px var(--neu-light),
+      inset 0 1px 0 rgba(255,255,255,.65),              /* subtle inner polish */
+      inset 0 -2px 8px rgba(2,6,23,.04);
+  }
+  
+  /* OPTIONAL: if you prefer a “pressed” well, add class `neu-pressed` to .dv-frame */
+  .dv-frame.neu-pressed{
+    box-shadow:
+      inset 14px 14px 28px var(--neu-dark),
+      inset -14px -14px 28px var(--neu-light);
   }
 
+  /* OPTIONAL: a little hover lift (if desired) */
+.tile-card.dv:hover .dv-frame{
+  box-shadow:
+    20px 20px 40px var(--neu-dark),
+    -20px -20px 40px var(--neu-light),
+    inset 0 1px 0 rgba(255,255,255,.65),
+    inset 0 -2px 8px rgba(2,6,23,.04);
+}
   /* bars area — leaves a bottom strip for labels */
   .dv-bars{
     position:absolute;
@@ -411,7 +431,7 @@
 
 <!-- LEFT: Data Visualization tile -->
 <div class="tile-card dv dv-span-3" id="dv1">
-  <div class="dv-frame">
+  <div class="dv-frame neu-pressed">
     <!-- bars INSIDE the frame -->
     <div class="dv-bars" id="dvBars">
       <div class="dv-bar b1" style="--dv-color:#F0668F">
