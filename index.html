@@ -20,15 +20,14 @@
       --accent-2:#34d399;
       --shadow-1:0 1px 2px rgba(15,23,42,.06),0 8px 16px rgba(15,23,42,.05);
       --tile-h: 240px;
-      --neu-surface: #f2f5fb;                            /* base surface */
-      --neu-dark: rgba(15,23,42,.12);                    /* shadow color */
-      --neu-light: rgba(255,255,255,.90);                /* highlight */
+      --neu-surface: var(--panel);          /* <<< frame color = tile color */
+      --neu-dark: rgba(15,23,42,.12);
+      --neu-light: rgba(255,255,255,.90);
     }
     body{ margin:0; background:var(--bg); color:var(--ink); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial; }
 
     /* ===== Hero with original gradient background ===== */
     .hero{
-      background: linear-gradient(180deg,#0d9488 0%, #10b981 55%, #34d399 100%);
       color:#fff;
       padding: 28px 0 30px;
       box-shadow: inset 0 -1px 0 rgba(255,255,255,.25);
