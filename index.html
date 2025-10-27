@@ -19,7 +19,6 @@
       --accent:#0ea5a0;
       --accent-2:#34d399;
       --shadow-1:0 1px 2px rgba(15,23,42,.06),0 8px 16px rgba(15,23,42,.05);
-      /* SHORTER UNIFORM TILE HEIGHT */
       --tile-h: 240px;
     }
     body{ margin:0; background:var(--bg); color:var(--ink); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial; }
@@ -71,7 +70,7 @@
       padding:20px 16px 16px;
       text-decoration:none; color:inherit;
       transition: box-shadow .2s ease, transform .2s ease;
-      height: var(--tile-h);        /* fixed shorter height for all tiles */
+      height: var(--tile-h);
     }
     .tile-card::before{ content:none; } /* top accent removed */
 
@@ -96,82 +95,10 @@
     /* Keep aspect flexible */
     .square{ aspect-ratio:auto; }
 
-    /* ---- footer centered relative to page (not limited by tiles width) ---- */
-    footer.wrap{
-      width:100%; max-width:100%;
-      margin: 8px auto 20px; padding: 0 var(--gap);
-      color:#94a3b8; font-size:12px; text-align:center;
-    }
+    /* ---- footer centered to full page ---- */
+    footer.wrap{ width:100%; max-width:100%; margin: 8px auto 20px; padding: 0 var(--gap); color:#94a3b8; font-size:12px; text-align:center; }
 
     .ico{ width:18px; height:18px; }
-
-    /* ========= NEW: dataviz tile styles (added, non-breaking) ========= */
-
-    /* grid spans for the second row */
-    .span-3{ grid-column: span 3; }
-    .span-2{ grid-column: span 2; }
-
-    /* dataviz tile and inside box */
-    .data-tile{ height:360px; overflow:visible; padding:20px; }
-    .data-frame{
-      position:relative; width:100%; height:100%;
-      background:linear-gradient(180deg,#f9fbff 0%, #f4f7fb 100%);
-      border-radius:28px;
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.9),
-        inset 0 -1px 0 rgba(2,6,23,0.05),
-        inset 0 24px 40px rgba(2,6,23,0.05),
-        inset 0 -20px 36px rgba(2,6,23,0.04);
-      border:1px solid #e9eef6;
-    }
-
-    /* bars layout, leaving space at left/right for the 'touching' KPI chips */
-    .bars{
-      position:absolute; inset:26px 84px 40px 84px;
-      display:grid; grid-template-columns:repeat(8,1fr); align-items:end; gap:18px;
-      pointer-events:none;
-    }
-    .bar{ grid-column: span 1; height:100%; display:flex; align-items:flex-end; justify-content:center; position:relative; }
-    .bar .track{
-      width:22px; height:100%; border-radius:12px;
-      background:linear-gradient(180deg,#ffffff 0%, #eef3f9 100%);
-      box-shadow: inset 0 0 0 1px #e6ebf2, inset 0 -14px 22px rgba(15,23,42,.06);
-      position:relative;
-    }
-    .bar .fill{
-      position:absolute; bottom:0; left:0; right:0; margin:auto; width:22px; border-radius:12px;
-      height:0%; background: var(--color, #0ea5a0); box-shadow: 0 8px 16px rgba(2,6,23,.12);
-      transition: height 1.1s cubic-bezier(.22,.75,.15,1.0);
-    }
-    .bar .lbl{
-      position:absolute; bottom:-26px; left:50%; transform:translateX(-50%);
-      font-size:12px; color:#334155; white-space:nowrap; font-weight:700;
-    }
-    .bar.b1{ grid-column:2; } .bar.b2{ grid-column:4; } .bar.b3{ grid-column:6; } .bar.b4{ grid-column:8; }
-
-    /* KPI chips that 'kiss' the inside box + colored badge behind each icon */
-    .kpi{
-      position:absolute; display:flex; align-items:center; gap:12px;
-      padding:14px 18px; border-radius:18px; background:#fff;
-      border:1px solid #e7ecf3; box-shadow:0 8px 24px rgba(2,6,23,.12);
-      text-decoration:none; color:inherit; opacity:0; transform: translateY(6px);
-      animation: fadeUp .7s ease forwards; pointer-events:auto;
-    }
-    .kpi.tl{ top:36px; left:-6px; animation-delay:.12s; }
-    .kpi.tr{ top:36px; right:-6px; animation-delay:.22s; }
-    .kpi.bl{ bottom:36px; left:-6px; animation-delay:.32s; }
-    .kpi.br{ bottom:36px; right:-6px; animation-delay:.42s; }
-
-    .badge{
-      width:32px; height:32px; border-radius:10px; background:var(--badge, #94a3b8);
-      display:grid; place-items:center; box-shadow:0 6px 14px rgba(2,6,23,.15), inset 0 1px 0 rgba(255,255,255,.9);
-    }
-    .kpi .mini{ width:18px; height:18px; filter: invert(1) brightness(2); }
-    .kpi .vals{ display:flex; flex-direction:column; align-items:flex-start; }
-    .kpi .big{ font-weight:800; font-size:20px; line-height:1.15; }
-    .kpi .small{ font-size:13px; color:#475569; }
-
-    @keyframes fadeUp{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0);} }
   </style>
 
   <!-- icons -->
@@ -246,72 +173,285 @@
       <span class="cta">info lanjut</span>
     </a>
 
-    <!-- ================= NEW SECOND ROW ================= -->
+<!-- =========================================================
+===== START DATAVIZ TILE SECTION (repaired vertical labels) ===
+   • Chips outside the inner frame, inside the tile
+   • Bar labels sit flush to the bottom of the graph
+   • Labels rotated 90°, wider to avoid ugly breaks
+   • Extra headroom at the top of the graph
+   • All classes prefixed .dv-* (self-contained)
+========================================================== -->
 
-    <!-- Left: Data Visualization (replicated design) -->
-    <div class="tile-card data-tile span-3" id="dv1">
-      <div class="data-frame">
-        <!-- Bars area -->
-        <div class="bars" id="bars">
-          <div class="bar b1" style="--color:#F0668F">
-            <div class="track"><div class="fill"></div></div>
-            <div class="lbl">Akses</div>
-          </div>
-          <div class="bar b2" style="--color:#FBAC45">
-            <div class="track"><div class="fill"></div></div>
-            <div class="lbl">% Toddler TPR</div>
-          </div>
-          <div class="bar b3" style="--color:#42BC9E">
-            <div class="track"><div class="fill"></div></div>
-            <div class="lbl">Ibu Mengandung OF</div>
-          </div>
-          <div class="bar b4" style="--color:#59AFE2">
-            <div class="track"><div class="fill"></div></div>
-            <div class="lbl">Warga Emas ≥20 gigi</div>
-          </div>
-        </div>
+<style>
+  .dv-span-3{ grid-column: span 3; }
+  .dv-span-2{ grid-column: span 2; }
 
-        <!-- KPI chips 'touching' inner box + colored icon badge -->
-        <a class="kpi tl" id="kpi1" href="akses.html?tile=1" title="Akses Perkhidmatan Pergigian" style="--badge:#F0668F">
-          <span class="badge"><img class="mini" src="assets/icons/aksesPendudukKedah.svg" alt="Akses icon" /></span>
-          <div class="vals">
-            <div class="big" data-val="1">--%</div>
-            <div class="small"><span data-ten="1">-</span> daripada 10 orang</div>
-          </div>
-        </a>
+  .tile-card.dv{
+    position:relative;
+    height:360px;
+    padding:20px;
+    overflow:visible;
+    /* master knobs */
+    --chip-w: 156px;        /* chip width */
+    --chip-gap: 8px;        /* gap between chip and frame edge */
+    /* inner frame insets from tile edge (top | right | bottom | left) */
+    --frame-top: 76px;
+    --frame-right: 210px;
+    --frame-bottom: 92px;
+    --frame-left: 210px;
+    --label-strip: 104px;
+  }
 
-        <a class="kpi tr" id="kpi2" href="akses.html?tile=5&filter=maintaining_orally_fit" title="% Toddler TPR" style="--badge:#FBAC45">
-          <span class="badge"><img class="mini" src="assets/icons/babyToddler.svg" alt="Toddler icon" /></span>
-          <div class="vals">
-            <div class="big" data-val="2">--%</div>
-            <div class="small"><span data-ten="2">-</span> daripada 10 toddler</div>
-          </div>
-        </a>
+  /* inner frame */
+  .dv-frame{
+    position:absolute;
+    inset: var(--frame-top) var(--frame-right) var(--frame-bottom) var(--frame-left);
+    border-radius:24px;
+    background:linear-gradient(180deg,#fbfcff 0%, #f3f6fb 100%);
+    border:1px solid #e8edf5;
+    overflow: hidden;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.9),
+      inset 0 -1px 0 rgba(2,6,23,.06),
+      inset 0 20px 32px rgba(2,6,23,.06),
+      inset 0 -18px 36px rgba(2,6,23,.05);
+  }
 
-        <a class="kpi br" id="kpi3" href="akses.html?tile=6&filter=ibu_orally_fit" title="% Ibu Mengandung Orally Fit" style="--badge:#42BC9E">
-          <span class="badge"><img class="mini" src="assets/icons/pregnantWoman.svg" alt="Ibu Mengandung icon" /></span>
-          <div class="vals">
-            <div class="big" data-val="3">--%</div>
-            <div class="small"><span data-ten="3">-</span> daripada 10 Ibu Mengandung</div>
-          </div>
-        </a>
+  /* bars area — extra TOP headroom + bottom strip for labels */
+  .dv-bars{
+    position:absolute;
+    /* +46px headroom at the top of the frame for knobs */
+    inset: calc(var(--frame-top) + 46px)
+           calc(var(--frame-right) + 20px)
+           calc(var(--frame-bottom) + var(--label-strip))
+           calc(var(--frame-left) + 20px);
+    display:grid; grid-template-columns:repeat(8,1fr);
+    align-items:end; gap:22px; pointer-events:none; z-index:1;
+  }
+  .dv-bar{ grid-column: span 1; height:100%; display:flex; align-items:flex-end; justify-content:center; position:relative; }
+  .dv-track{
+    width:22px; height:100%; border-radius:12px; position:relative;
+    background:linear-gradient(180deg,#ffffff 0%, #e4ebf4 100%);
+    box-shadow: inset 0 0 0 1px #dbe5f0, inset 0 -12px 18px rgba(15,23,42,.06), 0 8px 18px rgba(2,6,23,.06);
+  }
+  .dv-track::after{
+    content:''; position:absolute; top:-22px; left:50%; transform:translateX(-50%);
+    width:26px; height:40px; border-radius:14px; background:linear-gradient(180deg,#fff,#e8eef6);
+    box-shadow:0 8px 16px rgba(2,6,23,.10), inset 0 0 0 1px #e8edf4;
+  }
+  .dv-track::before{
+    content:''; position:absolute; top:-2px; left:50%; transform:translateX(-50%);
+    width:28px; height:11px; border-radius:6px; background:#fff; box-shadow:0 2px 3px rgba(2,6,23,.10), inset 0 0 0 1px #e8edf4;
+  }
+  .dv-fill{
+    position:absolute; bottom:0; left:0; right:0; margin:auto; width:24px; border-radius:12px; height:0%;
+    background:var(--dv-color,#0ea5a0);
+    box-shadow:0 7px 14px rgba(2,6,23,.16), inset 0 -8px 0 rgba(255,255,255,.25);
+    transition:height 1.05s cubic-bezier(.22,.75,.15,1.0);
+  }
+  .dv-fill::after{ content:''; position:absolute; top:-5px; left:50%; transform:translateX(-50%); width:18px; height:9px; border-radius:6px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.06); }
 
-        <a class="kpi bl" id="kpi4" href="akses.html?tile=9&filter=wargaemas_gigi20" title="% Warga Emas ≥20 gigi" style="--badge:#59AFE2">
-          <span class="badge"><img class="mini" src="assets/icons/wargaEmas.svg" alt="Warga Emas icon" /></span>
-          <div class="vals">
-            <div class="big" data-val="4">--%</div>
-            <div class="small"><span data-ten="4">-</span> daripada 10 Warga Emas</div>
-          </div>
-        </a>
+  /* === vertical labels (90°) — repaired ===
+     - anchored flush to the bottom of the frame (no overlap)
+     - wider to avoid awkward breaks (“Mengandung” etc.)
+  */
+.dv-lbl{
+  position:absolute;
+  bottom:0;                                 /* stay inside inner frame */
+  left:50%;
+  transform-origin: bottom center;
+  /* globally move labels farther from the bar feet */
+  transform: translate(-50%, calc(100% + 18px)) rotate(-90deg);
+  width:96px;
+  text-align:right;
+  white-space:normal; word-break:break-word; overflow-wrap:anywhere;
+  font-size:12px; line-height:1.12; font-weight:800; color:#0f172a;
+  pointer-events:none;
+}
+
+
+  /* allow an even wider label when needed */
+  .dv-lbl[data-wide="1"]{ width:104px; }
+
+  .dv-bar.b1{ grid-column:2; } .dv-bar.b2{ grid-column:4; } .dv-bar.b3{ grid-column:6; } .dv-bar.b4{ grid-column:8; }
+
+  /* anchor layer matches inner frame; chips sit OUTSIDE it */
+  .dv-anchors{
+    position:absolute;
+    inset: var(--frame-top) var(--frame-right) var(--frame-bottom) var(--frame-left);
+    --row1: 30%;
+    --row2: 70%;
+  }
+
+  /* chips (outside frame, inside tile) */
+  .dv-chip{
+    position:absolute; width:var(--chip-w); padding:10px 12px; border-radius:14px;
+    border:1px solid #e7ecf3; background:#fff; box-shadow:0 12px 24px rgba(2,6,23,.14);
+    display:flex; align-items:center; gap:8px; z-index:2; text-decoration:none; color:inherit;
+  }
+  .dv-chip.left  { right: calc(100% + var(--chip-gap)); }
+  .dv-chip.right { left:  calc(100% + var(--chip-gap)); }
+  .dv-chip.top   { top:   var(--row1); transform: translateY(-50%); }
+  .dv-chip.bottom{ top:   var(--row2); transform: translateY(-50%); }
+
+  /* connector notch */
+  .dv-chip::after{
+    content:''; position:absolute; top:50%; transform:translateY(-50%);
+    width:22px; height:10px; border-radius:7px; background:#fff;
+    box-shadow:0 8px 18px rgba(2,6,23,.12), inset 0 0 0 1px #e8edf4;
+  }
+  .dv-chip.left::after  { right:-6px; }
+  .dv-chip.right::after { left:-6px; }
+
+  /* compact text & badges */
+  .dv-badge{
+    width:36px; height:36px; border-radius:12px; flex:0 0 auto;
+    display:grid; place-items:center; background:var(--badge,#94a3b8);
+    box-shadow:0 10px 22px rgba(2,6,23,.18), inset 0 1px 0 rgba(255,255,255,.9);
+  }
+  .dv-ico{ width:18px; height:18px; filter:brightness(0) invert(1) contrast(1.2); }
+  .dv-chip.right .dv-badge{ order:0; margin-right:6px; }
+  .dv-chip.left  .dv-badge{ order:2; margin-left:6px; }
+
+  .dv-valbox{ display:flex; flex-direction:column; min-width:0; width: calc(var(--chip-w) - 54px); }
+  .dv-val{ font-weight:900; font-size:16px; line-height:1.1; margin-bottom:2px; white-space:nowrap; }
+  .dv-sub{
+    font-size:11px; line-height:1.25; color:#475569;
+    overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical;
+  }
+
+  @media (max-width:1200px){
+    .tile-card.dv{ --frame-right: 196px; --frame-left: 196px; --chip-w: 150px; }
+  }
+  @media (max-width:1024px){
+    .tile-card.dv{ --frame-right: 186px; --frame-left: 186px; --chip-w: 146px; }
+  }
+</style>
+
+<!-- LEFT: Data Visualization tile -->
+<div class="tile-card dv dv-span-3" id="dv1">
+  <div class="dv-frame"></div>
+
+<!-- bars inside frame -->
+<div class="dv-bars" id="dvBars">
+  <div class="dv-bar b1" style="--dv-color:#F0668F">
+    <div class="dv-track"><div class="dv-fill"></div></div>
+    <div class="dv-lbl">Akses</div>
+  </div>
+  <div class="dv-bar b2" style="--dv-color:#FBAC45">
+    <div class="dv-track"><div class="dv-fill"></div></div>
+    <div class="dv-lbl">% Toddler TPR</div>
+  </div>
+  <div class="dv-bar b3" style="--dv-color:#42BC9E">
+    <div class="dv-track"><div class="dv-fill"></div></div>
+    <div class="dv-lbl" data-wide="1">Ibu Mengandung</div>
+  </div>
+  <div class="dv-bar b4" style="--dv-color:#59AFE2">
+    <div class="dv-track"><div class="dv-fill"></div></div>
+    <div class="dv-lbl" data-wide="1">Warga Emas ≥20 gigi</div>
+  </div>
+</div>
+
+
+
+  <!-- chips positioned relative to the frame and placed OUTSIDE it -->
+  <div class="dv-anchors">
+    <a class="dv-chip left top" href="akses.html?tile=1" style="--badge:#F0668F" title="Akses Perkhidmatan Pergigian">
+      <div class="dv-valbox">
+        <div class="dv-val" data-dv-val="1">--%</div>
+        <div class="dv-sub"><span data-dv-ten="1">-</span> daripada 10 orang</div>
       </div>
-    </div>
+      <span class="dv-badge"><img class="dv-ico" src="assets/icons/aksesPendudukKedah.svg" alt="Akses" /></span>
+    </a>
 
-    <!-- Right: Empty placeholder -->
-    <div class="tile-card span-2" id="dv2">
-      <img class="icon" src="assets/icons/kpi.svg" alt="Kosong" />
-      <h3 class="title">Data Visualization</h3>
-      <p class="subtitle">Kosong — akan diisi kemudian.</p>
-    </div>
+    <a class="dv-chip right top" href="akses.html?tile=5&filter=maintaining_orally_fit" style="--badge:#FBAC45" title="% Toddler TPR">
+      <span class="dv-badge"><img class="dv-ico" src="assets/icons/babyToddler.svg" alt="Toddler" /></span>
+      <div class="dv-valbox">
+        <div class="dv-val" data-dv-val="2">--%</div>
+        <div class="dv-sub"><span data-dv-ten="2">-</span> daripada 10 toddler</div>
+      </div>
+    </a>
+
+    <a class="dv-chip left bottom" href="akses.html?tile=9&filter=wargaemas_gigi20" style="--badge:#59AFE2" title="% Warga Emas ≥20 gigi">
+      <div class="dv-valbox">
+        <div class="dv-val" data-dv-val="4">--%</div>
+        <div class="dv-sub"><span data-dv-ten="4">-</span> daripada 10 Warga Emas</div>
+      </div>
+      <span class="dv-badge"><img class="dv-ico" src="assets/icons/wargaEmas.svg" alt="Warga Emas" /></span>
+    </a>
+
+    <a class="dv-chip right bottom" href="akses.html?tile=6&filter=ibu_orally_fit" style="--badge:#42BC9E" title="% Ibu Mengandung Orally Fit">
+      <span class="dv-badge"><img class="dv-ico" src="assets/icons/pregnantWoman.svg" alt="Ibu Mengandung" /></span>
+      <div class="dv-valbox">
+        <div class="dv-val" data-dv-val="3">--%</div>
+        <div class="dv-sub"><span data-dv-ten="3">-</span> daripada 10 Ibu Mengandung</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- RIGHT: Placeholder tile -->
+<div class="tile-card dv-span-2">
+  <img class="icon" src="assets/icons/kpi.svg" alt="Kosong" />
+  <h3 class="title">Data Visualization</h3>
+  <p class="subtitle">Kosong — akan diisi kemudian.</p>
+</div>
+
+<script>
+  /* ===== Dataviz fetch + animation (isolated) ===== */
+  const DV_SERIES = [
+    { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1057141723&single=true&output=csv', cell:'N11', valSel:'[data-dv-val="1"]', tenSel:'[data-dv-ten="1"]' },
+    { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1851801564&single=true&output=csv', cell:'O28', valSel:'[data-dv-val="2"]', tenSel:'[data-dv-ten="2"]' },
+    { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=205423549&single=true&output=csv', cell:'O19', valSel:'[data-dv-val="3"]', tenSel:'[data-dv-ten="3"]' },
+    { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=480846724&single=true&output=csv', cell:'O39', valSel:'[data-dv-val="4"]', tenSel:'[data-dv-ten="4"]' }
+  ];
+
+  function dvColToIndex(col){ let n=0; for(let i=0;i<col.length;i++) n=n*26+(col.charCodeAt(i)-64); return n-1; }
+  function dvParseCell(ref){ const m=ref.match(/^([A-Z]+)(\d+)$/i); return { c: dvColToIndex(m[1].toUpperCase()), r: +m[2]-1 }; }
+  function dvCSV(txt){
+    const rows=[]; let row=[],cur='',q=false;
+    for(let i=0;i<txt.length;i++){ const ch=txt[i],nx=txt[i+1];
+      if(ch=='"'){ if(q && nx=='"'){cur+='"'; i++;} else q=!q; }
+      else if(ch==',' && !q){ row.push(cur); cur=''; }
+      else if((ch=='\n'||ch=='\r')&&!q){ if(cur!==''||row.length){ row.push(cur); rows.push(row); row=[]; cur=''; } if(ch=='\r'&&nx=='\n') i++; }
+      else cur+=ch;
+    }
+    if(cur!==''||row.length){ row.push(cur); rows.push(row); }
+    return rows;
+  }
+  async function dvGet(url, cell){
+    try{
+      const t = await (await fetch(url,{cache:'no-store'})).text();
+      const a = dvCSV(t), {r,c} = dvParseCell(cell);
+      let raw = (a[r] && a[r][c]) || '';
+      raw = (''+raw).replace('%','').trim();
+      const v = parseFloat(raw);
+      return isNaN(v)? null : v;
+    }catch(e){ console.error('CSV fetch error', e); return null; }
+  }
+  const dvPct = v => (v!=null && isFinite(v)) ? (Math.round(v*10)/10).toFixed(1).replace(/\.0$/,'')+'%' : '--%';
+  const dvTen = v => (v==null || !isFinite(v)) ? '-' : ((v/10)%1===0 ? (v/10).toFixed(0) : (v/10).toFixed(1));
+
+  async function dvLoad(){
+    const fills = document.querySelectorAll('#dvBars .dv-fill');
+    await Promise.all(DV_SERIES.map(async (s,i)=>{
+      const v = await dvGet(s.url, s.cell);
+      const valEl = document.querySelector(s.valSel);
+      const tenEl = document.querySelector(s.tenSel);
+      if(valEl) valEl.textContent = dvPct(v);
+      if(tenEl) tenEl.textContent = dvTen(v);
+      if(fills[i]) setTimeout(()=>{ fills[i].style.height = (v||0)+'%'; }, 100 + i*140);
+    }));
+  }
+  if(document.readyState!=='loading') dvLoad();
+  else document.addEventListener('DOMContentLoaded', dvLoad);
+</script>
+
+<!-- ===== END DATAVIZ TILE SECTION ===== -->
+
+
+
+
   </main>
 
   <footer class="wrap">Analisa Kesihatan Pergigian Negeri Kedah • Paparan optimum disyorkan melalui pelayar web desktop</footer>
@@ -536,89 +676,57 @@
     goBtn.addEventListener('click', ()=>{ const list = search(q.value); if(list[0]) location.href = list[0].url; });
   </script>
 
-  <!-- ======== NEW: dataviz fetch + animation (appended; does not alter existing code) ======== -->
+  <!-- Dataviz fetch + animation (self-contained / namespaced) -->
   <script>
-    // Four series mapping as requested
     const DV_SERIES = [
-      {
-        color:'#F0668F',
-        url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1057141723&single=true&output=csv',
-        cell:'N11',
-        valueElQ:'[data-val="1"]',
-        tenElQ:'[data-ten="1"]'
-      },
-      {
-        color:'#FBAC45',
-        url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1851801564&single=true&output=csv',
-        cell:'O28',
-        valueElQ:'[data-val="2"]',
-        tenElQ:'[data-ten="2"]'
-      },
-      {
-        color:'#42BC9E',
-        url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=205423549&single=true&output=csv',
-        cell:'O19',
-        valueElQ:'[data-val="3"]',
-        tenElQ:'[data-ten="3"]'
-      },
-      {
-        color:'#59AFE2',
-        url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=480846724&single=true&output=csv',
-        cell:'O39',
-        valueElQ:'[data-val="4"]',
-        tenElQ:'[data-ten="4"]'
-      }
+      { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1057141723&single=true&output=csv', cell:'N11', valSel:'[data-dv-val="1"]', tenSel:'[data-dv-ten="1"]' }, // Akses
+      { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1851801564&single=true&output=csv', cell:'O28', valSel:'[data-dv-val="2"]', tenSel:'[data-dv-ten="2"]' }, // Toddler TPR
+      { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=205423549&single=true&output=csv', cell:'O19', valSel:'[data-dv-val="3"]', tenSel:'[data-dv-ten="3"]' }, // Ibu Mengandung
+      { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=480846724&single=true&output=csv', cell:'O39', valSel:'[data-dv-val="4"]', tenSel:'[data-dv-ten="4"]' }  // Warga Emas ≥20 gigi
     ];
 
-    // helpers to read single cell from "publish to web" CSV
-    function colToIndex(col){ let n=0; for(let i=0;i<col.length;i++){ n = n*26 + (col.charCodeAt(i)-64);} return n-1; }
-    function parseCellRef(ref){ const m = ref.match(/^([A-Z]+)(\d+)$/i); return { c: colToIndex(m[1].toUpperCase()), r: parseInt(m[2],10)-1 }; }
-    function simpleCSVParse(txt){
-      const rows=[]; let row=[],cur='',inQ=false;
+    function dvColToIndex(col){ let n=0; for(let i=0;i<col.length;i++) n=n*26+(col.charCodeAt(i)-64); return n-1; }
+    function dvParseCell(ref){ const m=ref.match(/^([A-Z]+)(\d+)$/i); return { c: dvColToIndex(m[1].toUpperCase()), r: +m[2]-1 }; }
+
+    function dvCSV(txt){
+      const rows=[]; let row=[],cur='',q=false;
       for(let i=0;i<txt.length;i++){ const ch=txt[i],nx=txt[i+1];
-        if(ch=='"'){ if(inQ && nx=='"'){cur+='"'; i++;} else inQ=!inQ; }
-        else if(ch==',' && !inQ){ row.push(cur); cur=''; }
-        else if((ch=='\n'||ch=='\r') && !inQ){ if(cur!==''||row.length){ row.push(cur); rows.push(row); row=[]; cur=''; } if(ch=='\r'&&nx=='\n'){ i++; } }
+        if(ch=='"'){ if(q && nx=='"'){cur+='"'; i++;} else q=!q; }
+        else if(ch==',' && !q){ row.push(cur); cur=''; }
+        else if((ch=='\n'||ch=='\r')&&!q){ if(cur!==''||row.length){ row.push(cur); rows.push(row); row=[]; cur=''; } if(ch=='\r'&&nx=='\n') i++; }
         else cur+=ch;
       }
       if(cur!==''||row.length){ row.push(cur); rows.push(row); }
       return rows;
     }
-    async function fetchCell(url, cellRef){
-      try{
-        const res = await fetch(url, {cache:'no-store'});
-        const txt = await res.text();
-        const data = simpleCSVParse(txt);
-        const {r,c} = parseCellRef(cellRef);
-        let raw = (data[r] && data[r][c]) || '';
-        raw = (''+raw).replace('%','').trim();
-        const num = parseFloat(raw);
-        return isNaN(num)? null : num;
-      }catch(err){
-        console.error('CSV fetch error', err);
-        return null;
-      }
-    }
-    function fmtPct(v){ return (v!=null && isFinite(v)) ? (Math.round(v*10)/10).toFixed(1).replace(/\.0$/,'') + '%' : '--%'; }
-    function perTen(v){ if(v==null || !isFinite(v)) return '-'; const x=v/10; const dec=(Math.abs(x-Math.round(x))<1e-6)?0:1; return x.toFixed(dec); }
 
-    async function loadViz(){
-      const bars = document.querySelectorAll('#bars .bar');
-      if(!bars.length) return;
+    async function dvGet(url, cell){
+      try{
+        const t = await (await fetch(url,{cache:'no-store'})).text();
+        const a = dvCSV(t), {r,c} = dvParseCell(cell);
+        let raw = (a[r] && a[r][c]) || '';
+        raw = (''+raw).replace('%','').trim();
+        const v = parseFloat(raw);
+        return isNaN(v)? null : v;
+      }catch(e){ console.error('CSV fetch error', e); return null; }
+    }
+
+    const dvPct = v => (v!=null && isFinite(v)) ? (Math.round(v*10)/10).toFixed(1).replace(/\.0$/,'')+'%' : '--%';
+    const dvTen = v => (v==null || !isFinite(v)) ? '-' : ((v/10)%1===0 ? (v/10).toFixed(0) : (v/10).toFixed(1));
+
+    async function dvLoad(){
+      const fills = document.querySelectorAll('#dvBars .dv-fill');
       await Promise.all(DV_SERIES.map(async (s,i)=>{
-        const v = await fetchCell(s.url, s.cell);
-        // numbers
-        const ve = document.querySelector(s.valueElQ);
-        const te = document.querySelector(s.tenElQ);
-        if(ve) ve.textContent = fmtPct(v);
-        if(te) te.textContent = perTen(v);
-        // bars
-        const fill = bars[i]?.querySelector('.fill');
-        if(fill) setTimeout(()=>{ fill.style.height = (v? v:0) + '%'; }, 120 + i*140);
+        const v = await dvGet(s.url, s.cell);
+        const valEl = document.querySelector(s.valSel);
+        const tenEl = document.querySelector(s.tenSel);
+        if(valEl) valEl.textContent = dvPct(v);
+        if(tenEl) tenEl.textContent = dvTen(v);
+        if(fills[i]) setTimeout(()=>{ fills[i].style.height = (v||0)+'%'; }, 100 + i*140);
       }));
     }
-    if(document.readyState !== 'loading') loadViz();
-    else document.addEventListener('DOMContentLoaded', loadViz);
+    if(document.readyState!=='loading') dvLoad();
+    else document.addEventListener('DOMContentLoaded', dvLoad);
   </script>
 </body>
 </html>
