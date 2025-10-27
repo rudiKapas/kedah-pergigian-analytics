@@ -201,6 +201,9 @@
     /* layout inside frame */
     --side-pad: 28px;       /* horizontal padding inside frame */
     --label-strip:80px;   /* reserved space for vertical labels */
+    --bar-w: 22px;          /* total bar width (unchanged) */
+    --track-radius: 12px;   /* outer corner radius */
+    --track-border: 4px;    /* ↑ make this bigger for a wider white border */
   }
 
   /* inner frame (container for bars + labels) */
@@ -231,13 +234,15 @@
 
   .dv-bar{ grid-column: span 1; height:100%; display:flex; align-items:flex-end; justify-content:center; position:relative; }
   .dv-track{
-    width:22px; height:100%; position:relative;
-    border-radius:12px;
-    box-sizing:border-box;          /* border stays inside the 22px width */
-    border:2px solid #fff;          /* white border around the whole bar */
-    background:#eef2f7;             /* light gray area ABOVE the stopper */
-    box-shadow:0 8px 18px rgba(2,6,23,.06);
-    overflow:hidden;                 /* clip inner fill to rounded border */
+    width: var(--bar-w);
+    height: 100%;
+    position: relative;
+    box-sizing: border-box;                 /* keeps total width == --bar-w */
+    border: var(--track-border) solid #fff; /* thicker white border */
+    border-radius: var(--track-radius);
+    background: #eef2f7;                    /* light gray above stopper */
+    box-shadow: 0 8px 18px rgba(2,6,23,.06);
+    overflow: hidden;                        /* clip inner fill to rounded edge */
   }
   .dv-track::after{
     content:''; position:absolute; top:-22px; left:50%; transform:translateX(-50%);
@@ -254,16 +259,14 @@
   }
   /* full-width coloured fill inside the white-bordered track */
   .dv-fill{
-    position:absolute;
-    bottom:0;
-    left:0;                 /* was 2px */
-    right:0;                /* was 2px */
-    width:auto;
-    height:0%;              /* animated by JS */
-    background:var(--dv-color, #0ea5a0); /* single tone */
+    position:absolute; bottom:0;
+    left:  var(--track-border);  /* sit flush to inner white border */
+    right: var(--track-border);
+    height:0%;                   /* animated by JS */
     border:none;
-    border-radius:inherit;  /* matches the track’s 12px radius */
-    box-shadow:none;
+    border-radius: calc(var(--track-radius) - var(--track-border));
+    background: var(--dv-color, #0ea5a0);   /* single tone below stopper */
+    box-shadow: none;
   }
 
     /* stopper body (slightly wider than the bar) */
