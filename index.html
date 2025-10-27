@@ -61,6 +61,20 @@
     @media (max-width:720px){ .tiles{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
     @media (max-width:420px){ .tiles{ grid-template-columns:1fr; } }
 
+    /* Full-width row heading inside the tiles grid */
+    .tiles .row-heading{
+      grid-column: 1 / -1;     /* span all columns so it sits on its own row */
+      font-weight: 800;
+      font-size: 26px;         /* header is 34px – this is a bit smaller */
+      line-height: 1.2;
+      color: var(--ink);
+      text-align: left;
+      margin: 6px 0 2px;       /* reasonable breathing room above/below */
+    }
+    @media (max-width:1100px){ .tiles .row-heading{ font-size:24px; } }
+    @media (max-width:720px){  .tiles .row-heading{ font-size:20px; } }
+
+
     /* ===== Card look (top bar removed, icon centered & larger) ===== */
     .tile-card{
       position:relative;
@@ -174,6 +188,8 @@
       <p class="subtitle">MMI, klinikal pencegahan karies & outreach.</p>
       <span class="cta">info lanjut</span>
     </a>
+    
+  <h2 class="row-heading">Ringkasan Pencapaian Kesihatan Pergigian</h2>
 
 <!-- =========================================================
 ===== START DATAVIZ TILE SECTION (labels inside frame) =======
