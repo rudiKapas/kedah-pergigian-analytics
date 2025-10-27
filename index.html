@@ -247,31 +247,25 @@
   /* track keeps the full bar white border + clipping */
   .dv-track{ --p:0%; }  /* percent height of the coloured fill */
   
-  /* STOPPER body (slightly wider than the coloured bar) */
+  /* slimmer but wider stopper */
   .dv-track::after{
     content:"";
-    position:absolute;
-    left:50%; transform:translateX(-50%);
-    /* position the center of the stopper on the top of the fill */
-    top: calc(100% - var(--p) - 9px);     /* 9px = half of height below */
-    width: calc(100% + 8px);              /* wider than inner bar */
-    height:18px;
-    border-radius:12px;
-    background:#fff;
+    position:absolute; left:50%; transform:translateX(-50%);
+    top: calc(100% - var(--p) - 7px);   /* center a 14px stopper */
+    width: calc(100% + 6px);            /* wider than the whole bar */
+    height:14px;                        /* thinner */
+    border-radius:9px; background:#fff;
     box-shadow:0 1px 2px rgba(2,6,23,.12), inset 0 0 0 1px #e8edf4;
-    z-index:2;
+    z-index:3;
   }
   
-  /* grey line inside the stopper */
+  /* slim grey line inside the stopper */
   .dv-track::before{
     content:"";
-    position:absolute;
-    left:50%; transform:translateX(-50%);
+    position:absolute; left:50%; transform:translateX(-50%);
     top: calc(100% - var(--p) - 1px);
-    width:26px; height:3px;
-    border-radius:2px;
-    background:#9aa6b2;
-    z-index:3;
+    width:22px; height:2px; border-radius:2px; background:#9aa6b2;
+    z-index:4;
   }
 
   /* full-width coloured fill inside the white-bordered track */
