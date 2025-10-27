@@ -252,37 +252,47 @@
   .dv-track::before{
     content: none !important;
   }
-  /* 2) Fill: single solid color INSIDE the track’s white border */
+  /* full-width coloured fill inside the white-bordered track */
   .dv-fill{
-    position:absolute; bottom:0; top:auto;
-    left:2px; right:2px;            /* respect the track’s 2px border */
-    width:auto;                     /* no change to overall bar width */
-    height:0%;                      /* JS animates this 0 → % */
-    border:none;                    /* border lives on the track now */
-    border-radius:10px;             /* 12px track radius minus 2px border */
-    background:var(--dv-color, #0ea5a0);   /* single tone (no gradient) */
+    position:absolute;
+    bottom:0;
+    left:0;                 /* was 2px */
+    right:0;                /* was 2px */
+    width:auto;
+    height:0%;              /* animated by JS */
+    background:var(--dv-color, #0ea5a0); /* single tone */
+    border:none;
+    border-radius:inherit;  /* matches the track’s 12px radius */
     box-shadow:none;
   }
 
+    /* stopper body (slightly wider than the bar) */
     .dv-fill::after{
       content:'';
       position:absolute;
-      top:-10px;              /* sits just above the fill */
+      top:-11px;
       left:50%;
       transform:translateX(-50%);
-      width:26px; height:14px;
-      border-radius:8px;
+      width:calc(100% + 6px);   /* a bit wider than the fill */
+      height:16px;
+      border-radius:10px;
       background:#fff;
-      box-shadow:0 1px 2px rgba(2,6,23,.12),
-                inset 0 0 0 1px #e8edf4;
+      box-shadow:0 1px 2px rgba(2,6,23,.12), inset 0 0 0 1px #e8edf4;
       z-index:2;
     }
 
-  /* grey line inside stopper */
-  .dv-fill::before{
-    content:''; position:absolute; top:-3px; left:50%; transform:translateX(-50%);
-    width:12px; height:2px; border-radius:2px; background:#9aa6b2; z-index:3;
-  }
+    /* grey line inside the stopper */
+    .dv-fill::before{
+      content:'';
+      position:absolute;
+      top:-3px;
+      left:50%;
+      transform:translateX(-50%);
+      width:18px; height:2px;
+      border-radius:2px;
+      background:#9aa6b2;
+      z-index:3;
+    }
   /* map bars to columns */
   .dv-bar.b1{ grid-column:1; }
   .dv-bar.b2{ grid-column:2; }
