@@ -228,7 +228,8 @@
     overflow:visible;
     /* master knobs */
     --chip-w: 156px;        /* chip width */
-    --chip-gap: 8px;        /* gap between chip and frame edge */
+    --chip-gap: 12px;        /* gap between chip and frame edge */
+    --chip-gap: 8px;
     /* inner frame insets from tile edge (top | right | bottom | left) */
     --frame-top: 72px;
     --frame-right: 168px;
@@ -239,8 +240,8 @@
     --label-strip:80px;   /* reserved space for vertical labels */
     --bar-w: 22px;          /* total bar width (unchanged) */
     --track-radius: 12px;   /* outer corner radius */
+    --chip-overlap: 16px; /* how far the chip intrudes into the frame */
     --track-border: 4px;    /* ↑ make this bigger for a wider white border */
-    --chip-inset: 24px;   /* how far the chip intrudes into the frame */
   }
 
   /* inner frame (container for bars + labels) */
@@ -418,6 +419,7 @@
     inset: var(--frame-top) var(--frame-right) var(--frame-bottom) var(--frame-left);
     --row1: 30%;
     --row2: 70%;
+    z-index: 5; 
   }
 
   /* chips (outside frame, inside tile) */
@@ -426,8 +428,8 @@
     border:1px solid #e7ecf3; background:#fff; box-shadow:0 12px 24px rgba(2,6,23,.14);
     display:flex; align-items:center; gap:8px; z-index:2; text-decoration:none; color:inherit;
   }
-  .dv-chip.left  { right: calc(100% - var(--chip-inset)); }  /* moves left chips inward */
-  .dv-chip.right { left:  calc(100% - var(--chip-inset)); }  /* moves right chips inward */
+  .dv-chip.left  { right: calc(100% - var(--chip-overlap)); }
+  .dv-chip.right { left:  calc(100% - var(--chip-overlap)); }
   .dv-chip.top   { top:   var(--row1); transform: translateY(-50%); }
   .dv-chip.bottom{ top:   var(--row2); transform: translateY(-50%); }
 
@@ -448,9 +450,8 @@
     margin: 0;                 /* neutralize earlier margins */
   }
 
-/* Badge is 36px wide, so offset by half (18px) */
-.dv-chip.right .dv-badge { left: -18px; }  /* protrude leftwards into frame */
-.dv-chip.left  .dv-badge { right: -18px; } /* protrude rightwards into frame */
+  .dv-chip.right .dv-badge { left: -18px; }   /* half of 36px badge */
+  .dv-chip.left  .dv-badge { right: -18px; }
 
   .dv-ico{ width:18px; height:18px; filter:brightness(0) invert(1) contrast(1.2); }
   .dv-chip.right .dv-badge{ order:0; margin-right:6px; }
