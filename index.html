@@ -435,6 +435,22 @@
     display:grid; place-items:center; background:var(--badge,#94a3b8);
     box-shadow:0 10px 22px rgba(2,6,23,.18), inset 0 1px 0 rgba(255,255,255,.9);
   }
+
+  /* Make the icon badge poke out half beyond the chip edge toward the center */
+  .dv-chip { overflow: visible; }  /* allow badge to extend outside */
+  
+  .dv-chip.right .dv-badge,
+  .dv-chip.left  .dv-badge{
+    position: absolute;        /* detach from flex flow */
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;                 /* neutralize earlier margins */
+  }
+
+/* Badge is 36px wide, so offset by half (18px) */
+.dv-chip.right .dv-badge { left: -18px; }  /* protrude leftwards into frame */
+.dv-chip.left  .dv-badge { right: -18px; } /* protrude rightwards into frame */
+
   .dv-ico{ width:18px; height:18px; filter:brightness(0) invert(1) contrast(1.2); }
   .dv-chip.right .dv-badge{ order:0; margin-right:6px; }
   .dv-chip.left  .dv-badge{ order:2; margin-left:6px; }
