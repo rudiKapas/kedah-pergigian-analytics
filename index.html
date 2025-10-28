@@ -240,6 +240,7 @@
     --bar-w: 22px;          /* total bar width (unchanged) */
     --track-radius: 12px;   /* outer corner radius */
     --track-border: 4px;    /* ↑ make this bigger for a wider white border */
+    --chip-inset: 24px;   /* how far the chip intrudes into the frame */
   }
 
   /* inner frame (container for bars + labels) */
@@ -425,8 +426,8 @@
     border:1px solid #e7ecf3; background:#fff; box-shadow:0 12px 24px rgba(2,6,23,.14);
     display:flex; align-items:center; gap:8px; z-index:2; text-decoration:none; color:inherit;
   }
-  .dv-chip.left  { right: calc(100% + var(--chip-gap)); }
-  .dv-chip.right { left:  calc(100% + var(--chip-gap)); }
+  .dv-chip.left  { right: calc(100% - var(--chip-inset)); }  /* moves left chips inward */
+  .dv-chip.right { left:  calc(100% - var(--chip-inset)); }  /* moves right chips inward */
   .dv-chip.top   { top:   var(--row1); transform: translateY(-50%); }
   .dv-chip.bottom{ top:   var(--row2); transform: translateY(-50%); }
 
