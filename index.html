@@ -29,26 +29,17 @@
   /* Title for the dataviz tile (sits above the inner frame) */
   .dv-title{
     position:absolute;
-    top: var(--title-gap);         /* top gap equals bottom gap */
-    left:28px; right:28px;
+    top:16px;
+    left:28px;
+    right:28px;
     text-align:center;
-    font-weight:600;               /* semi-bold */
+    font-weight:600;
     font-size:16px;
-    line-height:1.12;              /* tight */
+    line-height:1.25;
     color:var(--muted);
     text-wrap:balance;
-    max-width:88%;
-    margin:0 auto;
-    pointer-events:none;
-
-    /* lock to ≤2 lines and reserve space (prevents layout shift) */
-    display:-webkit-box;
-    -webkit-box-orient:vertical;
-    -webkit-line-clamp:2;
-    overflow:hidden;
-    min-height: calc(2 * 1.12em);
+    pointer-events:none;  /* no interference with chip clicks */
   }
-
   @media (max-width:1100px){ .dv-title{ font-size:15px; } }
   @media (max-width:720px){  .dv-title{ font-size:14px; } }
 
@@ -273,9 +264,6 @@
     --badge-pad: 24px;    /* room so text doesn't sit under badge */
     --badge-size: 36px;   /* badge circle; keep if you like the current size */
     --dv-dur: 1400ms;     /* change if you want faster/slower */
-    --title-gap: var(--frame-bottom);
-    --title-h: 34px;
-    --frame-top: calc(var(--title-gap) + var(--title-h) + 8px);
   }
 
   /* inner frame (container for bars + labels) */
@@ -944,20 +932,6 @@
     window.addEventListener('load', equalizeDVChips);
     window.addEventListener('resize', () => requestAnimationFrame(equalizeDVChips));
   </script>
-
-  <script>
-  function syncDVTitle(){
-    const host = document.getElementById('dv1');
-    if (!host) return;
-    const t = host.querySelector('.dv-title');
-    if (!t) return;
-    // measure the real rendered height (1 or 2 lines)
-    const h = Math.ceil(t.getBoundingClientRect().height);
-    host.style.setProperty('--title-h', h + 'px');
-  }
-  window.addEventListener('load', syncDVTitle);
-  window.addEventListener('resize', () => requestAnimationFrame(syncDVTitle));
-</script>
 
 
 </body>
