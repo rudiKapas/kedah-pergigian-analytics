@@ -26,6 +26,24 @@
     }
     body{ margin:0; background:var(--bg); color:var(--ink); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial; }
 
+  /* Title for the dataviz tile (sits above the inner frame) */
+  .dv-title{
+    position:absolute;
+    top:16px;
+    left:28px;
+    right:28px;
+    text-align:center;
+    font-weight:600;
+    font-size:16px;
+    line-height:1.25;
+    color:var(--muted);
+    text-wrap:balance;
+    pointer-events:none;  /* no interference with chip clicks */
+  }
+  @media (max-width:1100px){ .dv-title{ font-size:15px; } }
+  @media (max-width:720px){  .dv-title{ font-size:14px; } }
+
+    
   /* ===== Hero with original gradient background ===== */
   .hero{
     background: linear-gradient(180deg,#0d9488 0%, #10b981 55%, #34d399 100%);
@@ -510,6 +528,7 @@
 
 <!-- LEFT: Data Visualization tile -->
 <div class="tile-card dv dv-span-3" id="dv1">
+  <h3 class="dv-title">Akses Kesihatan Pergigian, Pencapaian Toddler, Ibu Mengandung &amp; Warga Emas</h3>
   <div class="dv-frame neu-pressed">
     <!-- bars INSIDE the frame -->
     <div class="dv-bars" id="dvBars">
