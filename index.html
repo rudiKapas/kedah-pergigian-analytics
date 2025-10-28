@@ -245,7 +245,7 @@
     --chip-h: 108px;      /* default; JS will overwrite with tallest chip */
     --badge-pad: 24px;    /* room so text doesn't sit under badge */
     --badge-size: 36px;   /* badge circle; keep if you like the current size */
-
+    --dv-dur: 1400ms;     /* change if you want faster/slower */
   }
 
   /* inner frame (container for bars + labels) */
@@ -334,6 +334,8 @@
     left:0;                 /* <-- was var(--track-border) */
     right:0;                /* <-- was var(--track-border) */
     height:0%;              /* animated by JS */
+    transition: height var(--dv-dur) cubic-bezier(.22,.61,.36,1);
+    will-change: height;
     background: var(--dv-color, #0ea5a0);
     border:none;
     /* square top so it doesn’t pinch in when short */
@@ -367,6 +369,10 @@
       border-radius:2px;
       background:#9aa6b2;
       z-index:3;
+    }
+
+    @media (prefers-reduced-motion: reduce){
+  .dv-fill{ transition:none; }
     }
 
   /* map bars to columns */
@@ -573,64 +579,6 @@
   <p class="subtitle">Kosong — akan diisi kemudian.</p>
 </div>
 
-<script>
-  /* ===== Dataviz fetch + animation (isolated, no globals) ===== */
-  (function(){
-    const SERIES = [
-      { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1057141723&single=true&output=csv', cell:'N11', valSel:'[data-dv-val="1"]', tenSel:'[data-dv-ten="1"]' }, // Akses
-      { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1851801564&single=true&output=csv', cell:'O28', valSel:'[data-dv-val="2"]', tenSel:'[data-dv-ten="2"]' }, // Toddler TPR
-      { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=205423549&single=true&output=csv', cell:'O19', valSel:'[data-dv-val="3"]', tenSel:'[data-dv-ten="3"]' }, // Ibu Mengandung
-      { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=480846724&single=true&output=csv', cell:'O39', valSel:'[data-dv-val="4"]', tenSel:'[data-dv-ten="4"]' }  // Warga Emas ≥20 gigi
-    ];
-
-    function colToIndex(col){ let n=0; for(let i=0;i<col.length;i++) n=n*26+(col.charCodeAt(i)-64); return n-1; }
-    function parseCell(ref){ const m=ref.match(/^([A-Z]+)(\d+)$/i); return { c: colToIndex(m[1].toUpperCase()), r: +m[2]-1 }; }
-    function parseCSV(txt){
-      const rows=[]; let row=[],cur='',q=false;
-      for(let i=0;i<txt.length;i++){ const ch=txt[i],nx=txt[i+1];
-        if(ch=='"'){ if(q && nx=='"'){cur+='"'; i++;} else q=!q; }
-        else if(ch==',' && !q){ row.push(cur); cur=''; }
-        else if((ch=='\n'||ch=='\r')&&!q){ if(cur!==''||row.length){ row.push(cur); rows.push(row); row=[]; cur=''; } if(ch=='\r'&&nx=='\n') i++; }
-        else cur+=ch;
-      }
-      if(cur!==''||row.length){ row.push(cur); rows.push(row); }
-      return rows;
-    }
-    async function getCell(url, cell){
-      try{
-        const t = await (await fetch(url,{cache:'no-store'})).text();
-        const a = parseCSV(t), {r,c} = parseCell(cell);
-        let raw = (a[r] && a[r][c]) || '';
-        raw = (''+raw).replace('%','').trim();
-        const v = parseFloat(raw);
-        return isNaN(v)? null : v;
-      }catch(e){ console.error('CSV fetch error', e); return null; }
-    }
-    const pct = v => (v!=null && isFinite(v)) ? (Math.round(v*10)/10).toFixed(1).replace(/\.0$/,'')+'%' : '--%';
-    const ten = v => (v==null || !isFinite(v)) ? '-' : ((v/10)%1===0 ? (v/10).toFixed(0) : (v/10).toFixed(1));
-
-  async function load(){
-    const fills = document.querySelectorAll('#dvBars .dv-fill');
-    await Promise.all(SERIES.map(async (s,i)=>{
-      const v = await getCell(s.url, s.cell);
-      const valEl = document.querySelector(s.valSel);
-      const tenEl = document.querySelector(s.tenSel);
-      if(valEl) valEl.textContent = pct(v);
-      if(tenEl) tenEl.textContent = ten(v);
-      if (fills[i]) {
-        const p = (v || 0) + '%';
-        setTimeout(()=>{
-          fills[i].style.height = p;                         // animate colour
-          const track = fills[i].closest('.dv-track');       // <-- add
-          if (track) track.style.setProperty('--p', p);      // <-- add
-        }, 100 + i*140);
-      }
-    }));
-  }
-    if(document.readyState!=='loading') load();
-    else document.addEventListener('DOMContentLoaded', load);
-  })();
-</script>
 
 <!-- ===== END DATAVIZ TILE SECTION ===== -->
 
@@ -860,58 +808,88 @@
     goBtn.addEventListener('click', ()=>{ const list = search(q.value); if(list[0]) location.href = list[0].url; });
   </script>
 
-  <!-- Dataviz fetch + animation (self-contained / namespaced) -->
   <script>
-    const DV_SERIES = [
-      { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1057141723&single=true&output=csv', cell:'N11', valSel:'[data-dv-val="1"]', tenSel:'[data-dv-ten="1"]' }, // Akses
-      { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1851801564&single=true&output=csv', cell:'O28', valSel:'[data-dv-val="2"]', tenSel:'[data-dv-ten="2"]' }, // Toddler TPR
-      { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=205423549&single=true&output=csv', cell:'O19', valSel:'[data-dv-val="3"]', tenSel:'[data-dv-ten="3"]' }, // Ibu Mengandung
-      { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=480846724&single=true&output=csv', cell:'O39', valSel:'[data-dv-val="4"]', tenSel:'[data-dv-ten="4"]' }  // Warga Emas ≥20 gigi
-    ];
+/* ===== Dataviz: fetch once, animate bars + numbers in lockstep ===== */
+(function(){
+  const SERIES = [
+    { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1057141723&single=true&output=csv', cell:'N11', valSel:'[data-dv-val="1"]' }, // Akses
+    { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1851801564&single=true&output=csv', cell:'O28', valSel:'[data-dv-val="2"]' }, // Toddler TPR
+    { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=205423549&single=true&output=csv', cell:'O19', valSel:'[data-dv-val="3"]' }, // Ibu Mengandung
+    { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=480846724&single=true&output=csv', cell:'O39', valSel:'[data-dv-val="4"]' }  // Warga Emas ≥20 gigi
+  ];
 
-    function dvColToIndex(col){ let n=0; for(let i=0;i<col.length;i++) n=n*26+(col.charCodeAt(i)-64); return n-1; }
-    function dvParseCell(ref){ const m=ref.match(/^([A-Z]+)(\d+)$/i); return { c: dvColToIndex(m[1].toUpperCase()), r: +m[2]-1 }; }
+  /* --- helpers --- */
+  function colToIndex(col){ let n=0; for (let i=0;i<col.length;i++) n=n*26 + (col.charCodeAt(i)-64); return n-1; }
+  function parseCell(ref){ const m = ref.match(/^([A-Z]+)(\d+)$/i); return { c: colToIndex(m[1].toUpperCase()), r: +m[2]-1 }; }
+  function parseCSV(txt){
+    const rows=[], row=[]; let cur='', q=false;
+    for (let i=0;i<txt.length;i++){
+      const ch=txt[i], nx=txt[i+1];
+      if (ch=='"'){ if(q && nx=='"'){ cur+='"'; i++; } else q=!q; }
+      else if (ch==',' && !q){ row.push(cur); cur=''; }
+      else if ((ch=='\n'||ch=='\r') && !q){ row.push(cur); rows.push(row.splice(0)); cur=''; if(ch=='\r'&&nx=='\n') i++; }
+      else cur+=ch;
+    }
+    if (cur!=='' || row.length) { row.push(cur); rows.push(row); }
+    return rows;
+  }
+  async function getCell(url, cell){
+    const t = await (await fetch(url,{cache:'no-store'})).text();
+    const a = parseCSV(t), {r,c} = parseCell(cell);
+    let raw = (a[r] && a[r][c]) || '';
+    raw = (''+raw).replace('%','').trim();
+    const v = parseFloat(raw);
+    return isNaN(v) ? 0 : v;       // treat bad cells as 0
+  }
+  const pct = v => (Math.round(v*10)/10).toFixed(1).replace(/\.0$/,'') + '%';
 
-    function dvCSV(txt){
-      const rows=[]; let row=[],cur='',q=false;
-      for(let i=0;i<txt.length;i++){ const ch=txt[i],nx=txt[i+1];
-        if(ch=='"'){ if(q && nx=='"'){cur+='"'; i++;} else q=!q; }
-        else if(ch==',' && !q){ row.push(cur); cur=''; }
-        else if((ch=='\n'||ch=='\r')&&!q){ if(cur!==''||row.length){ row.push(cur); rows.push(row); row=[]; cur=''; } if(ch=='\r'&&nx=='\n') i++; }
-        else cur+=ch;
+  async function load(){
+    // fetch all values first
+    const values = await Promise.all(SERIES.map(s => getCell(s.url, s.cell)));
+
+    // cache DOM
+    const fills  = [...document.querySelectorAll('#dvBars .dv-fill')];
+    const tracks = [...document.querySelectorAll('#dvBars .dv-track')];
+    const vals   = SERIES.map(s => document.querySelector(s.valSel));
+
+    // read CSS duration so CSS (bars) and JS (numbers) end together
+    const host = document.querySelector('.tile-card.dv') || document.body;
+    const durStr = getComputedStyle(host).getPropertyValue('--dv-dur').trim() || '1400ms';
+    const DURATION = durStr.endsWith('ms') ? parseFloat(durStr) : parseFloat(durStr)*1000;
+
+    // set starting states
+    vals.forEach(el => el && (el.textContent = '0%'));
+    fills.forEach(f => f && (f.style.height = '0%'));
+
+    // force reflow so transitions start from 0%
+    void document.body.offsetWidth;
+
+    // start both animations at the same moment
+    const start = performance.now();
+
+    // 1) bars (CSS transition handles the tween; all end together)
+    values.forEach((v,i) => {
+      if (fills[i]) fills[i].style.height = v + '%';
+      // if you kept the extra stopper on the track and want it to follow:
+      if (tracks[i]) tracks[i].style.setProperty('--p', v + '%');
+    });
+
+    // 2) numbers (JS tween to match the same duration)
+    function step(now){
+      const t = Math.min(1, (now - start) / DURATION);   // 0 → 1 over the same time
+      for (let i=0;i<values.length;i++){
+        const el = vals[i]; if (!el) continue;
+        el.textContent = pct(values[i] * t);
       }
-      if(cur!==''||row.length){ row.push(cur); rows.push(row); }
-      return rows;
+      if (t < 1) requestAnimationFrame(step);
     }
+    requestAnimationFrame(step);
+  }
 
-    async function dvGet(url, cell){
-      try{
-        const t = await (await fetch(url,{cache:'no-store'})).text();
-        const a = dvCSV(t), {r,c} = dvParseCell(cell);
-        let raw = (a[r] && a[r][c]) || '';
-        raw = (''+raw).replace('%','').trim();
-        const v = parseFloat(raw);
-        return isNaN(v)? null : v;
-      }catch(e){ console.error('CSV fetch error', e); return null; }
-    }
-
-    const dvPct = v => (v!=null && isFinite(v)) ? (Math.round(v*10)/10).toFixed(1).replace(/\.0$/,'')+'%' : '--%';
-    const dvTen = v => (v==null || !isFinite(v)) ? '-' : ((v/10)%1===0 ? (v/10).toFixed(0) : (v/10).toFixed(1));
-
-    async function dvLoad(){
-      const fills = document.querySelectorAll('#dvBars .dv-fill');
-      await Promise.all(DV_SERIES.map(async (s,i)=>{
-        const v = await dvGet(s.url, s.cell);
-        const valEl = document.querySelector(s.valSel);
-        const tenEl = document.querySelector(s.tenSel);
-        if(valEl) valEl.textContent = dvPct(v);
-        if(tenEl) tenEl.textContent = dvTen(v);
-        if(fills[i]) setTimeout(()=>{ fills[i].style.height = (v||0)+'%'; }, 100 + i*140);
-      }));
-    }
-    if(document.readyState!=='loading') dvLoad();
-    else document.addEventListener('DOMContentLoaded', dvLoad);
-  </script>
+  if (document.readyState !== 'loading') load();
+  else document.addEventListener('DOMContentLoaded', load);
+})();
+</script>
 
   <script>
     // Set --chip-h to the tallest chip so all four match perfectly
