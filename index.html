@@ -242,6 +242,9 @@
     --track-radius: 12px;   /* outer corner radius */
     --chip-overlap: 16px; /* how far the chip intrudes into the frame */
     --track-border: 4px;    /* ↑ make this bigger for a wider white border */
+    --chip-h: 108px;      /* default; JS will overwrite with tallest chip */
+    --badge-pad: 24px;    /* room so text doesn't sit under badge */
+
   }
 
   /* inner frame (container for bars + labels) */
@@ -427,6 +430,9 @@
     position:absolute; width:var(--chip-w); padding:10px 12px; border-radius:14px;
     border:1px solid #e7ecf3; background:#fff; box-shadow:0 12px 24px rgba(2,6,23,.14);
     display:flex; align-items:center; gap:8px; z-index:2; text-decoration:none; color:inherit;
+    height: var(--chip-h);
+    overflow: visible;  /* you already had this below; it's fine here too */
+
   }
   .dv-chip.left  { right: calc(100% - var(--chip-overlap)); }
   .dv-chip.right { left:  calc(100% - var(--chip-overlap)); }
@@ -457,12 +463,22 @@
   .dv-chip.right .dv-badge{ order:0; margin-right:6px; }
   .dv-chip.left  .dv-badge{ order:2; margin-left:6px; }
 
-  .dv-valbox{ display:flex; flex-direction:column; min-width:0; width: calc(var(--chip-w) - 54px); }
+  .dv-valbox{
+  display:flex; flex-direction:column;
+  min-width:0;
+  flex:1 1 auto;     /* fill chip width */
+  }
+  .dv-chip.right .dv-valbox{ padding-left: var(--badge-pad); }
+  .dv-chip.left  .dv-valbox{ padding-right: var(--badge-pad); }
+
   .dv-val{ font-weight:900; font-size:16px; line-height:1.1; margin-bottom:2px; white-space:nowrap; }
   .dv-sub{
     font-size:11px; line-height:1.25; color:#475569;
-    overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical;
+    display:-webkit-box; -webkit-box-orient:vertical;
+    -webkit-line-clamp:6;   /* was 3 */
+    overflow:hidden;
   }
+
 
   @media (max-width:1200px){
     .tile-card.dv{ --frame-right: 160px; --frame-left: 160px; --chip-w: 150px; }
@@ -882,5 +898,30 @@
     if(document.readyState!=='loading') dvLoad();
     else document.addEventListener('DOMContentLoaded', dvLoad);
   </script>
+
+  <script>
+    // Set --chip-h to the tallest chip so all four match perfectly
+    function equalizeDVChips(){
+      const host = document.getElementById('dv1');
+      if (!host) return;
+      const chips = host.querySelectorAll('.dv-chip');
+      if (!chips.length) return;
+
+      let maxH = 0;
+      chips.forEach(ch => {
+        ch.style.height = 'auto';            // measure natural height
+        maxH = Math.max(maxH, ch.scrollHeight);
+      });
+
+      host.style.setProperty('--chip-h', Math.ceil(maxH) + 'px');
+      chips.forEach(ch => ch.style.height = 'var(--chip-h)');
+    }
+
+    // Run on load and on resize
+    window.addEventListener('load', equalizeDVChips);
+    window.addEventListener('resize', () => requestAnimationFrame(equalizeDVChips));
+  </script>
+
+
 </body>
 </html>
