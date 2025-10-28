@@ -244,6 +244,7 @@
     --track-border: 4px;    /* ↑ make this bigger for a wider white border */
     --chip-h: 108px;      /* default; JS will overwrite with tallest chip */
     --badge-pad: 24px;    /* room so text doesn't sit under badge */
+    --badge-size: 36px;   /* badge circle; keep if you like the current size */
 
   }
 
@@ -440,10 +441,14 @@
   .dv-chip.bottom{ top:   var(--row2); transform: translateY(-50%); }
 
   .dv-badge{
-    width:36px; height:36px; border-radius:12px; flex:0 0 auto;
-    display:grid; place-items:center; background:var(--badge,#94a3b8);
+    width: var(--badge-size);
+    height: var(--badge-size);
+    border-radius: calc(var(--badge-size) / 3);
+    display:grid; place-items:center;
+    background: var(--badge,#94a3b8);
     box-shadow:0 10px 22px rgba(2,6,23,.18), inset 0 1px 0 rgba(255,255,255,.9);
   }
+
 
   /* Make the icon badge poke out half beyond the chip edge toward the center */
   .dv-chip { overflow: visible; }  /* allow badge to extend outside */
@@ -456,10 +461,19 @@
     margin: 0;                 /* neutralize earlier margins */
   }
 
-  .dv-chip.right .dv-badge { left: -18px; }   /* half of 36px badge */
-  .dv-chip.left  .dv-badge { right: -18px; }
+  .dv-chip.right .dv-badge { left:  calc(var(--badge-size) / -2); }
+  .dv-chip.left  .dv-badge { right: calc(var(--badge-size) / -2); }
 
-  .dv-ico{ width:18px; height:18px; filter:brightness(0) invert(1) contrast(1.2); }
+
+  .dv-ico{
+    /* icon sits inside with safe padding; increase/decrease the 12px gap if needed */
+    width:  calc(var(--badge-size) - 12px);
+    height: calc(var(--badge-size) - 12px);
+    display:block;
+    max-width:100%; max-height:100%;
+    filter:brightness(0) invert(1) contrast(1.2);
+  }
+
   .dv-chip.right .dv-badge{ order:0; margin-right:6px; }
   .dv-chip.left  .dv-badge{ order:2; margin-left:6px; }
 
