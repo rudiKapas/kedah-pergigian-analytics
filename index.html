@@ -430,14 +430,6 @@
   .dv-chip.top   { top:   var(--row1); transform: translateY(-50%); }
   .dv-chip.bottom{ top:   var(--row2); transform: translateY(-50%); }
 
-  .dv-chip::after{
-    content:''; position:absolute; top:50%; transform:translateY(-50%);
-    width:22px; height:10px; border-radius:7px; background:#fff;
-    box-shadow:0 8px 18px rgba(2,6,23,.12), inset 0 0 0 1px #e8edf4;
-  }
-  .dv-chip.left::after  { right:-6px; }
-  .dv-chip.right::after { left:-6px; }
-
   .dv-badge{
     width:36px; height:36px; border-radius:12px; flex:0 0 auto;
     display:grid; place-items:center; background:var(--badge,#94a3b8);
