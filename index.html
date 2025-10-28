@@ -113,6 +113,15 @@
       font-weight:700; font-size:13px; color:var(--accent);
       align-self:center;
     }
+
+    /* Row-1 only: hide 'info lanjut' by matching tile background; show green on hover */
+    .tiles > a.tile-card:nth-of-type(-n+5) .cta{
+      color: var(--panel);          /* same as tile background (#fff) */
+    }
+    .tiles > a.tile-card:nth-of-type(-n+5):hover .cta{
+      color: var(--accent);         /* keep the same green on hover */
+    }
+
     .tile-card:hover{ box-shadow:0 8px 28px rgba(2,6,23,.14); transform: translateY(-1px); }
 
     /* Keep aspect flexible */
