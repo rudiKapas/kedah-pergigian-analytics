@@ -688,7 +688,7 @@
     const GAUGE = {start:-110, end:110, r:88, needle:64, arcSpan:14};
     const COLORS = {v6:'#FBAC45', v12:'#44BD9E', v16:'#5AAEE1'};
     const SRC = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=898117748&single=true&output=csv';
-
+  
     function colToIndex(col){let n=0;for(let i=0;i<col.length;i++)n=n*26+(col.charCodeAt(i)-64);return n-1;}
     function parseCell(ref){const m=ref.match(/^([A-Z]+)(\d+)$/i);return {c:colToIndex(m[1].toUpperCase()), r:+m[2]-1};}
     function parseCSV(txt){const rows=[],row=[];let cur='',q=false;for(let i=0;i<txt.length;i++){const ch=txt[i],nx=txt[i+1];if(ch=='"'){if(q&&nx=='"'){cur+='"';i++;}else q=!q;}else if(ch==','&&!q){row.push(cur);cur='';}else if((ch=='\n'||ch=='\r')&&!q){row.push(cur);rows.push(row.splice(0));cur='';if(ch=='\r'&&nx=='\n')i++;}else cur+=ch;}if(cur!==''||row.length){row.push(cur);rows.push(row);}return rows;}
@@ -702,12 +702,10 @@
       el.style.left = (50 + (pt.x/half)*50) + '%';
       el.style.top  = (50 + (pt.y/half)*50) + '%';
     }
-
+  
+    // outer serrated tick ring
     function buildTicks(){
-      const T1 = 108;              // inner radius of tick
-      const T2_MINOR = 116;        // outer radius (minor)
-      const T2_MAJOR = 119;        // outer radius (major, a bit longer)
-      const N = 72;                // total ticks (every 5 degrees)
+      const T1 = 108, T2_MINOR = 116, T2_MAJOR = 119, N = 72;
       const g = document.getElementById('tickGroup');
       for (let i = 0; i < N; i++){
         const deg = (360 / N) * i;
@@ -721,26 +719,42 @@
         g.appendChild(ln);
       }
     }
-
-
+  
+    // tapered needle path (narrow tip)
+    function taperedNeedlePath(angleDeg, len, baseW, tipW){
+      const rad = (angleDeg-90) * Math.PI/180;
+      const ux = Math.cos(rad), uy = Math.sin(rad);
+      const px = -uy, py = ux;             // perpendicular
+  
+      const rBase = 12;                    // start inside center cap (hidden)
+      const base1 = { x: ux*rBase + px*baseW, y: uy*rBase + py*baseW };
+      const base2 = { x: ux*rBase - px*baseW, y: uy*rBase - py*baseW };
+      const tip   = degToXY(angleDeg, len);
+      const tip1  = { x: tip.x + px*tipW, y: tip.y + py*tipW };
+      const tip2  = { x: tip.x - px*tipW, y: tip.y - py*tipW };
+  
+      return `M ${base1.x} ${base1.y} L ${tip1.x} ${tip1.y} L ${tip2.x} ${tip2.y} L ${base2.x} ${base2.y} Z`;
+    }
+  
     async function drawGauge(){
-      buildTicks();  
+      buildTicks();
+  
       const v6  = await getCell(SRC,'O9');
       const v12 = await getCell(SRC,'O12');
       const v16 = await getCell(SRC,'O15');
-
+  
       const svgArcs = document.getElementById('arcGroup');
       const svgNeedles = document.getElementById('needleGroup');
-
+  
       const data = [
         {val:v6,  color:COLORS.v6,  id:'lbl6'},
         {val:v12, color:COLORS.v12, id:'lbl12'},
         {val:v16, color:COLORS.v16, id:'lbl16'}
       ];
-
+  
+      // static coloured arc segments (unchanged)
       data.forEach(d=>{
         const ang = map(d.val);
-        // coloured arc segment on the ring
         const a1 = ang-GAUGE.arcSpan/2, a2 = ang+GAUGE.arcSpan/2;
         const arc = document.createElementNS('http://www.w3.org/2000/svg','path');
         arc.setAttribute('d', smallArcPath(GAUGE.r, a1, a2));
@@ -748,26 +762,50 @@
         arc.setAttribute('stroke', d.color);
         arc.setAttribute('stroke-width','18');
         svgArcs.appendChild(arc);
-
-        // pointer (needle)
-        const tip = degToXY(ang, GAUGE.needle);
-        const needle = document.createElementNS('http://www.w3.org/2000/svg','line');
-        needle.setAttribute('x1','0'); needle.setAttribute('y1','0');
-        needle.setAttribute('x2', tip.x); needle.setAttribute('y2', tip.y);
-        needle.setAttribute('stroke', d.color);
-        needle.setAttribute('stroke-width','6');
-        svgNeedles.appendChild(needle);
-
-        // label just outside the ring
-        const el = document.getElementById(d.id);
-        el.textContent = pct(d.val);
-        placeLabel(el, ang, GAUGE.r + 20);
       });
+  
+      // create tapered needles (narrow tip), then animate
+      const BASE_W = 3.2;      // <-- thicker near hub
+      const TIP_W  = 1.2;      // <-- narrower tip
+      const LEN    = GAUGE.needle;
+      const lblR   = GAUGE.r + 20;
+  
+      const needles = data.map(d=>{
+        const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+        p.setAttribute('fill', d.color);
+        p.setAttribute('d', taperedNeedlePath(map(0), LEN, BASE_W, TIP_W)); // start at 0%
+        svgNeedles.appendChild(p);
+        return {path:p, color:d.color, targetVal:d.val, label:document.getElementById(d.id)};
+      });
+  
+      // animate all needles + labels together
+      const DURATION = 1400; // ms
+      const start = performance.now();
+  
+      function step(now){
+        const t = Math.min(1, (now - start) / DURATION);
+        needles.forEach(n=>{
+          const curVal = n.targetVal * t;            // 0 → target
+          const ang    = map(curVal);
+          n.path.setAttribute('d', taperedNeedlePath(ang, LEN, BASE_W, TIP_W));
+          n.label.textContent = pct(curVal);
+          placeLabel(n.label, ang, lblR);
+        });
+        if (t < 1) requestAnimationFrame(step);
+      }
+  
+      // init labels at 0% and position them; then start
+      needles.forEach(n=>{
+        n.label.textContent = pct(0);
+        placeLabel(n.label, map(0), lblR);
+      });
+      requestAnimationFrame(step);
     }
-
+  
     if (document.readyState !== 'loading') drawGauge();
     else document.addEventListener('DOMContentLoaded', drawGauge);
   </script>
+
 </section>
 
 <!-- ===== END DATAVIZ 2 TILE SECTION ===== -->
