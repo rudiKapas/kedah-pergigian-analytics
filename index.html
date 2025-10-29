@@ -641,6 +641,11 @@
 
     /* ensure the square keeps its size and doesn't cause wrapping */
     #gaugeAges .legend .sq{ flex:0 0 10px; }
+    
+    /* outer serrated tick ring */
+    #gaugeAges .tick { stroke:#e2e8f0; opacity:.95; }
+    #gaugeAges .tick.minor { stroke-width:1.4; }
+    #gaugeAges .tick.major { stroke-width:2.4; }
 
 
   </style>
@@ -654,6 +659,8 @@
       <circle cx="0" cy="0" r="88" fill="none" stroke="#e5e7eb" stroke-width="18"/>
       <!-- subtle inner face -->
       <circle cx="0" cy="0" r="62" fill="#f8fafc"/>
+      <!-- outer tick ring -->
+      <g id="tickGroup" stroke-linecap="round"></g>
 
       <!-- coloured ring segments + needles populated by JS -->
       <g id="arcGroup"></g>
@@ -696,7 +703,28 @@
       el.style.top  = (50 + (pt.y/half)*50) + '%';
     }
 
+    function buildTicks(){
+      const T1 = 108;              // inner radius of tick
+      const T2_MINOR = 116;        // outer radius (minor)
+      const T2_MAJOR = 119;        // outer radius (major, a bit longer)
+      const N = 72;                // total ticks (every 5 degrees)
+      const g = document.getElementById('tickGroup');
+      for (let i = 0; i < N; i++){
+        const deg = (360 / N) * i;
+        const p1 = degToXY(deg, T1);
+        const isMajor = (i % 6 === 0); // every 30°
+        const p2 = degToXY(deg, isMajor ? T2_MAJOR : T2_MINOR);
+        const ln = document.createElementNS('http://www.w3.org/2000/svg','line');
+        ln.setAttribute('x1', p1.x); ln.setAttribute('y1', p1.y);
+        ln.setAttribute('x2', p2.x); ln.setAttribute('y2', p2.y);
+        ln.setAttribute('class', `tick ${isMajor ? 'major' : 'minor'}`);
+        g.appendChild(ln);
+      }
+    }
+
+
     async function drawGauge(){
+      buildTicks();  
       const v6  = await getCell(SRC,'O9');
       const v12 = await getCell(SRC,'O12');
       const v16 = await getCell(SRC,'O15');
