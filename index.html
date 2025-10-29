@@ -591,7 +591,7 @@
   </div>
 </div>
 
-<!-- RIGHT: Gauge tile (inner frame removed, neumorphic kept) -->
+<!-- tile 2 2nd row: Gauge tile (inner frame removed, neumorphic kept) -->
 <section class="tile-card dv-span-2" id="gaugeAges" style="height:360px">
   <h3 class="dv-title">Bebas Karies Mengikut Umur</h3>
 
@@ -604,12 +604,19 @@
       filter: drop-shadow(16px 16px 32px var(--neu-dark))
               drop-shadow(-16px -16px 32px var(--neu-light));
     }
+    /* legend: no frame; centered row below the gauge */
+    /* legend: no frame; centered row below the gauge */
     #gaugeAges .legend{
-      position:absolute; left:16px; bottom:14px; display:grid; gap:6px;
-      font-size:12px; color:#475569; background:rgba(255,255,255,.85);
-      padding:8px 10px; border-radius:10px; border:1px solid #e7ecf3; box-shadow:var(--shadow-1);
+      position:absolute;
+      left:50%;
+      bottom:-6px;                 /* move slightly outside the gauge area */
+      transform:translateX(-50%);
+      display:flex; align-items:center; gap:16px;
+      font-size:12px; color:#475569;
+      background:none; padding:0; border:none; box-shadow:none; border-radius:0;
     }
-    #gaugeAges .legend span{ display:flex; align-items:center; gap:8px; white-space:nowrap; }
+    #gaugeAges .legend .sq{ width:10px; height:10px; border-radius:3px; display:inline-block; }
+
     #gaugeAges .sq{ width:10px; height:10px; border-radius:3px; display:inline-block; }
     /* value labels placed just outside the ring */
     #gaugeAges .val{
@@ -617,6 +624,25 @@
       font-weight:800; font-size:14px; background:#fff;
       padding:2px 6px; border-radius:8px; box-shadow:var(--shadow-1);
     }
+
+    /* --- force the legend to be one line --- */
+    #gaugeAges .legend{
+      flex-wrap: nowrap;   /* keep all items on a single row */
+      gap: 24px;           /* spacing between items */
+    }
+
+    #gaugeAges .legend span{
+      display: inline-flex;      /* icon + text sit in one line */
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;       /* prevent "6 Tahun" from breaking */
+      line-height: 1;
+    }
+
+    /* ensure the square keeps its size and doesn't cause wrapping */
+    #gaugeAges .legend .sq{ flex:0 0 10px; }
+
+
   </style>
 
   <div class="g-wrap">
