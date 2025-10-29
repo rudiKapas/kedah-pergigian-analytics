@@ -647,23 +647,19 @@
     #gaugeAges .tick.minor { stroke-width:1.4; }
     #gaugeAges .tick.major { stroke-width:2.4; }
 
-    /* percentage scale labels (between needle tip and grey ring) */
-    #gaugeAges .scale text{
-      font-size:10px; font-weight:800; fill:#64748b; dominant-baseline:middle;
-      text-anchor:middle;
+
+
+    #gaugeAges .seg-scale{
+      stroke: rgba(207,216,227,.60) !important; /* #cfd8e3 @ 60% */
+      stroke-width: 4 !important;               /* thinner */
+      stroke-linecap: butt !important;          /* sharp ends */
+      fill: none !important;
     }
-
-      /* segmented 0–100% scale ring (static) */
-      #gaugeAges .seg-scale { stroke:#cfd8e3; stroke-width:6; fill:none; stroke-linecap:round; transition:none !important; }
-
-      /* scale labels: smaller, safe radius, no overlap */
+      #gaugeAges .scale text,
       #gaugeAges .scaleLabel{
-        font-size:9px;           /* ↓ smaller to avoid touching the grey ring */
-        font-weight:800;
-        fill:#94a3b8;
-        user-select:none;
-        pointer-events:none;
-        transition:none !important;
+        font-size: 8.5px !important;              /* reduce size */
+        font-weight: 800;
+        fill: rgba(148,163,184,.60) !important;   /* #94a3b8 @ 60% */
       }
 
   </style>
