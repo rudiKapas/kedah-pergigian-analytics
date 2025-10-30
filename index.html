@@ -863,8 +863,106 @@
 <!-- ===== END DATAVIZ 2 TILE SECTION ===== -->
 
 <!-- ===== THIRD ROW  ===== -->
-<section class="tile-card dv-span-2" style="height:360px"></section>
-<section class="tile-card dv-span-3" style="height:360px"></section>
+<!-- ===== Row-3 LEFT TILE: Periodontal Status (legend moved BELOW chart) ===== -->
+<section class="tile-card dv-span-2" id="periStatus" style="height:360px">
+  <h3 class="dv-title">Periodontal Status</h3>
+
+  <div class="g-wrap">
+    <svg viewBox="-120 -120 240 240" aria-hidden="true">
+      <defs>
+        <linearGradient id="grad12" x1="-120" y1="0" x2="120" y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#FDBA74"/><stop offset="55%" stop-color="#FBAC45"/><stop offset="100%" stop-color="#F97316"/>
+        </linearGradient>
+        <linearGradient id="grad16" x1="-120" y1="0" x2="120" y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#A7F3D0"/><stop offset="55%" stop-color="#44BD9E"/><stop offset="100%" stop-color="#10B981"/>
+        </linearGradient>
+      </defs>
+
+      <circle cx="0" cy="0" r="100" fill="#ffffff"/>
+      <circle cx="0" cy="0" r="60" fill="#f8fafc"/>
+
+      <g id="tracks" stroke="#e5e7eb" fill="none" stroke-linecap="butt">
+        <path id="tOuter" d="" stroke-width="18"></path>
+        <path id="tInner" d="" stroke-width="18"></path>
+      </g>
+
+      <g id="arcs" fill="none" stroke-linecap="butt">
+        <path id="a12" d="" stroke="url(#grad12)" stroke-width="18"></path>
+        <path id="a16" d="" stroke="url(#grad16)" stroke-width="18"></path>
+      </g>
+
+      <g id="wedges" fill-rule="evenodd">
+        <path id="w12" fill="#FBAC45"></path>
+        <path id="w16" fill="#44BD9E"></path>
+      </g>
+
+      <circle cx="0" cy="0" r="14" fill="#fff" stroke="#e5e7eb"/>
+    </svg>
+  </div>
+
+  <!-- LEGEND MOVED BELOW THE CHART -->
+  <div class="legend">
+    <span><i class="sq" style="background:#FBAC45"></i> 12 Tahun (GIS=0)</span>
+    <span><i class="sq" style="background:#44BD9E"></i> 16 Tahun (BPE=0)</span>
+  </div>
+
+  <style>
+    #periStatus { position:relative; }
+    #periStatus .g-wrap{ position:absolute; inset:58px 20px 56px 20px; }
+    #periStatus svg{
+      position:absolute; inset:0; width:100%; height:100%;
+      filter: drop-shadow(16px 16px 32px var(--neu-dark)) drop-shadow(-16px -16px 32px var(--neu-light));
+      display:block;
+    }
+
+    /* legend is now BELOW the chart */
+    #periStatus .legend{
+      position:absolute;
+      left:50%;
+      bottom: 12px;px;                 /* place under the gauge area */
+      transform:translateX(-50%);
+      display:flex; align-items:center; gap:24px;
+      font-size:12px; color:#475569; background:none; padding:0; border:none;
+    }
+    #periStatus .legend .sq{ width:10px; height:10px; border-radius:3px; display:inline-block; flex:0 0 10px; }
+    #periStatus .legend span{ display:inline-flex; align-items:center; gap:8px; white-space:nowrap; line-height:1; }
+  </style>
+
+  <script>
+    (function(){
+      const SRC='https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=898117748&single=true&output=csv';
+      const START=-110, END=110, R_OUT=88, R_IN=66, WIDTH=18, WEDGE_A=6;
+
+      function colToIndex(col){let n=0;for(let i=0;i<col.length;i++)n=n*26+(col.charCodeAt(i)-64);return n-1;}
+      function parseCell(ref){const m=ref.match(/^([A-Z]+)(\d+)$/i);return{c:colToIndex(m[1].toUpperCase()),r:+m[2]-1};}
+      function parseCSV(txt){const rows=[],row=[];let cur='',q=false;for(let i=0;i<txt.length;i++){const ch=txt[i],nx=txt[i+1];if(ch=='"'){if(q&&nx=='"'){cur+='"';i++;}else q=!q;}else if(ch==','&&!q){row.push(cur);cur='';}else if((ch=='\n'||ch=='\r')&&!q){row.push(cur);rows.push(row.splice(0));cur='';if(ch=='\r'&&nx=='\n')i++;}else cur+=ch;}if(cur!==''||row.length){row.push(cur);rows.push(row);}return rows;}
+      async function getCell(url,cell){const t=await (await fetch(url,{cache:'no-store'})).text();const a=parseCSV(t),{r,c}=parseCell(cell);let raw=(a[r]&&a[r][c])||'';raw=(''+raw).replace('%','').trim();const v=parseFloat(raw);return isNaN(v)?0:v;}
+      function degToXY(deg,r){const rad=(deg-90)*Math.PI/180;return {x:Math.cos(rad)*r,y:Math.sin(rad)*r};}
+      function smallArcPath(r,a1,a2){const p1=degToXY(a1,r),p2=degToXY(a2,r),large=Math.abs(a2-a1)>180?1:0;return `M ${p1.x} ${p1.y} A ${r} ${r} 0 ${large} 1 ${p2.x} ${p2.y}`;}
+      function map(v){v=Math.max(0,Math.min(100,v));return START+(v/100)*(END-START);}
+      function wedgePath(r,t,ang){const ri=r-t/2,ro=r+t/2,a1=ang,aTip=ang+WEDGE_A;const p1=degToXY(a1,ri),p2=degToXY(a1,ro),tip=degToXY(aTip,r);return `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y} L ${tip.x} ${tip.y} Z`; }
+
+      async function draw(){
+        const v12=await getCell(SRC,'O18'); // 12 Tahun (GIS=0)
+        const v16=await getCell(SRC,'O21'); // 16 Tahun (BPE=0)
+
+        document.getElementById('tOuter').setAttribute('d', smallArcPath(R_OUT, START, END));
+        document.getElementById('tInner').setAttribute('d', smallArcPath(R_IN,  START, END));
+
+        const a12=map(v12), a16=map(v16);
+        document.getElementById('a12').setAttribute('d', smallArcPath(R_OUT, START, a12));
+        document.getElementById('a16').setAttribute('d', smallArcPath(R_IN,  START, a16));
+
+        document.getElementById('w12').setAttribute('d', wedgePath(R_OUT, WIDTH, a12));
+        document.getElementById('w16').setAttribute('d', wedgePath(R_IN,  WIDTH, a16));
+      }
+
+      if(document.readyState!=='loading') draw();
+      else document.addEventListener('DOMContentLoaded', draw);
+    })();
+  </script>
+</section>
+<!-- ===== THIRD ROW left tile END ===== -->
 
 <!-- ===== THIRD ROW END ===== -->
 <!-- ===== END DATAVIZ TILE SECTION ===== -->
