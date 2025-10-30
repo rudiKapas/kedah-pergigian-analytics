@@ -928,18 +928,22 @@
               drop-shadow(-16px -16px 32px var(--neu-light));
     }
 
-    /* Outward tick scale (neumorphic) */
+    /* Outward tick scale — thinner, rounded tips (no blunt ends) */
     #periStatus .peri-scale{
-      /* subtle raised look */
       filter: drop-shadow(2px 3px 4px rgba(15,23,42,.10))
               drop-shadow(-2px -2px 3px rgba(255,255,255,.85));
     }
     #periStatus .peri-scale .tick{
-      stroke:#cfd8e3; fill:none; stroke-linecap:round; opacity:.9; transition:none;
+      stroke:#d5dde6;
+      fill:none;
+      stroke-linecap:butt;   /* flat ends */
+      opacity:.9;
+      transition:none;
     }
-    #periStatus .peri-scale .tick.minor{ stroke-width:4; }
-    #periStatus .peri-scale .tick.major{ stroke-width:7; opacity:.95; }
+    #periStatus .peri-scale .tick.minor{ stroke-width:2.4px; }  /* was thicker */
+    #periStatus .peri-scale .tick.major{ stroke-width:3.8px; }  /* was thicker */
     
+        
 
 
     .legend{
@@ -1027,6 +1031,11 @@ function buildPeriScale(){
 
         const v12=await getCell(SRC,'O18'); // 12 Tahun (GIS=0)
         const v16=await getCell(SRC,'O21'); // 16 Tahun (BPE=0)
+
+        // Color the value labels to match donuts (solid color)
+        const valEls = document.querySelectorAll('#periStatus .peri-val'); // your two value bubbles
+        if (valEls[0]) valEls[0].style.color = '#44BD9E';  // 16 Tahun (green)
+        if (valEls[1]) valEls[1].style.color = '#FBAC45';  // 12 Tahun (orange)
 
         // Tracks
         document.getElementById('tOuter').setAttribute('d', smallArcPath(R_OUT, START, END));
