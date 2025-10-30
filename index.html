@@ -863,7 +863,7 @@
 <!-- ===== END DATAVIZ 2 TILE SECTION ===== -->
 
 <!-- ===== THIRD ROW  ===== -->
-<!-- ===== Row-3 LEFT TILE: Periodontal Status (stud scale + correct value placement) ===== -->
+<!-- ===== Row-3 LEFT TILE: Periodontal Status (segmented outer scale, no labels) ===== -->
 <section class="tile-card dv-span-2" id="periStatus" style="height:360px">
   <h3 class="dv-title">Periodontal Status</h3>
 
@@ -878,14 +878,10 @@
           <stop offset="0%" stop-color="#A7F3D0"/><stop offset="55%" stop-color="#44BD9E"/><stop offset="100%" stop-color="#10B981"/>
         </linearGradient>
 
-        <!-- Neumorphism filters -->
+        <!-- Neumorphism for donuts -->
         <filter id="nmArc" x="-40%" y="-40%" width="180%" height="180%">
           <feDropShadow dx="6" dy="8" stdDeviation="6" flood-color="#cbd5e1" flood-opacity="0.65"/>
           <feDropShadow dx="-4" dy="-4" stdDeviation="4" flood-color="#ffffff" flood-opacity="0.9"/>
-        </filter>
-        <filter id="nmStud" x="-40%" y="-40%" width="180%" height="180%">
-          <feDropShadow dx="3" dy="4" stdDeviation="3" flood-color="#cbd5e1" flood-opacity="0.8"/>
-          <feDropShadow dx="-2" dy="-2" stdDeviation="2" flood-color="#ffffff" flood-opacity="0.95"/>
         </filter>
       </defs>
 
@@ -893,9 +889,8 @@
       <circle cx="0" cy="0" r="100" fill="#ffffff"/>
       <circle cx="0" cy="0" r="60" fill="#f8fafc"/>
 
-      <!-- OUTER RIM + STUD SCALE (evenly spaced, perpendicular studs) -->
-      <g id="studRim"></g>
-      <g id="studs" filter="url(#nmStud)"></g>
+      <!-- segmented outer 0–100% scale (NO labels) -->
+      <g id="periScaleSeg" class="peri-scale"></g>
 
       <!-- donut tracks -->
       <g id="tracks" stroke="#e5e7eb" fill="none" stroke-linecap="butt">
@@ -903,7 +898,7 @@
         <path id="tInner" d="" stroke-width="20"></path>
       </g>
 
-      <!-- donut fills (animated; blunt ends; with neumorphism) -->
+      <!-- donut fills (animated; blunt ends) -->
       <g id="arcs" filter="url(#nmArc)" fill="none" stroke-linecap="butt">
         <path id="a12" d="" stroke="url(#grad12)" stroke-width="20" stroke-dasharray="0 999"></path>
         <path id="a16" d="" stroke="url(#grad16)" stroke-width="20" stroke-dasharray="0 999"></path>
@@ -913,7 +908,7 @@
       <circle cx="0" cy="0" r="14" fill="#fff" stroke="#e5e7eb"/>
     </svg>
 
-    <!-- value pills (sit on the midline of each donut; animate with arcs) -->
+    <!-- animated value pills -->
     <div class="val v12">--%</div>
     <div class="val v16">--%</div>
   </div>
@@ -931,6 +926,12 @@
       position:absolute; inset:0; width:100%; height:100%; display:block;
       filter: drop-shadow(16px 16px 32px var(--neu-dark))
               drop-shadow(-16px -16px 32px var(--neu-light));
+    }
+
+    /* segmented outer scale look (like row-2 gauge; no labels) */
+    #periStatus .peri-scale path{
+      stroke:#cfd8e3; stroke-width:6; fill:none; stroke-linecap:round; opacity:.6;
+      transition:none;
     }
 
     .legend{
@@ -954,14 +955,12 @@
     (function(){
       const SRC='https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=898117748&single=true&output=csv';
 
-      // Gauge geometry
-      const START=-110, END=110;                 // sweep where donuts & scale live
-      const R_OUT=88, R_IN=66, WIDTH=20;         // wider donuts, same outer size
-      const R_STUD_RIM=104;                      // rim for knob scale (outside the big disc)
-      const STUD_R=112;                          // radius where studs sit (center of each block)
+      // Geometry (unchanged)
+      const START=-110, END=110;
+      const R_OUT=88, R_IN=66, WIDTH=20;
 
-      // Stud scale config (even spacing; short radial rectangles)
-      const STUDS = { count: 18, w:6, h:12, opacity:0.9 };
+      // Outer segmented scale geometry (just outside donuts)
+      const SCALE = { r: 104, gapDeg: 4, segments: 5, strokeW: 6 };
 
       // Helpers
       function colToIndex(col){let n=0;for(let i=0;i<col.length;i++)n=n*26+(col.charCodeAt(i)-64);return n-1;}
@@ -973,46 +972,25 @@
       function map(v){v=Math.max(0,Math.min(100,v));return START+(v/100)*(END-START);}
       const pct = v => (Math.round(v*10)/10).toFixed(1).replace(/\.0$/,'') + '%';
 
-      // Build the outer knob-like stud scale
-      function buildStudScale(){
-        const rim = document.getElementById('studRim');
-        const studs = document.getElementById('studs');
-
-        // thin rim (behind studs)
-        const rimPath = document.createElementNS('http://www.w3.org/2000/svg','path');
-        rimPath.setAttribute('d', smallArcPath(R_STUD_RIM, START, END));
-        rimPath.setAttribute('fill','none');
-        rimPath.setAttribute('stroke','#e5e7eb');
-        rimPath.setAttribute('stroke-width','8');
-        rimPath.setAttribute('opacity','0.65');
-        rim.appendChild(rimPath);
-
-        // evenly spaced blocks, radial (perpendicular to rim)
-        const span = END-START;
-        for(let i=0;i<STUDS.count;i++){
-          const a = START + (span*(i+0.5)/STUDS.count); // center each stud in its slot
-          const g = document.createElementNS('http://www.w3.org/2000/svg','g');
-          g.setAttribute('transform', `rotate(${a}) translate(${STUD_R},0)`);
-          const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
-          r.setAttribute('x', -STUDS.w/2);
-          r.setAttribute('y', -STUDS.h/2);
-          r.setAttribute('width', STUDS.w);
-          r.setAttribute('height', STUDS.h);
-          r.setAttribute('rx', 2);
-          r.setAttribute('fill', '#e2e8f0');
-          r.setAttribute('opacity', STUDS.opacity);
-          g.appendChild(r);
-          studs.appendChild(g);
+      // Build the segmented outer 0–100% scale (no labels)
+      function buildPeriScale(){
+        const g = document.getElementById('periScaleSeg');
+        const span = END - START;
+        const segSpan = span / SCALE.segments;
+        for(let i=0;i<SCALE.segments;i++){
+          const a1 = START + i*segSpan + SCALE.gapDeg/2;
+          const a2 = START + (i+1)*segSpan - SCALE.gapDeg/2;
+          const p  = document.createElementNS('http://www.w3.org/2000/svg','path');
+          p.setAttribute('d', smallArcPath(SCALE.r, a1, a2));
+          g.appendChild(p);
         }
       }
 
-      // Position value pill on the midline of a donut at the mid-angle of the fill
+      // Position value pill on midline of a donut at current fill
       function placeValue(el, rMid, startDeg, endDeg){
         const ang = (startDeg + endDeg)/2;
         const pt = degToXY(ang, rMid);
-        // nudge slightly inward so pill sits neatly inside the band
-        const inward = 6; // px inward along radius
-        const rad=(ang-90)*Math.PI/180;
+        const rad=(ang-90)*Math.PI/180, inward=6;
         const x = pt.x - Math.cos(rad)*inward;
         const y = pt.y - Math.sin(rad)*inward;
         el.style.left = (50 + x/2.4) + '%';
@@ -1020,55 +998,39 @@
       }
 
       async function draw(){
-        buildStudScale();
+        buildPeriScale();
 
         const v12=await getCell(SRC,'O18'); // 12 Tahun (GIS=0)
         const v16=await getCell(SRC,'O21'); // 16 Tahun (BPE=0)
 
-        // Tracks (full sweep)
+        // Tracks
         document.getElementById('tOuter').setAttribute('d', smallArcPath(R_OUT, START, END));
         document.getElementById('tInner').setAttribute('d', smallArcPath(R_IN,  START, END));
 
-        // Fills init (0%)
+        // Fills (animate via stroke-dasharray so ends stay blunt)
         const p12=document.getElementById('a12');
         const p16=document.getElementById('a16');
-        const d12=smallArcPath(R_OUT, START, map(v12));
-        const d16=smallArcPath(R_IN,  START, map(v16));
-        p12.setAttribute('d', d12);
-        p16.setAttribute('d', d16);
-
-        // Use stroke-dasharray tween so ends stay blunt, and sync numbers
-        const len12 = p12.getTotalLength();
-        const len16 = p16.getTotalLength();
+        p12.setAttribute('d', smallArcPath(R_OUT, START, map(v12)));
+        p16.setAttribute('d', smallArcPath(R_IN,  START, map(v16)));
+        const len12 = p12.getTotalLength(), len16 = p16.getTotalLength();
         p12.setAttribute('stroke-dasharray', `0 ${len12}`);
         p16.setAttribute('stroke-dasharray', `0 ${len16}`);
 
-        const el12 = document.querySelector('#periStatus .v12');
-        const el16 = document.querySelector('#periStatus .v16');
-
-        // Start positions at mid of 0-length (== start)
+        const el12=document.querySelector('#periStatus .v12');
+        const el16=document.querySelector('#periStatus .v16');
+        el12.textContent='0%'; el16.textContent='0%';
         placeValue(el12, R_OUT, START, START);
         placeValue(el16, R_IN,  START, START);
-        el12.textContent = '0%';
-        el16.textContent = '0%';
 
-        const DUR = 1400;
-        const startT = performance.now();
-
+        const DUR=1400, t0=performance.now();
         function step(now){
-          const t = Math.min(1, (now - startT)/DUR);
-
-          // dash grow
+          const t=Math.min(1,(now-t0)/DUR);
           p12.setAttribute('stroke-dasharray', `${len12*t} ${len12*(1-t)+1}`);
           p16.setAttribute('stroke-dasharray', `${len16*t} ${len16*(1-t)+1}`);
 
-          // numeric tween
-          const cur12 = v12 * t;
-          const cur16 = v16 * t;
-          el12.textContent = (Math.round(cur12*10)/10).toFixed(1).replace(/\.0$/,'') + '%';
-          el16.textContent = (Math.round(cur16*10)/10).toFixed(1).replace(/\.0$/,'') + '%';
-
-          // place at the mid-angle of the current filled arc, on each donut midline
+          const cur12=v12*t, cur16=v16*t;
+          el12.textContent=pct(cur12);
+          el16.textContent=pct(cur16);
           placeValue(el12, R_OUT, START, map(cur12));
           placeValue(el16, R_IN,  START, map(cur16));
 
