@@ -1143,39 +1143,32 @@ function buildPeriScale(){
       box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
     }
 
-    /* the coloured fill sits inside an overflow-clip that we animate in height */
+    /* anchor the mask to the bottom and keep a white gap from the rim */
     #earlyDecay .fill-clip{
-      position:absolute; left:12%; right:12%; bottom:12%; height:0%;
-      overflow:hidden;    /* reveal from bottom up */
-      -webkit-mask: url('assets/icons/gigiMolar.svg') center/contain no-repeat;
-              mask: url('assets/icons/gigiMolar.svg') center/contain no-repeat;
-    }
-    #earlyDecay .tooth-fill{ inset:0; }
-
-    /* value pill (optional, auto-coloured) */
-    #earlyDecay .pill{
-      position:absolute; left:50%; top:12%;
-      transform:translateX(-50%);
-      background:#fff; padding:6px 10px; border-radius:14px;
-      font-weight:900; font-size:14px; line-height:1; white-space:nowrap;
-      box-shadow:0 6px 18px rgba(2,6,23,.14), 0 1px 0 rgba(255,255,255,.9) inset;
-    }
-
-    /* legend */
-    #earlyDecay .ed-legend{
-      position:absolute; left:50%; bottom:12px; transform:translateX(-50%);
-      display:flex; gap:28px; font-size:12px; color:#475569; align-items:center; white-space:nowrap;
-    }
-    #earlyDecay .ed-legend .sq{ width:10px; height:10px; border-radius:3px; display:inline-block; }
-
-    /* Kill the tiny tooth/badge that was added globally via ::after or a helper class */
-    #earlyDecay .tooth-card::after { content:none !important; }
-    #earlyDecay .tooth-card .mini, 
-    #earlyDecay .tooth-card svg.mini { display:none !important; }
+      position:absolute; left:14%; right:14%; bottom:14%; height:0%;
+      overflow:hidden;
     
-    /* Ensure the colour fill never touches the grey rim — bump the insets slightly */
-    #earlyDecay .tooth-inner{ inset:13% 13%; }          /* was 12% */
-    #earlyDecay .fill-clip{ left:13%; right:13%; bottom:13%; } /* was 12% */
+      -webkit-mask-image: url('assets/icons/gigiMolar.svg');
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-size: contain;
+      -webkit-mask-position: center bottom;
+              mask-image: url('assets/icons/gigiMolar.svg');
+              mask-repeat: no-repeat;
+              mask-size: contain;
+              mask-position: center bottom;
+    }
+    #earlyDecay .tooth-fill{ inset:0; }      /* keep */
+    
+    /* keep a clear white buffer so colour doesn't touch grey rim */
+    #earlyDecay .tooth-inner{ inset:14% 14%; }  /* was 12% */
+    
+    /* remove any tiny bottom tooth/badge */
+    #earlyDecay .tooth-card::after{ content:none !important; }
+    #earlyDecay .tooth-card svg,
+    #earlyDecay .tooth-card img,
+    #earlyDecay .tooth-card .mini,
+    #earlyDecay .tooth-card [data-mini]{ display:none !important; }
+    
 
   
   </style>
@@ -1225,6 +1218,10 @@ function buildPeriScale(){
         const layers = buildCard(card,color,grad);
         return {card, color, grad, key, ...layers};
       });
+
+        // remove any legacy tiny SVG/icon inside the cards
+        document.querySelectorAll('#earlyDecay .tooth-card svg, #earlyDecay .tooth-card img').forEach(el => el.remove());
+
 
       const values = { vE, vDp, vDs };
 
