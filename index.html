@@ -863,14 +863,14 @@
 <!-- ===== END DATAVIZ 2 TILE SECTION ===== -->
 
 <!-- ===== THIRD ROW  ===== -->
-<!-- ===== Row-3 LEFT TILE: Periodontal Status (animated donuts, blunt ends) ===== -->
+<!-- ===== Row-3 LEFT TILE: Periodontal Status (with NEU scale outside) ===== -->
 <section class="tile-card dv-span-2" id="periStatus" style="height:360px">
   <h3 class="dv-title">Periodontal Status</h3>
 
   <div class="g-wrap">
     <svg viewBox="-120 -120 240 240" aria-hidden="true">
       <defs>
-        <!-- smooth vibrant gradients -->
+        <!-- gradients for donut fills -->
         <linearGradient id="grad12" x1="-120" y1="0" x2="120" y2="0" gradientUnits="userSpaceOnUse">
           <stop offset="0%" stop-color="#FDBA74"/><stop offset="55%" stop-color="#FBAC45"/><stop offset="100%" stop-color="#F97316"/>
         </linearGradient>
@@ -879,34 +879,36 @@
         </linearGradient>
       </defs>
 
-      <!-- base disc for global neu shadow -->
+      <!-- base disc (kept) -->
       <circle cx="0" cy="0" r="100" fill="#ffffff"/>
       <circle cx="0" cy="0" r="60" fill="#f8fafc"/>
 
-      <!-- tracks (neumorphic raised look) -->
+      <!-- NEW: outer scale (neumorphism) -->
+      <g id="outerScaleRim" class="neu-raise" fill="none" stroke-linecap="butt"></g>
+      <g id="outerScaleTicks" class="neu-raise"></g>
+
+      <!-- donut tracks (kept) -->
       <g id="tracks" stroke="#e5e7eb" fill="none" stroke-linecap="butt">
-        <path id="tOuter" d="" stroke-width="24" class="neu-track"></path>
-        <path id="tInner" d="" stroke-width="24" class="neu-track"></path>
+        <path id="tOuter" d="" stroke-width="20"></path>
+        <path id="tInner" d="" stroke-width="20"></path>
       </g>
 
-      <!-- data arcs (blunt ends, per-ring neu shadow) -->
+      <!-- donut fills (animated) -->
       <g id="arcs" fill="none" stroke-linecap="butt">
-        <path id="a12" d="" stroke="url(#grad12)" stroke-width="24" class="neu-arc"></path>
-        <path id="a16" d="" stroke="url(#grad16)" stroke-width="24" class="neu-arc"></path>
+        <path id="a12" d="" stroke="url(#grad12)" stroke-width="20" stroke-dasharray="0 999"></path>
+        <path id="a16" d="" stroke="url(#grad16)" stroke-width="20" stroke-dasharray="0 999"></path>
       </g>
 
-      <!-- values inside each donut (positions updated during animation) -->
-      <g id="valGroup" class="vals" font-weight="800" font-size="14" text-anchor="middle" dominant-baseline="middle">
-        <text id="v12txt" fill="#475569">--%</text>
-        <text id="v16txt" fill="#475569">--%</text>
-      </g>
-
-      <!-- center cap -->
+      <!-- centre cap -->
       <circle cx="0" cy="0" r="14" fill="#fff" stroke="#e5e7eb"/>
     </svg>
+
+    <!-- animated values, centered within each ring -->
+    <div class="val donut v12">--%</div>
+    <div class="val donut v16">--%</div>
   </div>
 
-  <!-- Legend below the chart -->
+  <!-- legend (unchanged position under chart) -->
   <div class="legend">
     <span><i class="sq" style="background:#FBAC45"></i> 12 Tahun (GIS=0)</span>
     <span><i class="sq" style="background:#44BD9E"></i> 16 Tahun (BPE=0)</span>
@@ -914,104 +916,153 @@
 
   <style>
     #periStatus{ position:relative; }
-    /* reserve space for legend at the bottom */
     #periStatus .g-wrap{ position:absolute; inset:58px 20px 56px 20px; }
     #periStatus svg{
       position:absolute; inset:0; width:100%; height:100%; display:block;
-      /* global soft neu shadow on whole disc */
       filter: drop-shadow(16px 16px 32px var(--neu-dark))
               drop-shadow(-16px -16px 32px var(--neu-light));
     }
 
-    /* per-ring subtle neu shadows */
-    #periStatus .neu-track{
-      filter: drop-shadow(6px 8px 14px rgba(2,6,23,.08))
-              drop-shadow(-6px -6px 14px rgba(255,255,255,.85));
-    }
-    #periStatus .neu-arc{
-      filter: drop-shadow(8px 10px 18px rgba(2,6,23,.12))
-              drop-shadow(-8px -8px 18px rgba(255,255,255,.90));
-    }
-
-    /* legend inside tile */
+    /* legend under chart (unchanged) */
     #periStatus .legend{
       position:absolute; left:50%; bottom:12px; transform:translateX(-50%);
       display:flex; align-items:center; gap:24px; font-size:12px; color:#475569;
+      background:none; padding:0; border:none;
     }
     #periStatus .legend .sq{ width:10px; height:10px; border-radius:3px; display:inline-block; flex:0 0 10px; }
     #periStatus .legend span{ display:inline-flex; align-items:center; gap:8px; white-space:nowrap; line-height:1; }
+
+    /* value chips */
+    #periStatus .val{
+      position:absolute; transform:translate(-50%,-50%);
+      font-weight:900; font-size:14px; background:#fff; color:#334155;
+      padding:2px 6px; border-radius:8px; box-shadow:var(--shadow-1);
+      pointer-events:none;
+    }
+    /* positioned midway on each donut */
+    #periStatus .val.v12{ left:50%; top:38%; }
+    #periStatus .val.v16{ left:50%; top:55%; }
+
+    /* outer scale styles */
+    #periStatus .neu-raise{
+      filter: drop-shadow(8px 8px 16px rgba(2,6,23,.10))
+              drop-shadow(-8px -8px 16px rgba(255,255,255,.90));
+    }
+    #periStatus .scale-rim{ stroke:#d9e1e9; opacity:.9; }
+    #periStatus .tick-block{ fill:#e9eef4; rx:2; ry:2; }
   </style>
 
   <script>
     (function(){
+      // ---- geometry (donut outer size kept; width increased without changing outer edge) ----
+      const START=-110, END=110;
+      // previous outer edge was 88 + 18/2 = 97, inner outer edge was 66 + 18/2 = 75
+      const OUTER_EDGE = 97, INNER_EDGE = 75;
+      const WOUT = 20, WIN = 20;                // wider donuts
+      const R_OUT = OUTER_EDGE - WOUT/2;        // keep the same overall size
+      const R_IN  = INNER_EDGE - WIN/2;
+
+      // outer scale geometry
+      const SCALE = {
+        r: 112,                 // sits just outside base disc (r=100)
+        width: 12,              // ring thickness
+        start: -140,            // leave a gap at bottom
+        end: 140,
+        parts: 10,              // segmented rim
+        gapDeg: 10,             // gap between segments
+        ticks: 8,               // raised blocks count
+        tickLen: 12,            // radial length of a block
+        tickThick: 4            // block thickness (tangential)
+      };
+
       const SRC='https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=898117748&single=true&output=csv';
+      const pct = v => (Math.round(v*10)/10).toFixed(1).replace(/\.0$/,'') + '%';
 
-      /* geometry */
-      const START=-110, END=110;            // sweep
-      const R_OUT=88, R_IN=66;              // arc radii (unchanged overall size)
-      const WIDTH=24;                        // thicker donuts
-      const VAL_R_OUT = R_OUT - WIDTH/2;    // label radius inside each ring
-      const VAL_R_IN  = R_IN  - WIDTH/2;
-
-      /* helpers */
       function colToIndex(col){let n=0;for(let i=0;i<col.length;i++)n=n*26+(col.charCodeAt(i)-64);return n-1;}
       function parseCell(ref){const m=ref.match(/^([A-Z]+)(\d+)$/i);return{c:colToIndex(m[1].toUpperCase()),r:+m[2]-1};}
       function parseCSV(txt){const rows=[],row=[];let cur='',q=false;for(let i=0;i<txt.length;i++){const ch=txt[i],nx=txt[i+1];if(ch=='"'){if(q&&nx=='"'){cur+='"';i++;}else q=!q;}else if(ch==','&&!q){row.push(cur);cur='';}else if((ch=='\n'||ch=='\r')&&!q){row.push(cur);rows.push(row.splice(0));cur='';if(ch=='\r'&&nx=='\n')i++;}else cur+=ch;}if(cur!==''||row.length){row.push(cur);rows.push(row);}return rows;}
       async function getCell(url,cell){const t=await (await fetch(url,{cache:'no-store'})).text();const a=parseCSV(t),{r,c}=parseCell(cell);let raw=(a[r]&&a[r][c])||'';raw=(''+raw).replace('%','').trim();const v=parseFloat(raw);return isNaN(v)?0:v;}
+
       function degToXY(deg,r){const rad=(deg-90)*Math.PI/180;return {x:Math.cos(rad)*r,y:Math.sin(rad)*r};}
-      function smallArcPath(r,a1,a2){const p1=degToXY(a1,r),p2=degToXY(a2,r),large=Math.abs(a2-a1)>180?1:0;return `M ${p1.x} ${p1.y} A ${r} ${r} 0 ${large} 1 ${p2.x} ${p2.y}`;}
+      function arcPath(r,a1,a2){const p1=degToXY(a1,r),p2=degToXY(a2,r),large=Math.abs(a2-a1)>180?1:0;return `M ${p1.x} ${p1.y} A ${r} ${r} 0 ${large} 1 ${p2.x} ${p2.y}`;}
       function map(v){v=Math.max(0,Math.min(100,v));return START+(v/100)*(END-START);}
-      const pct = v => (Math.round(v*10)/10).toFixed(1).replace(/\.0$/,'') + '%';
 
-      async function draw(){
-        const v12=await getCell(SRC,'O18'); // 12 Tahun (GIS=0)
-        const v16=await getCell(SRC,'O21'); // 16 Tahun (BPE=0)
+      // ----- build the outer scale (segmented rim + raised tick blocks) -----
+      function buildOuterScale(){
+        const rimG = document.getElementById('outerScaleRim');
+        const tickG= document.getElementById('outerScaleTicks');
 
-        // static tracks
-        document.getElementById('tOuter').setAttribute('d', smallArcPath(R_OUT, START, END));
-        document.getElementById('tInner').setAttribute('d', smallArcPath(R_IN,  START, END));
-
-        // prepare animated arcs
-        const a12=document.getElementById('a12');
-        const a16=document.getElementById('a16');
-        const t12=document.getElementById('v12txt');
-        const t16=document.getElementById('v16txt');
-
-        const DURATION = 1400;             // sync with your other tiles
-        const start = performance.now();
-
-        // initial state (0%)
-        a12.setAttribute('d', smallArcPath(R_OUT, START, map(0)));
-        a16.setAttribute('d', smallArcPath(R_IN,  START, map(0)));
-        t12.textContent='0%'; t16.textContent='0%';
-
-        function placeText(el, midDeg, r){
-          const pt = degToXY(midDeg, r);
-          el.setAttribute('x', pt.x);
-          el.setAttribute('y', pt.y);
+        // segmented rim
+        const span = SCALE.end - SCALE.start;
+        const segSpan = span / SCALE.parts;
+        for(let i=0;i<SCALE.parts;i++){
+          const a1 = SCALE.start + i*segSpan + SCALE.gapDeg/2;
+          const a2 = SCALE.start + (i+1)*segSpan - SCALE.gapDeg/2;
+          const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+          p.setAttribute('d', arcPath(SCALE.r, a1, a2));
+          p.setAttribute('class','scale-rim');
+          p.setAttribute('stroke','#d9e1e9');
+          p.setAttribute('stroke-width', SCALE.width);
+          rimG.appendChild(p);
         }
 
+        // raised tick blocks (radial small rectangles)
+        for(let i=0;i<SCALE.ticks;i++){
+          const a = SCALE.start + (span/(SCALE.ticks-1)) * i;    // include ends
+          const mid = degToXY(a, SCALE.r + SCALE.width/2);
+          const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+          rect.setAttribute('x', mid.x - SCALE.tickThick/2);
+          rect.setAttribute('y', mid.y - SCALE.tickLen/2);
+          rect.setAttribute('width', SCALE.tickThick);
+          rect.setAttribute('height', SCALE.tickLen);
+          rect.setAttribute('rx', 2);
+          rect.setAttribute('ry', 2);
+          rect.setAttribute('class','tick-block');
+          rect.setAttribute('transform', `rotate(${a} ${mid.x} ${mid.y})`);
+          tickG.appendChild(rect);
+        }
+      }
+
+      // ----- draw + animate donuts -----
+      async function draw(){
+        buildOuterScale();
+
+        const v12 = await getCell(SRC,'O18');   // 12 Tahun (GIS=0)
+        const v16 = await getCell(SRC,'O21');   // 16 Tahun (BPE=0)
+
+        const a12 = map(v12), a16 = map(v16);
+
+        // tracks
+        document.getElementById('tOuter').setAttribute('d', arcPath(R_OUT, START, END));
+        document.getElementById('tInner').setAttribute('d', arcPath(R_IN,  START, END));
+
+        // fill paths (full arc; animate dash to target)
+        const p12 = document.getElementById('a12');
+        const p16 = document.getElementById('a16');
+        p12.setAttribute('d', arcPath(R_OUT, START, a12));
+        p16.setAttribute('d', arcPath(R_IN,  START, a16));
+
+        // total lengths for dash animation
+        const L12 = p12.getTotalLength();
+        const L16 = p16.getTotalLength();
+        p12.setAttribute('stroke-dasharray', `0 ${L12}`);
+        p16.setAttribute('stroke-dasharray', `0 ${L16}`);
+
+        // values
+        const lbl12 = document.querySelector('#periStatus .val.v12');
+        const lbl16 = document.querySelector('#periStatus .val.v16');
+
+        const DURATION = 1400;
+        const t0 = performance.now();
+
         function step(now){
-          const t = Math.min(1, (now - start) / DURATION);
-
-          // interpolate values
-          const cur12 = v12 * t;
-          const cur16 = v16 * t;
-
-          // update arcs (blunt ends; no wedges)
-          const end12 = map(cur12);
-          const end16 = map(cur16);
-          a12.setAttribute('d', smallArcPath(R_OUT, START, end12));
-          a16.setAttribute('d', smallArcPath(R_IN,  START, end16));
-
-          // update labels at each arc's center angle
-          const mid12 = START + (end12 - START)/2;
-          const mid16 = START + (end16 - START)/2;
-          t12.textContent = pct(cur12);
-          t16.textContent = pct(cur16);
-          placeText(t12, mid12, VAL_R_OUT);
-          placeText(t16, mid16, VAL_R_IN);
-
+          const t = Math.min(1, (now - t0)/DURATION);
+          // animate strokes
+          p12.setAttribute('stroke-dasharray', `${L12*t} ${L12}`);
+          p16.setAttribute('stroke-dasharray', `${L16*t} ${L16}`);
+          // animate numbers
+          lbl12.textContent = pct(v12*t);
+          lbl16.textContent = pct(v16*t);
           if(t<1) requestAnimationFrame(step);
         }
         requestAnimationFrame(step);
@@ -1022,6 +1073,7 @@
     })();
   </script>
 </section>
+
 <!-- ===== THIRD ROW left tile END ===== -->
 
 
