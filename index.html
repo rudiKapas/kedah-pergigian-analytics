@@ -1160,14 +1160,6 @@ function buildPeriScale(){
 /* the gradient itself (NO mask here) */
 #earlyDecay .tooth-fill{ position:absolute; inset:0; }
 
-/* Flood the interior; crisp edge is kept by .tooth-fill above it */
-#earlyDecay .tooth-flood{
-  position:absolute; inset:0;
-  filter: blur(16px);         /* 12–18px also fine */
-  opacity:.95;                /* subtle, not washed out */
-}
-
-
 /* value pill */
 #earlyDecay .pill{
   position:absolute; left:50%; top:12%; transform:translateX(-50%);
@@ -1220,21 +1212,11 @@ function buildPeriScale(){
       // NEW: fixed-size masked container
       const maskBox = document.createElement('div'); maskBox.className='tooth-mask';
     
-
-      const clip  = document.createElement('div'); clip.className='fill-clip';
-      const flood = document.createElement('div'); flood.className='tooth-flood';
-      const fill  = document.createElement('div'); fill.className='tooth-fill';
-      
-      [flood, fill].forEach(el => el.style.background = grad);
-      clip.append(flood, fill);          // blurred flood under, crisp fill on top
-      maskBox.appendChild(clip);
-      
-      host.append(outline, inner, maskBox, pill);
-      return { clip, fill, pill };
-
-
-
-      
+      // reveal window + gradient
+      const clip    = document.createElement('div'); clip.className='fill-clip';
+      const fill    = document.createElement('div'); fill.className='tooth-fill';
+      fill.style.background = grad;
+      clip.appendChild(fill);
       maskBox.appendChild(clip);
     
       // value pill
@@ -1243,9 +1225,10 @@ function buildPeriScale(){
       pill.style.color = color;
       pill.textContent = '0%';
     
-
+      // paint order: grey rim → white inner → masked gradient → pill
+      host.append(outline, inner, maskBox, pill);
     
-      
+      return {clip, fill, pill};
     }
 
 
