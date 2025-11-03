@@ -1142,20 +1142,20 @@ function buildPeriScale(){
   z-index:2;
 }
 
-/* coloured fill: reveal from the BOTTOM, mask applied to the CLIP only */
-#earlyDecay .fill-clip{
-  position:absolute; left:14%; right:14%; bottom:14%; height:0%;
-  overflow:hidden;
-  -webkit-mask-image: url('assets/icons/gigiMolar.svg');
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-size: contain;
-  -webkit-mask-position: center bottom;
-          mask-image: url('assets/icons/gigiMolar.svg');
-          mask-repeat: no-repeat;
-          mask-size: contain;
-          mask-position: center bottom;
-  z-index:3;
+/* NEW: fixed-size masked container that matches the inner ring */
+#earlyDecay .tooth-mask{
+  position:absolute; inset:14% 14%;
+  -webkit-mask: url('assets/icons/gigiMolar.svg') center/contain no-repeat;
+          mask: url('assets/icons/gigiMolar.svg') center/contain no-repeat;
+  z-index:3;            /* above the white inner ring */
 }
+
+/* CHANGED: reveal window that only controls how much of the gradient shows */
+#earlyDecay .fill-clip{
+  position:absolute; left:0; right:0; bottom:0; height:0%;
+  overflow:hidden;               /* no mask here anymore */
+}
+
 
 /* the gradient itself (NO mask here) */
 #earlyDecay .tooth-fill{ position:absolute; inset:0; }
@@ -1208,15 +1208,29 @@ function buildPeriScale(){
       // layers
       const outline = document.createElement('div'); outline.className='tooth-outline';
       const inner   = document.createElement('div'); inner.className='tooth-inner';
+    
+      // NEW: fixed-size masked container
+      const maskBox = document.createElement('div'); maskBox.className='tooth-mask';
+    
+      // reveal window + gradient
       const clip    = document.createElement('div'); clip.className='fill-clip';
       const fill    = document.createElement('div'); fill.className='tooth-fill';
-      const pill    = document.createElement('div'); pill.className='pill'; pill.style.color=color; pill.textContent='0%';
-
       fill.style.background = grad;
       clip.appendChild(fill);
-      host.append(outline, inner, clip, pill);
+      maskBox.appendChild(clip);
+    
+      // value pill
+      const pill    = document.createElement('div');
+      pill.className='pill';
+      pill.style.color = color;
+      pill.textContent = '0%';
+    
+      // paint order: grey rim → white inner → masked gradient → pill
+      host.append(outline, inner, maskBox, pill);
+    
       return {clip, fill, pill};
     }
+
 
     async function draw(){
       // fetch values
