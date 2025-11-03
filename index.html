@@ -1253,28 +1253,19 @@ function buildPeriScale(){
 
       const values = { vE, vDp, vDs };
       
-      // --- NEW: small-value mode (all three < 10%) ---
-      // If all under 10, scale so the largest -> 10% visual height (others proportional).
-      const arr = [vE, vDp, vDs];
-      const allBelow10 = arr.every(v => v < 10);
-      const maxVal = Math.max(...arr);
+      // If ALL three values are < 10 → heights ×10 (e.g., 6.2 → 62% height)
+      // If ANY ≥ 10 → keep original mapping (height = value)
+      const arr       = [vE, vDp, vDs].map(v => (Number.isFinite(v) ? v : 0));
+      const smallMode = arr.every(v => v < 10);
+      const scale     = smallMode ? 10 : 1;
       
-      // helper: convert raw value to target fill height (% of tooth height)
-      function visualHeight(raw){
-        if (allBelow10) {
-          if (maxVal <= 0) return 0;                 // avoid /0 when all are zero
-          return (raw / maxVal) * 10;                // largest -> 10% fill, 0 stays 0
-        }
-        // original behaviour
-        return Math.max(0, Math.min(100, raw));      // clamp 0–100
-      }
-      
-      // map cards to values with the new height target
-      const targets = cards.map(c=>{
-        const raw = values[c.key];                   // real number shown in the pill
-        const h   = visualHeight(raw);               // animated height %
+      // Build animation targets (pill shows true value, height uses scaled value)
+      const targets = cards.map(c => {
+        const raw = Number(values[c.key]) || 0;               // true % shown in pill
+        const h   = Math.max(0, Math.min(100, raw * scale));  // 0–100% height
         return { ...c, target: h, raw };
       });
+
 
 
       // animate all together
