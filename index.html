@@ -1252,15 +1252,30 @@ function buildPeriScale(){
 
 
       const values = { vE, vDp, vDs };
-
-      // interpret numbers -> fill percent
-      // If the value looks like a percentage already (<=100), use directly.
-      // Otherwise (e.g., small Mean D), show as-provided but clamp visually (0–100).
+      
+      // --- NEW: small-value mode (all three < 10%) ---
+      // If all under 10, scale so the largest -> 10% visual height (others proportional).
+      const arr = [vE, vDp, vDs];
+      const allBelow10 = arr.every(v => v < 10);
+      const maxVal = Math.max(...arr);
+      
+      // helper: convert raw value to target fill height (% of tooth height)
+      function visualHeight(raw){
+        if (allBelow10) {
+          if (maxVal <= 0) return 0;                 // avoid /0 when all are zero
+          return (raw / maxVal) * 10;                // largest -> 10% fill, 0 stays 0
+        }
+        // original behaviour
+        return Math.max(0, Math.min(100, raw));      // clamp 0–100
+      }
+      
+      // map cards to values with the new height target
       const targets = cards.map(c=>{
-        const raw = values[c.key];
-        const perc = Math.max(0, Math.min(100, raw)); // direct mapping
-        return { ...c, target: perc, raw };
+        const raw = values[c.key];                   // real number shown in the pill
+        const h   = visualHeight(raw);               // animated height %
+        return { ...c, target: h, raw };
       });
+
 
       // animate all together
       const start = performance.now();
