@@ -214,6 +214,73 @@
     // }
   };
 
+   // ===== Row hints (per location ➜ per page ➜ per tile) =====
+   // Numbers are 1-based sheet rows. Fill overrides only when a district differs.
+   const ROW_HINTS = {
+     default: { // Kedah (state) rows you already used in app.js
+       akses: {
+         t1: { pop: 9, acc: 10 },
+         t2: {
+           "<5 tahun": { b:[8,10], u:[9,11] },
+           "5-6 tahun": { b:[12], u:[13] },
+           "7-12 tahun": { b:[14,16], u:[15,17] },
+           "13-17 tahun": { b:[18,20], u:[19,21] },
+           "18-59 tahun": { b:[22,24,26,28], u:[23,25,27,29] },
+           "<60 tahun": { b:[30], u:[31] },
+           "Ibu mengandung": { b:[34], u:[35] },
+           "OKU": { b:[36], u:[37] },
+           "Bukan warganegara": { b:[38], u:[39] }
+         },
+         t3: {
+           "Primer":   { b:6,  u:7  },
+           "Outreach": { b:10, u:11 },
+           "UTC":      { b:14, u:15 },
+           "RTC":      { b:18, u:19 },
+           "TASTAD":   { b:22, u:23 },
+           "Sekolah":  { b:26, u:27 }
+         },
+         t5: {
+           "% TASKA dilawati": 12,
+           "% Liputan Toddler": 17,
+           "% 'Lift the Lip'": 22,
+           "% Maintaining Orally Fit": 28,
+           "% Sapuan Fluoride Varnish": 32,
+           "Bil. Ibubapa diberi 'AG'": 33
+         },
+         t6: {
+           "% Liputan Ibu Mengandung": 8,
+           "% Liputan Ibu Mengandung diberi PKP": 14,
+           "% Ibu Mengandung mencapai status Orally Fit": 19
+         },
+         t7: { "Peratus tidak perlu rawatan": 8, "Peratus kes selesai (Orally Fit)": 14 },
+         t8: { "Peratus BPE screening": 8, "Peratus BPE = 0": 13 },
+         t9: {
+           "Peratus pesakit baru warga emas mengikut populasi": 8,
+           "Bil. pesakit baru warga emas di klinik pergigian": 9,
+           "Peratus bilangan institusi dilawati di daerah": 16,
+           "Peratus Warga Emas disaring (liputan)": 22,
+           "PAWE • Bil. PAWE dalam Daerah": 24,
+           "PAWE • Bil. PAWE dilawati": 25,
+           "PAWE • Enrolmen": 26,
+           "PAWE • Bilangan Pesakit Baru": 27,
+           "Peratus dentur siap ≤ 8 minggu (KPI 11)": 33,
+           "% Warga Emas ≥60 thn ada ≥20 batang gigi": 39
+         }
+       }
+     },
+   
+     // === Put Kuala Muda differences here (only rows that differ) ===
+     kuala_muda: {
+       akses: {
+         // Example: if Kuala Muda's T2 "<5 tahun" rows shifted down by 2:
+         // t2: { "<5 tahun": { b:[10,12], u:[11,13] } }
+         // Fill the ones that differ and leave others out.
+       }
+     }
+   };
+   window.__rowHints = ROW_HINTS;
+
+
         // Read names from a header row (table = CSV parsed to 2D array)
         function readHeader(table, headerRow, startCol){
         // 1) Try explicit hint / default
