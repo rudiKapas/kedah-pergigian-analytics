@@ -258,8 +258,7 @@
   <!-- TILE 1: Latihan Dalam Perkhidmatan -->
   <script>
   (function(){
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=68768251&single=true&output=csv';
-
+    const CSV_URL = __pickURL('workforce','t1');
     // Regions order & columns for this sheet (includes Pejabat TPKNG)
     const AREAS = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Pejabat TPKNG","Kedah"];
     const COLS = ['F','G','H','I','J','K','L','M','N','O','P','Q','R'];
@@ -455,8 +454,7 @@
   <!-- TILE 2: PURATA HASIL KERJA Pegawai Pergigian -->
   <script>
   (function(){
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1636304038&single=true&output=csv';
-
+    const CSV_URL = __pickURL('workforce','t2');
     const AREAS = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
     const LABELS_PAD = [' ', ...AREAS, ' '];
 
@@ -696,8 +694,7 @@
   <!-- TILE 3: PURATA HASIL KERJA Juruterapi Pergigian -->
   <script>
   (function(){
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1636304038&single=true&output=csv';
-
+    const CSV_URL = __pickURL('workforce','t3');
     const AREAS = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
     const LABELS_PAD = [' ', ...AREAS, ' '];
 
