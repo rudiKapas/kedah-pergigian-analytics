@@ -214,35 +214,71 @@
     // }
   };
 
-  // Read names from a header row (table = CSV parsed to 2D array)
-  function readHeader(table, headerRow, startCol){
-    const row = table[(headerRow||AXIS_DEFAULT.headerRow)-1] || [];
-    const start = colIdx((startCol||AXIS_DEFAULT.startCol));
-    const out = [];
-    for (let c = start; c < row.length; c++){
-      const val = String(row[c] ?? "").trim();
-      if (!val) break;        // stop when header cell is empty
-      out.push({ n: val, L: idxToCol(c) }); // {display name, column letter}
-    }
-    return out;
-  }
+        // Read names from a header row (table = CSV parsed to 2D array)
+        function readHeader(table, headerRow, startCol){
+        // 1) Try explicit hint / default
+        const rr = (headerRow||AXIS_DEFAULT.headerRow) - 1;
+        const sc = colIdx((startCol||AXIS_DEFAULT.startCol));
+        const tryRow = (r,s) => {
+          const row = table[r] || [];
+          const out = [];
+          for (let c = s; c < row.length; c++){
+            const val = String(row[c] ?? "").trim();
+            if (!val) break;
+            out.push({ n: val, L: idxToCol(c) });
+          }
+          return out;
+        };
+        let out = tryRow(rr, sc);
+        if (out.length >= 2) return out;
+      
+        // 2) Auto-detect: scan first 12 rows, cols C..AH for a row with ≥3 consecutive non-empty cells.
+        const START = colIdx("C"), END = colIdx("AH");
+        let best = { len:0, r:-1, s:START };
+        for (let r = 0; r < Math.min(12, table.length); r++){
+          const row = table[r] || [];
+          let run=0, runStart=START;
+          for (let c = START; c <= Math.min(END, row.length-1); c++){
+            const v = String(row[c] ?? "").trim();
+            if (v){
+              if (run===0) runStart=c;
+              run++;
+              if (run > best.len){ best = { len:run, r, s:runStart }; }
+            } else {
+              run=0;
+            }
+          }
+        }
+        if (best.len >= 3){
+          const row = table[best.r] || [];
+          const out2 = [];
+          for (let c = best.s; c < row.length; c++){
+            const val = String(row[c] ?? "").trim();
+            if (!val) break;
+            out2.push({ n: val, L: idxToCol(c) });
+          }
+          if (out2.length >= 2) return out2;
+        }
+        return out; // may be empty; caller will handle
+      }
+
 
   // Public: get axis objects for current selection; returns null for state (so you can keep your existing list)
   // Usage in a tile (after you parse CSV to 2D array `table`):
   //   const AX = __axisFor('akses','t8', table) || YOUR_EXISTING_DIST_LIST;
-  window.__axisFor = function(pageKey, tileKey, table2D){
-    const { loc } = getSel();
-    const mode = AXIS_MODE[loc]?.type || "state";
-    if (mode === "state") return null; // keep your existing 12-district arrays
+    window.__axisFor = function(pageKey, tileKey, table2D){
+     const { loc } = getSel();
+     const mode = AXIS_MODE[loc]?.type || "state";
+     if (mode === "state") return null;
+   
+     const pageTileKey = `${pageKey}.${tileKey}`;
+     const hint = (AXIS_HINTS?.[loc] && AXIS_HINTS[loc][pageTileKey]) || AXIS_DEFAULT;
+   
+     // Try hinted; if <2 labels, auto-detect (handled inside readHeader)
+     const AX = readHeader(table2D || [], hint.headerRow, hint.startCol);
+     return (AX && AX.length >= 2) ? AX : readHeader(table2D || [], undefined, undefined);
+   };
 
-    // district mode: find hint
-    const pageTileKey = `${pageKey}.${tileKey}`;
-    const hint =
-      (AXIS_HINTS?.[loc] && AXIS_HINTS[loc][pageTileKey]) ||
-      AXIS_DEFAULT;
-
-    return readHeader(table2D || [], hint.headerRow, hint.startCol);
-  };
 
   // For state pages that simply want the 12 labels:
   window.__districts12 = () => DISTRICTS_12.slice();
