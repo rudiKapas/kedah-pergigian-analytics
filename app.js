@@ -146,6 +146,27 @@ function layoutFor(labels) {
     throw new Error("CSV fetch failed");
   }
 
+  // --- Percent normaliser ---
+  // If a series' max is >0 and ≤1, multiply by 100 (assumes it's 0–1 fraction).
+  function normalizePercentSeries(seriesList){
+    // Accepts: [{name, data:[...]}] or { name, data:[...] } or [[numbers], ...]
+    const normalizeArray = (arr) => {
+      const vals = arr.filter(v => typeof v === 'number' && isFinite(v));
+      const mx = Math.max(0, ...vals);
+      return (mx > 0 && mx <= 1) ? arr.map(v => (typeof v === 'number' ? v*100 : v)) : arr;
+    };
+    if (Array.isArray(seriesList) && seriesList.length && seriesList[0] && Array.isArray(seriesList[0].data)){
+      seriesList.forEach(s => { s.data = normalizeArray(s.data); });
+      return seriesList;
+    }
+    if (Array.isArray(seriesList) && seriesList.length && Array.isArray(seriesList[0])){
+      return seriesList.map(normalizeArray);
+    }
+    if (seriesList && Array.isArray(seriesList.data)){ seriesList.data = normalizeArray(seriesList.data); }
+    return seriesList;
+  }
+
+  
   // ============== Modal ====================
   const modal = $("modal");
   const mtitle = $("mtitle");
@@ -215,6 +236,8 @@ function layoutFor(labels) {
 
   // ============== Tile 1 ===================
   const CSV1 = __pickURL('akses','t1');
+  const AX = __axisFor('akses','tX', RAW_X) || DIST_X; // replace tX with the tile key, RAW_X with that tile's parsed 2D array, DIST_X with the current constant
+
   const DIST1 = [
     { n: "Kota Setar", L: "C" },
     { n: "Pendang", L: "D" },
@@ -235,6 +258,8 @@ function layoutFor(labels) {
     labels: ["", ...labels, ""],
     series: [0, ...series, 0],
   });
+
+  per = normalizePercentSeries(per);   // add this line
 
   function drawT1(rows, canvas, mode) {
     const labels = rows.map((r) => r.n);
@@ -386,6 +411,8 @@ function layoutFor(labels) {
 
   // ============== Tile 2 (Primer) =========
   const CSV2 = __pickURL('akses','t2');
+  const AX = __axisFor('akses','tX', RAW_X) || DIST_X; // replace tX with the tile key, RAW_X with that tile's parsed 2D array, DIST_X with the current constant
+
   const DIST2 = [
     { n: "Kota Setar", L: "D" },
     { n: "Pendang", L: "E" },
@@ -588,8 +615,13 @@ function layoutFor(labels) {
   });
   loadT2();
 
+  per = normalizePercentSeries(per);
+
+
   // ============== Tile 3 (Outreach) =======
   const CSV3 = __pickURL('akses','t3');
+  const AX = __axisFor('akses','tX', RAW_X) || DIST_X; // replace tX with the tile key, RAW_X with that tile's parsed 2D array, DIST_X with the current constant
+
   const DIST3 = DIST2.slice();
   const SVCS = [
     { key: "Primer", b: 6, u: 7, color: "#0ea5e9" },
@@ -763,8 +795,13 @@ function layoutFor(labels) {
   });
   loadT3();
 
+  per = normalizePercentSeries(per);
+
+
   // ============== Tile 4 (Kepakaran) ======
   const CSV4_SPEC = __pickURL('akses','t4');
+  const AX = __axisFor('akses','tX', RAW_X) || DIST_X; // replace tX with the tile key, RAW_X with that tile's parsed 2D array, DIST_X with the current constant
+
   const SPEC = {
     OMF: {
       color: "#0ea5e9",
@@ -1004,8 +1041,13 @@ function layoutFor(labels) {
   });
   loadT4S();
 
+  per = normalizePercentSeries(per);
+
+  
   // ============== Tile 5 (Toddler) ========
   const CSV_TOD = __pickURL('akses','t5');
+  const AX = __axisFor('akses','tX', RAW_X) || DIST_X; // replace tX with the tile key, RAW_X with that tile's parsed 2D array, DIST_X with the current constant
+
   const DIST_TOD = DIST2.slice();
   const MET_TOD = [
     { key: "% TASKA dilawati", row: 12, type: "pct", color: "#0ea5e9" },
@@ -1188,8 +1230,13 @@ function layoutFor(labels) {
   });
   loadT5();
 
+  per = normalizePercentSeries(per);
+
+
   // ============== Tile 6 (Ibu Mengandung) =
   const CSV_PREG = __pickURL('akses','t6');
+  const AX = __axisFor('akses','tX', RAW_X) || DIST_X; // replace tX with the tile key, RAW_X with that tile's parsed 2D array, DIST_X with the current constant
+
   const DIST_PREG = [
     { n: "Kota Setar", L: "D" },
     { n: "Pendang", L: "E" },
@@ -1368,8 +1415,13 @@ function layoutFor(labels) {
   });
   loadT6();
 
+  per = normalizePercentSeries(per);
+
+
   // ============== Tile 7 (YA) =============
   const CSV_YA = __pickURL('akses','t7');
+  const AX = __axisFor('akses','tX', RAW_X) || DIST_X; // replace tX with the tile key, RAW_X with that tile's parsed 2D array, DIST_X with the current constant
+
   const DIST_YA = DIST2.slice();
   const MET_YA = [
     { key: "Peratus tidak perlu rawatan", row: 8, color: "#0ea5e9", target: 70 },
@@ -1539,8 +1591,13 @@ function layoutFor(labels) {
   });
   loadT7();
 
+  per = normalizePercentSeries(per);
+
+
   // ============== Tile 8 (BPE) ============
  const CSV_BPE = __pickURL('akses','t8');
+  const AX = __axisFor('akses','tX', RAW_X) || DIST_X; // replace tX with the tile key, RAW_X with that tile's parsed 2D array, DIST_X with the current constant
+
   const DIST_BPE = DIST2.slice();
   const MET_BPE = [
     { key: "Peratus BPE screening", row: 8, color: "#0ea5e9" },
@@ -1695,8 +1752,13 @@ function layoutFor(labels) {
   });
   loadT8();
 
+  per = normalizePercentSeries(per);
+
+
   // ============== Tile 9 (Warga Emas) =====
   const CSV_WE = __pickURL('akses','t9');
+  const AX = __axisFor('akses','tX', RAW_X) || DIST_X; // replace tX with the tile key, RAW_X with that tile's parsed 2D array, DIST_X with the current constant
+
   const DIST_WE = [
     { n: "Kota Setar", L: "D" },
     { n: "Pendang", L: "E" },
@@ -1893,6 +1955,9 @@ function layoutFor(labels) {
   });
   loadT9();
 
+  per = normalizePercentSeries(per);
+
+
   // ============== Redraw on resize =========
   window.addEventListener("resize", function () {
     if (RAW1) {
@@ -2045,6 +2110,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
