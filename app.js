@@ -236,8 +236,6 @@ function layoutFor(labels) {
 
   // ============== Tile 1 ===================
   const CSV1 = __pickURL('akses','t1');
-  const AX = __axisFor('akses','tX', RAW_X) || DIST_X; // replace tX with the tile key, RAW_X with that tile's parsed 2D array, DIST_X with the current constant
-
   const DIST1 = [
     { n: "Kota Setar", L: "C" },
     { n: "Pendang", L: "D" },
@@ -259,7 +257,7 @@ function layoutFor(labels) {
     series: [0, ...series, 0],
   });
 
-  per = normalizePercentSeries(per);   // add this line
+
 
   function drawT1(rows, canvas, mode) {
     const labels = rows.map((r) => r.n);
@@ -411,7 +409,6 @@ function layoutFor(labels) {
 
   // ============== Tile 2 (Primer) =========
   const CSV2 = __pickURL('akses','t2');
-  const AX = __axisFor('akses','tX', RAW_X) || DIST_X; // replace tX with the tile key, RAW_X with that tile's parsed 2D array, DIST_X with the current constant
 
   const DIST2 = [
     { n: "Kota Setar", L: "D" },
@@ -615,12 +612,11 @@ function layoutFor(labels) {
   });
   loadT2();
 
-  per = normalizePercentSeries(per);
+
 
 
   // ============== Tile 3 (Outreach) =======
   const CSV3 = __pickURL('akses','t3');
-  const AX = __axisFor('akses','tX', RAW_X) || DIST_X; // replace tX with the tile key, RAW_X with that tile's parsed 2D array, DIST_X with the current constant
 
   const DIST3 = DIST2.slice();
   const SVCS = [
@@ -795,12 +791,11 @@ function layoutFor(labels) {
   });
   loadT3();
 
-  per = normalizePercentSeries(per);
+
 
 
   // ============== Tile 4 (Kepakaran) ======
   const CSV4_SPEC = __pickURL('akses','t4');
-  const AX = __axisFor('akses','tX', RAW_X) || DIST_X; // replace tX with the tile key, RAW_X with that tile's parsed 2D array, DIST_X with the current constant
 
   const SPEC = {
     OMF: {
@@ -1041,12 +1036,11 @@ function layoutFor(labels) {
   });
   loadT4S();
 
-  per = normalizePercentSeries(per);
+
 
   
   // ============== Tile 5 (Toddler) ========
   const CSV_TOD = __pickURL('akses','t5');
-  const AX = __axisFor('akses','tX', RAW_X) || DIST_X; // replace tX with the tile key, RAW_X with that tile's parsed 2D array, DIST_X with the current constant
 
   const DIST_TOD = DIST2.slice();
   const MET_TOD = [
@@ -1230,12 +1224,11 @@ function layoutFor(labels) {
   });
   loadT5();
 
-  per = normalizePercentSeries(per);
+
 
 
   // ============== Tile 6 (Ibu Mengandung) =
   const CSV_PREG = __pickURL('akses','t6');
-  const AX = __axisFor('akses','tX', RAW_X) || DIST_X; // replace tX with the tile key, RAW_X with that tile's parsed 2D array, DIST_X with the current constant
 
   const DIST_PREG = [
     { n: "Kota Setar", L: "D" },
@@ -1415,12 +1408,11 @@ function layoutFor(labels) {
   });
   loadT6();
 
-  per = normalizePercentSeries(per);
+
 
 
   // ============== Tile 7 (YA) =============
   const CSV_YA = __pickURL('akses','t7');
-  const AX = __axisFor('akses','tX', RAW_X) || DIST_X; // replace tX with the tile key, RAW_X with that tile's parsed 2D array, DIST_X with the current constant
 
   const DIST_YA = DIST2.slice();
   const MET_YA = [
@@ -1591,12 +1583,11 @@ function layoutFor(labels) {
   });
   loadT7();
 
-  per = normalizePercentSeries(per);
+
 
 
   // ============== Tile 8 (BPE) ============
  const CSV_BPE = __pickURL('akses','t8');
-  const AX = __axisFor('akses','tX', RAW_X) || DIST_X; // replace tX with the tile key, RAW_X with that tile's parsed 2D array, DIST_X with the current constant
 
   const DIST_BPE = DIST2.slice();
   const MET_BPE = [
@@ -1752,12 +1743,11 @@ function layoutFor(labels) {
   });
   loadT8();
 
-  per = normalizePercentSeries(per);
+
 
 
   // ============== Tile 9 (Warga Emas) =====
   const CSV_WE = __pickURL('akses','t9');
-  const AX = __axisFor('akses','tX', RAW_X) || DIST_X; // replace tX with the tile key, RAW_X with that tile's parsed 2D array, DIST_X with the current constant
 
   const DIST_WE = [
     { n: "Kota Setar", L: "D" },
@@ -1955,20 +1945,22 @@ function layoutFor(labels) {
   });
   loadT9();
 
-  per = normalizePercentSeries(per);
+
 
 
   // ============== Redraw on resize =========
   window.addEventListener("resize", function () {
     if (RAW1) {
+      const AX1 = __axisFor('akses','t1', RAW1) || DIST1;
       const popRow = RAW1[9] || [];
       const accRow = RAW1[10] || [];
-      const rows = DIST1.map(function (d) {
+      const rows = AX1.map((d) => {
         const i = colIdx(d.L);
         return { n: d.n, a: cleanPct(accRow[i]) || 0, p: cleanInt(popRow[i]) };
       });
       drawT1(rows, "t1", "main");
     }
+
     if (RAW2) drawT2(computeT2(RAW2, chosen2()), "t2", "main");
     if (RAW3) drawT3(computeT3(RAW3, chosen3()), "t3", "main");
     if (RAW4S) drawT4S(computeT4S(RAW4S, chosen4S()), "t4", "main");
@@ -2110,6 +2102,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
