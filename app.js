@@ -124,11 +124,14 @@ function layoutFor(labels) {
   }
 
   async function fetchCSV(url) {
+    const originless = url.replace(/^https?:\/\//, ""); // strip scheme once
+    
     const tries = [
-      url,
-      "https://r.jina.ai/http/" + url.replace(/^https?:\/\//, ""),
-      "https://r.jina.ai/http/https://" + url.replace(/^https?:\/\//, ""),
+      url,                                             // try direct
+      "https://r.jina.ai/http://"  + originless,       // proxy http://
+      "https://r.jina.ai/https://" + originless,       // proxy https://
     ];
+
     for (let i = 0; i < tries.length; i++) {
       const u = tries[i];
       try {
@@ -2042,6 +2045,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
