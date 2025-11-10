@@ -969,7 +969,8 @@
 
   <script>
     (function(){
-      const SRC='https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=898117748&single=true&output=csv';
+      const SRC = __pickURL('kpi','k1');
+
 
       // Geometry (unchanged)
       const START=-110, END=110;
@@ -1193,7 +1194,7 @@ function buildPeriScale(){
 
   <script>
   (function(){
-    const SRC='https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=3425549&single=true&output=csv';
+    const SRC = __pickURL('prevention','p2');
     const DURATION = 1400; // ms
 
     function colToIndex(col){let n=0;for(let i=0;i<col.length;i++)n=n*26+(col.charCodeAt(i)-64);return n-1;}
