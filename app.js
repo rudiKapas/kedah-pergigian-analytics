@@ -211,8 +211,7 @@ function layoutFor(labels) {
   }
 
   // ============== Tile 1 ===================
-  const CSV1 =
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1057141723&single=true&output=csv";
+  const CSV1 = __pickURL('akses','t1');
   const DIST1 = [
     { n: "Kota Setar", L: "C" },
     { n: "Pendang", L: "D" },
@@ -343,9 +342,11 @@ function layoutFor(labels) {
     try {
       const csv = await fetchCSV(CSV1);
       RAW1 = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
+      const AX = __axisFor('akses','t1', RAW1) || DIST1;
       const popRow = RAW1[9] || [];
       const accRow = RAW1[10] || [];
-      const rows = DIST1.map((d) => {
+      //const rows = DIST1.map((d) => {
+      const rows = AX.map((d) => {
         const i = colIdx(d.L);
         let a = cleanPct(accRow[i]);
         if (a == null) a = cleanInt(accRow[i]) || 0;
@@ -367,7 +368,8 @@ function layoutFor(labels) {
     openModal("Akses Kepada Perkhidmatan Kesihatan Pergigian");
     const popRow = RAW1[9] || [];
     const accRow = RAW1[10] || [];
-    const rows = DIST1.map((d) => {
+    //const rows = DIST1.map((d) => {
+    const rows = AX.map((d) => {
       const i = colIdx(d.L);
       return {
         n: d.n,
@@ -380,8 +382,7 @@ function layoutFor(labels) {
   loadT1();
 
   // ============== Tile 2 (Primer) =========
-  const CSV2 =
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1808391684&single=true&output=csv";
+  const CSV2 = __pickURL('akses','t2');
   const DIST2 = [
     { n: "Kota Setar", L: "D" },
     { n: "Pendang", L: "E" },
@@ -435,14 +436,16 @@ function layoutFor(labels) {
       "<5 tahun"
     );
   }
+
   function computeT2(arr, keys) {
-    const labels = ["", ...DIST2.map((d) => d.n), ""];
+    const AX = __axisFor('akses','t2', arr) || DIST2;
+    const labels = ["", ...AX.map((d) => d.n), ""];
     const per = [];
     CATS2.forEach((c) => {
       if (!keys.has(c.key)) return;
       const b = [0];
       const u = [0];
-      DIST2.forEach((d) => {
+      AX.forEach((d) => {
         b.push(sumCol(arr, d.L, c.b));
         u.push(sumCol(arr, d.L, c.u));
       });
@@ -583,8 +586,7 @@ function layoutFor(labels) {
   loadT2();
 
   // ============== Tile 3 (Outreach) =======
-  const CSV3 =
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1032207232&single=true&output=csv";
+  const CSV3 = __pickURL('akses','t3');
   const DIST3 = DIST2.slice();
   const SVCS = [
     { key: "Primer", b: 6, u: 7, color: "#0ea5e9" },
@@ -608,14 +610,16 @@ function layoutFor(labels) {
       "Primer"
     );
 
+
   function computeT3(arr, set) {
-    const labels = ["", ...DIST3.map((d) => d.n), ""];
+    const AX = __axisFor('akses','t3', arr) || DIST3;
+    const labels = ["", ...AX.map((d) => d.n), ""];
     const per = [];
     SVCS.forEach((s) => {
       if (!set.has(s.key)) return;
       const b = [0];
       const u = [0];
-      DIST3.forEach((d) => {
+      AX.forEach((d) => {
         b.push(cellInt(arr, d.L + String(s.b)));
         u.push(cellInt(arr, d.L + String(s.u)));
       });
@@ -757,8 +761,7 @@ function layoutFor(labels) {
   loadT3();
 
   // ============== Tile 4 (Kepakaran) ======
-  const CSV4_SPEC =
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=666852668&single=true&output=csv";
+  const CSV4_SPEC = __pickURL('akses','t4');
   const SPEC = {
     OMF: {
       color: "#0ea5e9",
@@ -999,8 +1002,7 @@ function layoutFor(labels) {
   loadT4S();
 
   // ============== Tile 5 (Toddler) ========
-  const CSV_TOD =
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1851801564&single=true&output=csv";
+  const CSV_TOD = __pickURL('akses','t5');
   const DIST_TOD = DIST2.slice();
   const MET_TOD = [
     { key: "% TASKA dilawati", row: 12, type: "pct", color: "#0ea5e9" },
@@ -1025,12 +1027,13 @@ function layoutFor(labels) {
   }
   const chosen5 = () => chosen("dd5menu", "% TASKA dilawati");
   function computeT5(arr, set) {
-    const labels = ["", ...DIST_TOD.map((d) => d.n), ""];
+    const AX = __axisFor('akses','t5', arr) || DIST_TOD;
+    const labels = ["", ...AX.map((d) => d.n), ""];
     const per = [];
     MET_TOD.forEach((m) => {
       if (!set.has(m.key)) return;
       const s = [0];
-      DIST_TOD.forEach((d) =>
+      AX.forEach((d) =>
         s.push(m.type === "pct" ? cellPct(arr, d.L + String(m.row)) : cellInt(arr, d.L + String(m.row)))
       );
       s.push(0);
@@ -1183,8 +1186,7 @@ function layoutFor(labels) {
   loadT5();
 
   // ============== Tile 6 (Ibu Mengandung) =
-  const CSV_PREG =
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=205423549&single=true&output=csv";
+  const CSV_PREG = __pickURL('akses','t6');
   const DIST_PREG = [
     { n: "Kota Setar", L: "D" },
     { n: "Pendang", L: "E" },
@@ -1219,12 +1221,13 @@ function layoutFor(labels) {
     );
   const chosen6 = () => chosen("dd6menu", MET_PREG[0].key);
   function computeT6(arr, set) {
-    const labels = ["", ...DIST_PREG.map((d) => d.n), ""];
+    const AX = __axisFor('akses','t6', arr) || DIST_PREG;
+    const labels = ["", ...AX.map((d) => d.n), ""];
     const per = [];
     MET_PREG.forEach((m) => {
       if (!set.has(m.key)) return;
       const s = [0];
-      DIST_PREG.forEach((d) => s.push(cellPct(arr, d.L + String(m.row))));
+      AX.forEach((d) => s.push(cellPct(arr, d.L + String(m.row))));
       s.push(0);
       per.push({ key: m.key, color: m.color, target: m.target, data: s });
     });
@@ -1363,8 +1366,7 @@ function layoutFor(labels) {
   loadT6();
 
   // ============== Tile 7 (YA) =============
-  const CSV_YA =
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=543945307&single=true&output=csv";
+  const CSV_YA = __pickURL('akses','t7');
   const DIST_YA = DIST2.slice();
   const MET_YA = [
     { key: "Peratus tidak perlu rawatan", row: 8, color: "#0ea5e9", target: 70 },
@@ -1385,12 +1387,13 @@ function layoutFor(labels) {
   }
   const chosen7 = () => chosen("dd7menu", MET_YA[0].key);
   function computeT7(arr, set) {
-    const labels = ["", ...DIST_YA.map((d) => d.n), ""];
+    const AX = __axisFor('akses','t7', arr) || DIST_YA;
+    const labels = ["", ...AX.map((d) => d.n), ""];
     const per = [];
     MET_YA.forEach((m) => {
       if (!set.has(m.key)) return;
       const s = [0];
-      DIST_YA.forEach((d) => s.push(cellPct(arr, d.L + String(m.row))));
+      AX.forEach((d) => s.push(cellPct(arr, d.L + String(m.row))));
       s.push(0);
       per.push({ key: m.key, color: m.color, target: m.target, data: s });
     });
@@ -1534,8 +1537,7 @@ function layoutFor(labels) {
   loadT7();
 
   // ============== Tile 8 (BPE) ============
-  const CSV_BPE =
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1983552555&single=true&output=csv";
+ const CSV_BPE = __pickURL('akses','t8');
   const DIST_BPE = DIST2.slice();
   const MET_BPE = [
     { key: "Peratus BPE screening", row: 8, color: "#0ea5e9" },
@@ -1556,12 +1558,13 @@ function layoutFor(labels) {
   }
   const chosen8 = () => chosen("dd8menu", MET_BPE[0].key);
   function computeT8(arr, set) {
-    const labels = ["", ...DIST_BPE.map((d) => d.n), ""];
+    const AX = __axisFor('akses','t8', arr) || DIST_BPE;
+    const labels = ["", ...AX.map((d) => d.n), ""];
     const per = [];
     MET_BPE.forEach((m) => {
       if (!set.has(m.key)) return;
       const s = [0];
-      DIST_BPE.forEach((d) => s.push(cellPct(arr, d.L + String(m.row))));
+      AX.forEach((d) => s.push(cellPct(arr, d.L + String(m.row))));
       s.push(0);
       per.push({ key: m.key, color: m.color, data: s });
     });
@@ -1690,8 +1693,7 @@ function layoutFor(labels) {
   loadT8();
 
   // ============== Tile 9 (Warga Emas) =====
-  const CSV_WE =
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=480846724&single=true&output=csv";
+  const CSV_WE = __pickURL('akses','t9');
   const DIST_WE = [
     { n: "Kota Setar", L: "D" },
     { n: "Pendang", L: "E" },
@@ -1732,15 +1734,15 @@ function layoutFor(labels) {
     );
   const chosen9 = () => chosen("dd9menu", MET_WE[0].key);
 
+
   function computeT9(arr, set) {
-    const labels = ["", ...DIST_WE.map((d) => d.n), ""];
+    const AX = __axisFor('akses','t9', arr) || DIST_WE;
+    const labels = ["", ...AX.map((d) => d.n), ""];
     const per = [];
     MET_WE.forEach((m) => {
       if (!set.has(m.key)) return;
       const s = [0];
-      DIST_WE.forEach((d) =>
-        s.push(m.type === "pct" ? cellPct(arr, d.L + String(m.row)) : cellInt(arr, d.L + String(m.row)))
-      );
+      AX.forEach((d) => s.push(cellPct(arr, d.L + String(m.row))));
       s.push(0);
       per.push({ key: m.key, type: m.type, color: m.color, target: m.target, data: s });
     });
@@ -2040,6 +2042,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
