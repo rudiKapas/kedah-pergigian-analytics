@@ -159,15 +159,25 @@ function layoutFor(labels) {
       const n = Number(s);
       return Number.isFinite(n);
     }
-    function labelAbove(data, rowIdx, colIdx, maxUp = 6) {
+    function labelAbove(data, rowIdx, colIdx, maxUp = 10) {
+      // Walk upward and join up to two consecutive non-empty lines
+      let first = null, second = null;
       for (let k = 1; k <= maxUp; k++) {
         const t = data[rowIdx - k]?.[colIdx];
         if (t != null && String(t).trim() && !/^#DIV\/0!/i.test(String(t))) {
-          return String(t).trim();
+          first = String(t).trim();
+          // peek one more row up in case header is split (e.g., "DAERAH" on one row, "KUALA MUDA" on the next)
+          const t2 = data[rowIdx - k - 1]?.[colIdx];
+          if (t2 != null && String(t2).trim() && !/^#DIV\/0!/i.test(String(t2))) {
+            second = String(t2).trim();
+          }
+          break;
         }
       }
-      return "—";
+      const joined = [second, first].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+      return joined || "—";
     }
+
     
     /**
      * Discover clinic columns + the far-right district total column.
@@ -183,8 +193,11 @@ function layoutFor(labels) {
       let totCol = null, totLabel = null;
     
       for (let c = 0; c < row.length; c++) {
-        const header = labelAbove(data, r, c);
-        if (totalHeaderRx.test(header)) { totCol = c; totLabel = header; continue; }
+        const rawHeader = labelAbove(data, r, c);
+        const header = String(rawHeader || "").replace(/\s+/g, " ").trim();
+        const isTotal = /\bDAERAH\b/i.test(header); // more tolerant than /^DAERAH/i
+        if (isTotal) { totCol = c; totLabel = header; continue; }
+
         // treat it as a clinic column when the probe row has a number
         if (isNumLike(row[c])) AX.push({ n: header, L: idx2col(c) });
       }
@@ -2150,15 +2163,30 @@ function layoutFor(labels) {
   // ============== Redraw on resize =========
   window.addEventListener("resize", function () {
     if (RAW1) {
-      const AX1 = __axisFor('akses','t1', RAW1) || DIST1;
-      const popRow = RAW1[9] || [];
-      const accRow = RAW1[10] || [];
-      const rows = AX1.map((d) => {
-        const i = colIdx(d.L);
-        return { n: d.n, a: cleanPct(accRow[i]) || 0, p: cleanInt(popRow[i]) };
-      });
-      drawT1(rows, "t1", "main");
+    const found = discoverAxisFromRow(RAW1, 10, /^DAERAH/i);
+    const AX = found.AX.length ? found.AX : (DIST1 || []);
+    const popRow = RAW1[9]  || [];  // spreadsheet row 10
+    const accRow = RAW1[10] || [];  // spreadsheet row 11
+  
+    const rows = AX.map(d => {
+      const i = colIdx(d.L);
+      let a = cleanPct(accRow[i]);
+      if (a == null) a = cleanInt(accRow[i]) || 0;
+      const p = cleanInt(popRow[i]);
+      return { n: d.n, a, p };
+    });
+  
+    if (found.totCol != null) {
+      const i = found.totCol;
+      let aTot = cleanPct(accRow[i]); if (aTot == null) aTot = cleanInt(accRow[i]) || 0;
+      const pTot = cleanInt(popRow[i]) || 0;
+      const name = (found.totLabel || "").replace(/^DAERAH\s*/i, "").trim() || "Jumlah Daerah";
+      rows.push({ n: name, a: aTot, p: pTot });
     }
+  
+    drawT1(rows, "t1", "main");
+  }
+
 
     if (RAW2) drawT2(computeT2(RAW2, chosen2()), "t2", "main");
     if (RAW3) drawT3(computeT3(RAW3, chosen3()), "t3", "main");
@@ -2301,6 +2329,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
