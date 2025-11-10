@@ -450,22 +450,36 @@ function layoutFor(labels) {
   }
 
   $("t1refresh").addEventListener("click", loadT1);
-  $("t1expand").addEventListener("click", () => {
+  
+   $("t1expand").addEventListener("click", () => {
     if (!RAW1) return;
     openModal("Akses Kepada Perkhidmatan Kesihatan Pergigian");
-    const popRow = RAW1[9] || [];
-    const accRow = RAW1[10] || [];
-    //const rows = DIST1.map((d) => {
-    const rows = AX.map((d) => {
+  
+    const popRow = RAW1[9]  || [];  // spreadsheet row 10
+    const accRow = RAW1[10] || [];  // spreadsheet row 11
+  
+    const found = discoverAxisFromRow(RAW1, 10, /^DAERAH/i);
+    const AX = found.AX.length ? found.AX : (DIST1 || []);
+  
+    const rows = AX.map(d => {
       const i = colIdx(d.L);
       return {
         n: d.n,
-        a: cleanPct(accRow[i]) || 0,
-        p: cleanInt(popRow[i]),
+        a: cleanPct(accRow[i]) ?? (cleanInt(accRow[i]) || 0),
+        p: cleanInt(popRow[i])
       };
     });
+  
+    if (found.totCol != null) {
+      const i = found.totCol;
+      const name = (found.totLabel || "").replace(/^DAERAH\s*/i,"").trim() || "Jumlah Daerah";
+      rows.push({ n: name, a: cleanPct(accRow[i]) ?? (cleanInt(accRow[i]) || 0), p: cleanInt(popRow[i]) });
+    }
+  
     MCH = drawT1(rows, "mcanvas", "modal");
   });
+
+  
   loadT1();
 
   // ============== Tile 2 (Primer) =========
@@ -724,19 +738,37 @@ function layoutFor(labels) {
 
 
   function computeT3(arr, set) {
-    const AX = __axisFor('akses','t3', arr) || DIST3;
-    const labels = ["", ...AX.map((d) => d.n), ""];
+    
+    const found  = discoverAxisFromRow(arr, SVCS[0].b, /^DAERAH/i); // probe using first service row
+    const AX     = found.AX.length ? found.AX : (DIST3 || []);
+    const labels = ["", ...AX.map(d => d.n)];
+    if (found.totCol != null) {
+      const name = (found.totLabel || "").replace(/^DAERAH\s*/i,"").trim() || "Jumlah Daerah";
+      labels.push(name);
+    }
+    labels.push("");
+
+    
     const per = [];
     SVCS.forEach((s) => {
       if (!set.has(s.key)) return;
       const b = [0];
       const u = [0];
-      AX.forEach((d) => {
+      
+      AX.forEach(d => {
         b.push(cellInt(arr, d.L + String(s.b)));
         u.push(cellInt(arr, d.L + String(s.u)));
       });
-      b.push(0);
-      u.push(0);
+      
+      if (found.totCol != null) {
+        const totL = idx2col(found.totCol);
+        b.push(cellInt(arr, totL + String(s.b)));
+        u.push(cellInt(arr, totL + String(s.u)));
+      }
+      
+    b.push(0);
+    u.push(0);
+
       per.push({ key: s.key, color: s.color, b, u });
     });
     return { labels, per };
@@ -1147,16 +1179,34 @@ function layoutFor(labels) {
   }
   const chosen5 = () => chosen("dd5menu", "% TASKA dilawati");
   function computeT5(arr, set) {
-    const AX = __axisFor('akses','t5', arr) || DIST_TOD;
-    const labels = ["", ...AX.map((d) => d.n), ""];
+    
+    const found  = discoverAxisFromRow(arr, MET_TOD[0].row, /^DAERAH/i);
+    const AX     = found.AX.length ? found.AX : (DIST_TOD || []);
+    const labels = ["", ...AX.map(d => d.n)];
+    if (found.totCol != null) {
+      const name = (found.totLabel || "").replace(/^DAERAH\s*/i,"").trim() || "Jumlah Daerah";
+      labels.push(name);
+    }
+    labels.push("");
+
+    
     const per = [];
     MET_TOD.forEach((m) => {
       if (!set.has(m.key)) return;
       const s = [0];
-      AX.forEach((d) =>
-        s.push(m.type === "pct" ? cellPct(arr, d.L + String(m.row)) : cellInt(arr, d.L + String(m.row)))
-      );
+      
+      AX.forEach(d => {
+        s.push(m.type === "pct" ? cellPct(arr, d.L + String(m.row))
+                                : cellInt(arr, d.L + String(m.row)));
+      });
+      if (found.totCol != null) {
+        const totL = idx2col(found.totCol);
+        s.push(m.type === "pct" ? cellPct(arr, totL + String(m.row))
+                                : cellInt(arr, totL + String(m.row)));
+      }
       s.push(0);
+
+      
       per.push({ key: m.key, type: m.type, color: m.color, target: m.target, data: s });
     });
     return { labels, per };
@@ -1345,14 +1395,30 @@ function layoutFor(labels) {
     );
   const chosen6 = () => chosen("dd6menu", MET_PREG[0].key);
   function computeT6(arr, set) {
-    const AX = __axisFor('akses','t6', arr) || DIST_PREG;
-    const labels = ["", ...AX.map((d) => d.n), ""];
+    
+    const found  = discoverAxisFromRow(arr, MET_PREG[0].row, /^DAERAH/i);
+    const AX     = found.AX.length ? found.AX : (DIST_PREG || []);
+    const labels = ["", ...AX.map(d => d.n)];
+    if (found.totCol != null) {
+      const name = (found.totLabel || "").replace(/^DAERAH\s*/i,"").trim() || "Jumlah Daerah";
+      labels.push(name);
+    }
+    labels.push("");
+
+    
     const per = [];
     MET_PREG.forEach((m) => {
       if (!set.has(m.key)) return;
       const s = [0];
-      AX.forEach((d) => s.push(cellPct(arr, d.L + String(m.row))));
+      
+      AX.forEach(d => s.push(cellPct(arr, d.L + String(m.row))));
+      if (found.totCol != null) {
+        const totL = idx2col(found.totCol);
+        s.push(cellPct(arr, totL + String(m.row)));
+      }
       s.push(0);
+      
+      
       per.push({ key: m.key, color: m.color, target: m.target, data: s });
     });
     return { labels, per };
@@ -1515,8 +1581,17 @@ function layoutFor(labels) {
   }
   const chosen7 = () => chosen("dd7menu", MET_YA[0].key);
   function computeT7(arr, set) {
-    const AX = __axisFor('akses','t7', arr) || DIST_YA;
-    const labels = ["", ...AX.map((d) => d.n), ""];
+    
+    const found  = discoverAxisFromRow(arr, MET_YA[0].row, /^DAERAH/i);
+    const AX     = found.AX.length ? found.AX : (DIST_YA || []);
+    const labels = ["", ...AX.map(d => d.n)];
+    if (found.totCol != null) {
+      const name = (found.totLabel || "").replace(/^DAERAH\s*/i,"").trim() || "Jumlah Daerah";
+      labels.push(name);
+    }
+    labels.push("");
+
+    
     const per = [];
     MET_YA.forEach((m) => {
       if (!set.has(m.key)) return;
@@ -1690,8 +1765,17 @@ function layoutFor(labels) {
   }
   const chosen8 = () => chosen("dd8menu", MET_BPE[0].key);
   function computeT8(arr, set) {
-    const AX = __axisFor('akses','t8', arr) || DIST_BPE;
-    const labels = ["", ...AX.map((d) => d.n), ""];
+    
+    const found  = discoverAxisFromRow(arr, MET_BPE[0].row, /^DAERAH/i);
+    const AX     = found.AX.length ? found.AX : (DIST_BPE || []);
+    const labels = ["", ...AX.map(d => d.n)];
+    if (found.totCol != null) {
+      const name = (found.totLabel || "").replace(/^DAERAH\s*/i,"").trim() || "Jumlah Daerah";
+      labels.push(name);
+    }
+    labels.push("");
+
+    
     const per = [];
     MET_BPE.forEach((m) => {
       if (!set.has(m.key)) return;
@@ -1872,14 +1956,34 @@ function layoutFor(labels) {
 
 
   function computeT9(arr, set) {
-    const AX = __axisFor('akses','t9', arr) || DIST_WE;
-    const labels = ["", ...AX.map((d) => d.n), ""];
+    
+    const found  = discoverAxisFromRow(arr, MET_WE[0].row, /^DAERAH/i);
+    const AX     = found.AX.length ? found.AX : (DIST_WE || []);
+    const labels = ["", ...AX.map(d => d.n)];
+    if (found.totCol != null) {
+      const name = (found.totLabel || "").replace(/^DAERAH\s*/i,"").trim() || "Jumlah Daerah";
+      labels.push(name);
+    }
+    labels.push("");
+
+    
     const per = [];
     MET_WE.forEach((m) => {
       if (!set.has(m.key)) return;
       const s = [0];
-      AX.forEach((d) => s.push(cellPct(arr, d.L + String(m.row))));
+      
+      AX.forEach(d => {
+        s.push(m.type === "cnt" ? cellInt(arr, d.L + String(m.row))
+                                : cellPct(arr, d.L + String(m.row)));
+      });
+      if (found.totCol != null) {
+        const totL = idx2col(found.totCol);
+        s.push(m.type === "cnt" ? cellInt(arr, totL + String(m.row))
+                                : cellPct(arr, totL + String(m.row)));
+      }
       s.push(0);
+
+      
       per.push({ key: m.key, type: m.type, color: m.color, target: m.target, data: s });
     });
     return { labels, per };
@@ -2183,6 +2287,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
