@@ -146,6 +146,52 @@ function layoutFor(labels) {
     throw new Error("CSV fetch failed");
   }
 
+  // turn column index → Excel letters (0 => A, 25 => Z, 26 => AA, ...)
+    function idx2col(i) {
+      let s = ""; i++;
+      while (i) { let r = (i - 1) % 26; s = String.fromCharCode(65 + r) + s; i = Math.floor((i - 1) / 26); }
+      return s;
+    }
+    function isNumLike(v) {
+      if (v == null) return false;
+      const s = String(v).replace(/\u00A0/g, "").replace(/[, %]/g, "").trim();
+      if (!s) return false;
+      const n = Number(s);
+      return Number.isFinite(n);
+    }
+    function labelAbove(data, rowIdx, colIdx, maxUp = 6) {
+      for (let k = 1; k <= maxUp; k++) {
+        const t = data[rowIdx - k]?.[colIdx];
+        if (t != null && String(t).trim() && !/^#DIV\/0!/i.test(String(t))) {
+          return String(t).trim();
+        }
+      }
+      return "—";
+    }
+    
+    /**
+     * Discover clinic columns + the far-right district total column.
+     * @param {array[]} data - parsed CSV matrix
+     * @param {number} probeRowNum - spreadsheet row number that has numbers for clinics (e.g., 10 => use data[9])
+     * @param {RegExp} totalHeaderRx - header text that marks the total column (e.g., /^DAERAH/i)
+     * @returns {{AX: Array<{n:string,L:string}>, totCol:number|null, totLabel:string|null}}
+     */
+    function discoverAxisFromRow(data, probeRowNum, totalHeaderRx = /^DAERAH/i) {
+      const r = Math.max(0, probeRowNum - 1);    // convert A1 row to 0-index
+      const row = data[r] || [];
+      const AX = [];
+      let totCol = null, totLabel = null;
+    
+      for (let c = 0; c < row.length; c++) {
+        const header = labelAbove(data, r, c);
+        if (totalHeaderRx.test(header)) { totCol = c; totLabel = header; continue; }
+        // treat it as a clinic column when the probe row has a number
+        if (isNumLike(row[c])) AX.push({ n: header, L: idx2col(c) });
+      }
+      return { AX, totCol, totLabel };
+    }
+
+
   // --- Percent normaliser ---
   // If a series' max is >0 and ≤1, multiply by 100 (assumes it's 0–1 fraction).
   function normalizePercentSeries(seriesList){
@@ -2102,6 +2148,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
