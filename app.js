@@ -1596,8 +1596,15 @@ function layoutFor(labels) {
     MET_YA.forEach((m) => {
       if (!set.has(m.key)) return;
       const s = [0];
-      AX.forEach((d) => s.push(cellPct(arr, d.L + String(m.row))));
+      
+      AX.forEach(d => s.push(cellPct(arr, d.L + String(m.row))));
+      if (found.totCol != null) {
+        const totL = idx2col(found.totCol);
+        s.push(cellPct(arr, totL + String(m.row)));
+      }
       s.push(0);
+
+      
       per.push({ key: m.key, color: m.color, target: m.target, data: s });
     });
     return { labels, per };
@@ -1780,8 +1787,15 @@ function layoutFor(labels) {
     MET_BPE.forEach((m) => {
       if (!set.has(m.key)) return;
       const s = [0];
-      AX.forEach((d) => s.push(cellPct(arr, d.L + String(m.row))));
+      
+      AX.forEach(d => s.push(cellPct(arr, d.L + String(m.row))));
+      if (found.totCol != null) {
+        const totL = idx2col(found.totCol);
+        s.push(cellPct(arr, totL + String(m.row)));
+      }
       s.push(0);
+
+      
       per.push({ key: m.key, color: m.color, data: s });
     });
     return { labels, per };
@@ -2287,6 +2301,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
