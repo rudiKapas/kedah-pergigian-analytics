@@ -414,17 +414,32 @@ function layoutFor(labels) {
     try {
       const csv = await fetchCSV(CSV1);
       RAW1 = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
-      const AX = __axisFor('akses','t1', RAW1) || DIST1;
-      const popRow = RAW1[9] || [];
-      const accRow = RAW1[10] || [];
-      //const rows = DIST1.map((d) => {
-      const rows = AX.map((d) => {
+      
+      // Auto-detect clinic columns from the sheet (probe: population row = spreadsheet row 10)
+      const found = discoverAxisFromRow(RAW1, 10, /^DAERAH/i);
+      const AX = found.AX.length ? found.AX : (DIST1 || []); // safe fallback if needed
+      
+      const popRow = RAW1[9]  || [];  // spreadsheet row 10
+      const accRow = RAW1[10] || [];  // spreadsheet row 11
+      
+      const rows = AX.map(d => {
         const i = colIdx(d.L);
         let a = cleanPct(accRow[i]);
         if (a == null) a = cleanInt(accRow[i]) || 0;
         const p = cleanInt(popRow[i]);
         return { n: d.n, a, p };
       });
+      
+      // Append the district total (header looks like "DAERAH KUALA MUDA") if present
+      if (found.totCol != null) {
+        const i = found.totCol;
+        let aTot = cleanPct(accRow[i]); if (aTot == null) aTot = cleanInt(accRow[i]) || 0;
+        const pTot = cleanInt(popRow[i]) || 0;
+        const name = (found.totLabel || "").replace(/^DAERAH\s*/i, "").trim() || "Jumlah Daerah";
+        rows.push({ n: name, a: aTot, p: pTot });
+      }
+
+      
       drawT1(rows, "t1", "main");
       $("t1time").textContent = new Date().toLocaleString();
     } catch (e) {
@@ -511,22 +526,42 @@ function layoutFor(labels) {
   }
 
   function computeT2(arr, keys) {
-    const AX = __axisFor('akses','t2', arr) || DIST2;
-    const labels = ["", ...AX.map((d) => d.n), ""];
-    const per = [];
-    CATS2.forEach((c) => {
-      if (!keys.has(c.key)) return;
-      const b = [0];
-      const u = [0];
-      AX.forEach((d) => {
-        b.push(sumCol(arr, d.L, c.b));
-        u.push(sumCol(arr, d.L, c.u));
+    
+    // Use the first category's first "baru" row as a probe to discover clinic columns
+      const probeRow = (CATS2[0]?.b?.[0]) || 8;  // spreadsheet row number
+      const found = discoverAxisFromRow(arr, probeRow, /^DAERAH/i);
+      const AX = found.AX.length ? found.AX : (DIST2 || []);
+      
+      const labels = ["", ...AX.map(d => d.n)];
+      if (found.totCol != null) {
+        const name = (found.totLabel || "").replace(/^DAERAH\s*/i, "").trim() || "Jumlah Daerah";
+        labels.push(name);
+      }
+      labels.push("");
+      
+      const per = [];
+      CATS2.forEach((c) => {
+        if (!keys.has(c.key)) return;
+        const b = [0], u = [0];
+      
+        AX.forEach(d => {
+          b.push(sumCol(arr, d.L, c.b));
+          u.push(sumCol(arr, d.L, c.u));
+        });
+      
+        if (found.totCol != null) {
+          const totL = idx2col(found.totCol);
+          b.push(sumCol(arr, totL, c.b));
+          u.push(sumCol(arr, totL, c.u));
+        }
+      
+        b.push(0); u.push(0);
+        per.push({ key: c.key, b, u });
       });
-      b.push(0);
-      u.push(0);
-      per.push({ key: c.key, b, u });
-    });
-    return { labels, per };
+      
+      return { labels, per };
+
+    
   }
   function drawT2(data, canvas, mode) {
     if (CH2) CH2.destroy();
@@ -2148,6 +2183,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
