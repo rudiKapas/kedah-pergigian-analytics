@@ -715,7 +715,7 @@
 
       
       const COLORS = {v6:'#FBAC45', v12:'#44BD9E', v16:'#5AAEE1'};
-      const SRC = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=898117748&single=true&output=csv';
+      const SRC = __pickURL('kpi','k1');
 
       function colToIndex(col){let n=0;for(let i=0;i<col.length;i++)n=n*26+(col.charCodeAt(i)-64);return n-1;}
       function parseCell(ref){const m=ref.match(/^([A-Z]+)(\d+)$/i);return {c:colToIndex(m[1].toUpperCase()), r:+m[2]-1};}
@@ -1524,10 +1524,10 @@ function buildPeriScale(){
 /* ===== Dataviz: fetch once, animate bars + numbers in lockstep ===== */
 (function(){
   const SERIES = [
-    { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1057141723&single=true&output=csv', cell:'N11', valSel:'[data-dv-val="1"]' }, // Akses
-    { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=1851801564&single=true&output=csv', cell:'O28', valSel:'[data-dv-val="2"]' }, // Toddler TPR
-    { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=205423549&single=true&output=csv', cell:'O19', valSel:'[data-dv-val="3"]' }, // Ibu Mengandung
-    { url:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub?gid=480846724&single=true&output=csv', cell:'O39', valSel:'[data-dv-val="4"]' }  // Warga Emas ≥20 gigi
+    { url: __pickURL('index','i1'), cell:'N11', valSel:'[data-dv-val="1"]' }, // Akses
+    { url: __pickURL('index','i2'), cell:'O28', valSel:'[data-dv-val="2"]' }, // Toddler TPR
+    { url: __pickURL('index','i3'), cell:'O19', valSel:'[data-dv-val="3"]' }, // Ibu Mengandung
+    { url: __pickURL('index','i4'), cell:'O39', valSel:'[data-dv-val="4"]' }  // Warga Emas
   ];
 
   /* --- helpers --- */
