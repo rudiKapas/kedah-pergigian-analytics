@@ -97,8 +97,31 @@
     kedah: {
       label: "Kedah",
       periods: {
-        "2025_JAN_JUN": { label: "Jan–Jun 2025", base: "https://docs.google.com/spreadsheets/u/2/d/e/2PACX-1vSmv-uyuolofm_RuuTtXCSApabklB8VYYTs85oqZesufEsrFzCIgqADjOQ7XZtoq0EErPIoJizKyLUG/pub" },
-        "2025_JAN_SEP": { label: "Jan–Sep 2025", base: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub" },
+        "2025_JAN_JUN": {
+           label: "Jan–Jun 2025",
+           base: "https://docs.google.com/spreadsheets/u/2/d/e/2PACX-1vSmv-uyuolofm_RuuTtXCSApabklB8VYYTs85oqZesufEsrFzCIgqADjOQ7XZtoq0EErPIoJizKyLUG/pub",
+           gids: {
+             index:   { i1: 1827987097, i2: 580313871, i3: 1862452815,  i4: 367803577 },
+             akses:   { t1: 1827987097, t2: 1742536311, t3: 1032207232, t4: 191939163, t5: 580313871, t6: 1862452815, t7: 1768020288, t8: 725930955, t9: 367803577 },
+             sekolah: { ps1: 605621560, s2: 274289184,  s3: 1805739398 },
+             kpi:     { k1: 644789028,   k2: 1996563275,   k3: 1049078623 },
+             workforce:{ t1: 1685402195,   t2: 1636304038, t3: 1636304038 },
+             prevention:{ p1: 2118307164, p2: 153273302,    p3: 1648630853 }
+           }
+         },
+         "2025_JAN_SEP": {
+           label: "Jan–Sep 2025",
+           base: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub",
+           gids: {
+             index:   { i1: 1057141723, i2: 1851801564, i3: 205423549,  i4: 480846724 },
+             akses:   { t1: 1057141723, t2: 1808391684, t3: 1032207232, t4: 666852668, t5: 1851801564, t6: 205423549, t7: 543945307, t8: 1983552555, t9: 480846724 },
+             sekolah: { ps1: 1190173258, s2: 282265418,  s3: 1143057439 },
+             kpi:     { k1: 898117748,   k2: 64245750,   k3: 455214076 },
+             workforce:{ t1: 68768251,   t2: 1636304038, t3: 1636304038 },
+             prevention:{ p1: 1006276802, p2: 3425549,    p3: 529560061 }
+           }
+         },
+
       }
     },
 
@@ -107,8 +130,20 @@
       label: "Kuala Muda",
       periods: {
         //"2025_JAN_JUN": { label: "Jan–Jun 2025", base: "PASTE_KM_JAN_JUN_2025_BASE_HERE" },
-        "2025_JAN_SEP": { label: "Jan–Sep 2025", base: "https://docs.google.com/spreadsheets/u/2/d/e/2PACX-1vScqOZbf5umR9e9ZkI-OzrXHAN4wEf9VtIOn3DHtBUJT91E4TnRnU-cwOtYJ8o48w/pub" },
-        //"2025_JAN_DEC": { label: "Jan–Dis 2025", base: "PASTE_KM_JAN_DIS_2025_BASE_HERE" }
+        //"2025_JAN_SEP": { label: "Jan–Sep 2025", base: "https://docs.google.com/spreadsheets/u/2/d/e/2PACX-1vScqOZbf5umR9e9ZkI-OzrXHAN4wEf9VtIOn3DHtBUJT91E4TnRnU-cwOtYJ8o48w/pub" },
+         "2025_JAN_SEP": {
+           label: "Jan–Sep 2025",
+           base: "https://docs.google.com/spreadsheets/u/2/d/e/2PACX-1vScqOZbf5umR9e9ZkI-OzrXHAN4wEf9VtIOn3DHtBUJT91E4TnRnU-cwOtYJ8o48w/pub",
+           gids: {
+             index:   { i1: 770352707, i2: 1341968918, i3: 1279182382,  i4: 1388051608 },
+             akses:   { t1: 770352707, t2: 1257311077, t3: 615342421, t4: 843302204, t5: 1341968918, t6: 1279182382, t7: 1457887816, t8: 541683565, t9: 1388051608 },
+             sekolah: { ps1: 1360946115, s2: 1478225603,  s3: 491917070 },
+             kpi:     { k1: 2063069096,   k2: 1008078167,   k3: 950287696 },
+             workforce:{ t1: 509804948,   t2: 2079002616, t3: 2079002616 },
+             prevention:{ p1: 1360786374, p2: 10143760,    p3: 30431784 }
+           }
+         },
+         //"2025_JAN_DEC": { label: "Jan–Dis 2025", base: "PASTE_KM_JAN_DIS_2025_BASE_HERE" }
       }
     }
 
@@ -129,15 +164,21 @@
     if (DATA_CATALOG[loc]?.periods?.[per]) localStorage.setItem("dash_per", per);
   }
 
-  // Build final CSV for a page+tile under current selection
-  window.__pickURL = function(pageKey, tileKey){
-    const gid = TILE_GIDS?.[pageKey]?.[tileKey];
-    if (!gid) { console.warn("[datasets] Unknown page/tile:", pageKey, tileKey); return ""; }
-    const { loc, per } = getSel();
-    const base = DATA_CATALOG?.[loc]?.periods?.[per]?.base;
-    if (!base) { console.error("[datasets] BASE missing for", loc, per); return ""; }
-    return buildCsvURL(base, gid);
-  };
+  // Build final CSV for a page+tile under current selection (prefers per-period gid overrides)
+   window.__pickURL = function(pageKey, tileKey){
+     const { loc, per } = getSel();
+     const perObj = DATA_CATALOG?.[loc]?.periods?.[per];
+     if (!perObj?.base) { console.error("[datasets] BASE missing for", loc, per); return ""; }
+   
+     // Prefer per-period override gid; fallback to global TILE_GIDS (Kedah template)
+     const overrideGid = perObj?.gids?.[pageKey]?.[tileKey];
+     const fallbackGid = TILE_GIDS?.[pageKey]?.[tileKey];
+     const gid = overrideGid ?? fallbackGid;
+     if (!gid) { console.warn("[datasets] Unknown page/tile:", pageKey, tileKey); return ""; }
+   
+     return buildCsvURL(perObj.base, gid);
+   };
+
 
   // Optional info to display current selection
   window.__getSelectionLabels = function(){
