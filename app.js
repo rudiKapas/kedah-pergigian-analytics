@@ -501,29 +501,42 @@ function layoutFor(labels) {
   $("t1refresh").addEventListener("click", loadT1);
   
    $("t1expand").addEventListener("click", () => {
-    if (!RAW1) return;
-    openModal("Akses Kepada Perkhidmatan Kesihatan Pergigian");
-  
-    const NUM = RAW1[8] || [];   // spreadsheet row 9: N = Pesakit baru
-    const DEN = RAW1[9] || [];   // spreadsheet row 10: D = anggaran populasi
+      if (!RAW1) return;
+      openModal("Akses Kepada Perkhidmatan Kesihatan Pergigian");
     
-    const rows = AX.map(d => {
-      const i = colIdx(d.L);
-      const n = cleanInt(NUM[i]);
-      const dnm = cleanInt(DEN[i]);
-      const a = dnm > 0 ? +((n / dnm) * 100).toFixed(2) : 0;
-      const p = dnm; // show D on the right axis
-      return { n: d.n, a, p };
+      // Recompute axis & totals inside this scope
+      const found = discoverAxisFromRow(RAW1, 9, /^DAERAH/i);
+      const AX = found.AX.length ? found.AX : (DIST1 || []);
+    
+      const NUM = RAW1[8] || [];  // row 9: pesakit baru (numerator)
+      const DEN = RAW1[9] || [];  // row 10: anggaran populasi (denominator)
+    
+      const rows = AX.map(d => {
+        const i = colIdx(d.L);
+        const n = cleanInt(NUM[i]);
+        const dnm = cleanInt(DEN[i]);
+        const a = dnm > 0 ? +((n / dnm) * 100).toFixed(2) : 0;
+        return { n: d.n, a, p: dnm };
+      });
+    
+      if (found.totCol != null) {
+        const i = found.totCol;
+        const nTot = cleanInt(NUM[i]);
+        const dTot = cleanInt(DEN[i]);
+        const aTot = dTot > 0 ? +((nTot / dTot) * 100).toFixed(2) : 0;
+        const pTot = dTot;
+        const name = (found.totLabel || "")
+          .replace(/^DAERAH\s*/i, "")
+          .replace(/\bG-?RET\b/i, "")
+          .replace(/\bJUMLAH\b/i, "")
+          .replace(/\s+/g, " ")
+          .trim() || "Jumlah Daerah";
+        rows.push({ n: name, a: aTot, p: pTot });
+      }
+    
+      MCH = drawT1(rows, "mcanvas", "modal");
     });
 
-    if (found.totCol != null) {
-      const i = found.totCol;
-      const name = (found.totLabel || "").replace(/^DAERAH\s*/i,"").trim() || "Jumlah Daerah";
-      rows.push({ n: name, a: cleanPct(accRow[i]) ?? (cleanInt(accRow[i]) || 0), p: cleanInt(popRow[i]) });
-    }
-  
-    MCH = drawT1(rows, "mcanvas", "modal");
-  });
 
   
   loadT1();
@@ -2374,6 +2387,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
