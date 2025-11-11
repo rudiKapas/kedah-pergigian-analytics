@@ -332,6 +332,8 @@
 
     wrap.appendChild(locLbl); wrap.appendChild(locSel);
     wrap.appendChild(perLbl); wrap.appendChild(perSel);
+    wrap.style.right = 'max(12px, calc((100vw - var(--page-max)) / 2 + var(--gap)))';
+
     document.body.appendChild(wrap);
   });
 
