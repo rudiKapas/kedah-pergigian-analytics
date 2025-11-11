@@ -187,22 +187,47 @@ function layoutFor(labels) {
      * @returns {{AX: Array<{n:string,L:string}>, totCol:number|null, totLabel:string|null}}
      */
     function discoverAxisFromRow(data, probeRowNum, totalHeaderRx = /^DAERAH/i) {
-      const r = Math.max(0, probeRowNum - 1);    // convert A1 row to 0-index
-      const row = data[r] || [];
-      const AX = [];
-      let totCol = null, totLabel = null;
-    
-      for (let c = 0; c < row.length; c++) {
-        const rawHeader = labelAbove(data, r, c);
-        const header = String(rawHeader || "").replace(/\s+/g, " ").trim();
-        const isTotal = /\bDAERAH\b/i.test(header); // more tolerant than /^DAERAH/i
-        if (isTotal) { totCol = c; totLabel = header; continue; }
-
-        // treat it as a clinic column when the probe row has a number
-        if (isNumLike(row[c])) AX.push({ n: header, L: idx2col(c) });
-      }
-      return { AX, totCol, totLabel };
+    const r = Math.max(0, probeRowNum - 1);      // A1 → 0-index
+    const row = data[r] || [];
+  
+    const AX = [];
+    const totals = [];
+    const isClinicKey = (h) => /\b(KPSP|KP\b|KLINIK)\b/i.test(h);
+  
+    for (let c = 0; c < row.length; c++) {
+      // look only a couple rows up (avoid long sheet titles)
+      const rawHead = labelAbove(data, r, c, 3);
+      let head = String(rawHead || "").replace(/\s+/g, " ").trim();
+  
+      if (/\bDAERAH\b/i.test(head)) totals.push({ c, head });
+  
+      // must be numeric in the probe row
+      if (!isNumLike(row[c])) continue;
+  
+      // only keep columns whose header looks like a clinic name
+      const m = head.match(/\b(KPSP|KP\b|KLINIK)\b/i);
+      if (!m) continue;
+  
+      // strip any prefix before KP/KPSP/KLINIK (e.g., "… TAHUN 2025 ")
+      head = head.slice(m.index).trim();
+  
+      AX.push({ n: head, L: idx2col(c), _i: c });
     }
+  
+    // pick the DAERAH column that is to the RIGHT of the last clinic column
+    let totCol = null, totLabel = null;
+    if (totals.length) {
+      const lastClinic = AX.length ? AX[AX.length - 1]._i : -1;
+      const right = totals
+        .filter(t => t.c > lastClinic && !/G-?RET/i.test(t.head));
+      const pick = right.length ? right[0] : totals[totals.length - 1];
+      totCol = pick.c;
+      totLabel = pick.head;
+    }
+  
+    return { AX: AX.map(({ n, L }) => ({ n, L })), totCol, totLabel };
+  }
+
 
 
   // --- Percent normaliser ---
@@ -452,7 +477,13 @@ function layoutFor(labels) {
       const dTot = cleanInt(DEN[i]);
       const aTot = dTot > 0 ? +((nTot / dTot) * 100).toFixed(2) : 0;
       const pTot = dTot;
-      const name = (found.totLabel || "").replace(/^DAERAH\s*/i, "").trim() || "Jumlah Daerah";
+      const name = (found.totLabel || "")
+        .replace(/^DAERAH\s*/i, "")
+        .replace(/\bG-?RET\b/i, "")
+        .replace(/\bJUMLAH\b/i, "")
+        .replace(/\s+/g, " ")
+        .trim() || "Jumlah Daerah";
+
       rows.push({ n: name, a: aTot, p: pTot });
     }
     
@@ -2187,7 +2218,13 @@ function layoutFor(labels) {
       const dTot = cleanInt(DEN[i]);
       const aTot = dTot > 0 ? +((nTot / dTot) * 100).toFixed(2) : 0;
       const pTot = dTot;
-      const name = (found.totLabel || "").replace(/^DAERAH\s*/i, "").trim() || "Jumlah Daerah";
+      const name = (found.totLabel || "")
+        .replace(/^DAERAH\s*/i, "")
+        .replace(/\bG-?RET\b/i, "")
+        .replace(/\bJUMLAH\b/i, "")
+        .replace(/\s+/g, " ")
+        .trim() || "Jumlah Daerah";
+
       rows.push({ n: name, a: aTot, p: pTot });
     }
 
@@ -2337,6 +2374,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
