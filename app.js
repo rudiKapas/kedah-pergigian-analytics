@@ -187,46 +187,50 @@ function layoutFor(labels) {
      * @returns {{AX: Array<{n:string,L:string}>, totCol:number|null, totLabel:string|null}}
      */
     function discoverAxisFromRow(data, probeRowNum, totalHeaderRx = /^DAERAH/i) {
-    const r = Math.max(0, probeRowNum - 1);      // A1 → 0-index
-    const row = data[r] || [];
-  
-    const AX = [];
-    const totals = [];
-    const isClinicKey = (h) => /\b(KPSP|KP\b|KLINIK)\b/i.test(h);
-  
-    for (let c = 0; c < row.length; c++) {
-      // look only a couple rows up (avoid long sheet titles)
-      const rawHead = labelAbove(data, r, c, 3);
-      let head = String(rawHead || "").replace(/\s+/g, " ").trim();
-  
-      if (/\bDAERAH\b/i.test(head)) totals.push({ c, head });
-  
-      // must be numeric in the probe row
-      if (!isNumLike(row[c])) continue;
-  
-      // only keep columns whose header looks like a clinic name
-      const m = head.match(/\b(KPSP|KP\b|KLINIK)\b/i);
-      if (!m) continue;
-  
-      // strip any prefix before KP/KPSP/KLINIK (e.g., "… TAHUN 2025 ")
-      head = head.slice(m.index).trim();
-  
-      AX.push({ n: head, L: idx2col(c), _i: c });
-    }
-  
-    // pick the DAERAH column that is to the RIGHT of the last clinic column
-    let totCol = null, totLabel = null;
-    if (totals.length) {
-      const lastClinic = AX.length ? AX[AX.length - 1]._i : -1;
-      const right = totals
-        .filter(t => t.c > lastClinic && !/G-?RET/i.test(t.head));
-      const pick = right.length ? right[0] : totals[totals.length - 1];
-      totCol = pick.c;
-      totLabel = pick.head;
-    }
-  
-    return { AX: AX.map(({ n, L }) => ({ n, L })), totCol, totLabel };
-  }
+        const r   = Math.max(0, probeRowNum - 1);   // A1 → 0-index
+        const row = data[r] || [];
+      
+        const AX = [];
+        const totals = [];
+      
+        // accept a number in the probe row OR its neighbour rows (some sheets shift)
+        const numishAt = (c) =>
+          isNumLike(row[c]) || isNumLike(data[r + 1]?.[c]) || isNumLike(data[r - 1]?.[c]);
+      
+        for (let c = 0; c < row.length; c++) {
+          // look further up for multi-line headers (was 3)
+          const rawHead = labelAbove(data, r, c, 8);
+          let head = String(rawHead || "").replace(/\s+/g, " ").trim();
+      
+          // mark possible totals even if not exactly "DAERAH"
+          if (/\b(DAERAH|JUMLAH|NEGERI|G-?RET)\b/i.test(head)) totals.push({ c, head });
+      
+          // must be numeric somewhere around the probe row
+          if (!numishAt(c)) continue;
+      
+          // clinic key matcher — allow KP, KPSP, KLINIK / KLINIK PERGIGIAN
+          const m = head.match(/\b(KPSP|KLINIK(?:\s+PERGIGIAN)?|KP(?!I))\b/i);
+          if (!m) continue;
+      
+          // keep label from the KP/KPSP/KLINIK token onward (e.g., "KP BANDAR BARU")
+          head = head.slice(m.index).trim();
+      
+          AX.push({ n: head, L: idx2col(c), _i: c });
+        }
+      
+        // pick total column to the RIGHT of the last clinic, else the last seen
+        let totCol = null, totLabel = null;
+        if (totals.length) {
+          const lastClinic = AX.length ? AX[AX.length - 1]._i : -1;
+          const right = totals.filter(t => t.c > lastClinic);
+          const pick  = right.length ? right[0] : totals[totals.length - 1];
+          totCol   = pick.c;
+          totLabel = pick.head;
+        }
+      
+        return { AX: AX.map(({ n, L }) => ({ n, L })), totCol, totLabel };
+      }
+
 
 
 
@@ -2409,6 +2413,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
