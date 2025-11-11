@@ -302,6 +302,21 @@ function layoutFor(labels) {
           }
         });
       });
+      
+      $(btnNone).addEventListener("click", () => {          // <-- NEW
+        menu.querySelectorAll("input").forEach((i) => {
+          if (i.checked) {
+            i.checked = false;
+            i.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+        });
+      });
+      
+      $(btnClose).addEventListener("click", () => {
+        const box = menu.closest(".dd");
+        if (box) box.classList.remove("open");
+      });
+
        $(btnClose).addEventListener("click", () => {
       const box = menu.closest(".dd");
       if (box) box.classList.remove("open");
@@ -457,23 +472,25 @@ function layoutFor(labels) {
       const found = discoverAxisFromRow(RAW1, 9, /^DAERAH/i); // probe row 9 (numerator)
       const AX = found.AX.length ? found.AX : (DIST1 || []); // safe fallback if needed
       
-      const NUM = RAW1[8] || [];   // spreadsheet row 9: N = Pesakit baru
-      const DEN = RAW1[9] || [];   // spreadsheet row 10: D = anggaran populasi
+      // NUMERATOR = Baru + Ulangan  (row 9 + row 11)
+      // DENOMINATOR = Anggaran Populasi (row 10)
+      const N_BARU  = RAW1[8]  || [];
+      const N_ULANG = RAW1[10] || [];
+      const DEN     = RAW1[9]  || [];
       
       const rows = AX.map(d => {
-        const i = colIdx(d.L);
-        const n = cleanInt(NUM[i]);
+        const i   = colIdx(d.L);
+        const n   = cleanInt(N_BARU[i]) + cleanInt(N_ULANG[i]); // <-- changed
         const dnm = cleanInt(DEN[i]);
-        const a = dnm > 0 ? +((n / dnm) * 100).toFixed(2) : 0;
-        const p = dnm; // show D on the right axis
-        return { n: d.n, a, p };
+        const a   = dnm > 0 ? +((n / dnm) * 100).toFixed(2) : 0;
+        return { n: d.n, a, p: dnm };
       });
 
       
       // Append the district total (header looks like "DAERAH KUALA MUDA") if present
       if (found.totCol != null) {
       const i = found.totCol;
-      const nTot = cleanInt(NUM[i]);
+      const nTot = cleanInt(N_BARU[i]) + cleanInt(N_ULANG[i]);
       const dTot = cleanInt(DEN[i]);
       const aTot = dTot > 0 ? +((nTot / dTot) * 100).toFixed(2) : 0;
       const pTot = dTot;
@@ -508,21 +525,25 @@ function layoutFor(labels) {
       const found = discoverAxisFromRow(RAW1, 9, /^DAERAH/i); // probe row 9 (numerator)
       const AX = found.AX.length ? found.AX : (DIST1 || []);
     
-      const NUM = RAW1[8] || [];  // row 9: pesakit baru (numerator)
-      const DEN = RAW1[9] || [];  // row 10: anggaran populasi (denominator)
-    
+      // NUMERATOR = Baru + Ulangan  (row 9 + row 11)
+      // DENOMINATOR = Anggaran Populasi (row 10)
+      const N_BARU  = RAW1[8]  || [];
+      const N_ULANG = RAW1[10] || [];
+      const DEN     = RAW1[9]  || [];
+      
       const rows = AX.map(d => {
-        const i = colIdx(d.L);
-        const n = cleanInt(NUM[i]);
+        const i   = colIdx(d.L);
+        const n   = cleanInt(N_BARU[i]) + cleanInt(N_ULANG[i]); // <-- changed
         const dnm = cleanInt(DEN[i]);
-        const a = dnm > 0 ? +((n / dnm) * 100).toFixed(2) : 0;
+        const a   = dnm > 0 ? +((n / dnm) * 100).toFixed(2) : 0;
         return { n: d.n, a, p: dnm };
       });
-    
+      
+          
       // Append district total (clean the label)
       if (found.totCol != null) {
         const i = found.totCol;
-        const nTot = cleanInt(NUM[i]);
+        const nTot = cleanInt(N_BARU[i]) + cleanInt(N_ULANG[i]);
         const dTot = cleanInt(DEN[i]);
         const aTot = dTot > 0 ? +((nTot / dTot) * 100).toFixed(2) : 0;
         const pTot = dTot;
