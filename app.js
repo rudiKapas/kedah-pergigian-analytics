@@ -429,28 +429,33 @@ function layoutFor(labels) {
       RAW1 = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
       
       // Auto-detect clinic columns from the sheet (probe: population row = spreadsheet row 10)
-      const found = discoverAxisFromRow(RAW1, 10, /^DAERAH/i);
+      const found = discoverAxisFromRow(RAW1, 9, /^DAERAH/i); // probe row 9 (numerator)
       const AX = found.AX.length ? found.AX : (DIST1 || []); // safe fallback if needed
       
-      const popRow = RAW1[9]  || [];  // spreadsheet row 10
-      const accRow = RAW1[10] || [];  // spreadsheet row 11
+      const NUM = RAW1[8] || [];   // spreadsheet row 9: N = Pesakit baru
+      const DEN = RAW1[9] || [];   // spreadsheet row 10: D = anggaran populasi
       
       const rows = AX.map(d => {
         const i = colIdx(d.L);
-        let a = cleanPct(accRow[i]);
-        if (a == null) a = cleanInt(accRow[i]) || 0;
-        const p = cleanInt(popRow[i]);
+        const n = cleanInt(NUM[i]);
+        const dnm = cleanInt(DEN[i]);
+        const a = dnm > 0 ? +((n / dnm) * 100).toFixed(2) : 0;
+        const p = dnm; // show D on the right axis
         return { n: d.n, a, p };
       });
+
       
       // Append the district total (header looks like "DAERAH KUALA MUDA") if present
       if (found.totCol != null) {
-        const i = found.totCol;
-        let aTot = cleanPct(accRow[i]); if (aTot == null) aTot = cleanInt(accRow[i]) || 0;
-        const pTot = cleanInt(popRow[i]) || 0;
-        const name = (found.totLabel || "").replace(/^DAERAH\s*/i, "").trim() || "Jumlah Daerah";
-        rows.push({ n: name, a: aTot, p: pTot });
-      }
+      const i = found.totCol;
+      const nTot = cleanInt(NUM[i]);
+      const dTot = cleanInt(DEN[i]);
+      const aTot = dTot > 0 ? +((nTot / dTot) * 100).toFixed(2) : 0;
+      const pTot = dTot;
+      const name = (found.totLabel || "").replace(/^DAERAH\s*/i, "").trim() || "Jumlah Daerah";
+      rows.push({ n: name, a: aTot, p: pTot });
+    }
+    
 
       
       drawT1(rows, "t1", "main");
@@ -468,21 +473,18 @@ function layoutFor(labels) {
     if (!RAW1) return;
     openModal("Akses Kepada Perkhidmatan Kesihatan Pergigian");
   
-    const popRow = RAW1[9]  || [];  // spreadsheet row 10
-    const accRow = RAW1[10] || [];  // spreadsheet row 11
-  
-    const found = discoverAxisFromRow(RAW1, 10, /^DAERAH/i);
-    const AX = found.AX.length ? found.AX : (DIST1 || []);
-  
+    const NUM = RAW1[8] || [];   // spreadsheet row 9: N = Pesakit baru
+    const DEN = RAW1[9] || [];   // spreadsheet row 10: D = anggaran populasi
+    
     const rows = AX.map(d => {
       const i = colIdx(d.L);
-      return {
-        n: d.n,
-        a: cleanPct(accRow[i]) ?? (cleanInt(accRow[i]) || 0),
-        p: cleanInt(popRow[i])
-      };
+      const n = cleanInt(NUM[i]);
+      const dnm = cleanInt(DEN[i]);
+      const a = dnm > 0 ? +((n / dnm) * 100).toFixed(2) : 0;
+      const p = dnm; // show D on the right axis
+      return { n: d.n, a, p };
     });
-  
+
     if (found.totCol != null) {
       const i = found.totCol;
       const name = (found.totLabel || "").replace(/^DAERAH\s*/i,"").trim() || "Jumlah Daerah";
@@ -2163,26 +2165,32 @@ function layoutFor(labels) {
   // ============== Redraw on resize =========
   window.addEventListener("resize", function () {
     if (RAW1) {
-    const found = discoverAxisFromRow(RAW1, 10, /^DAERAH/i);
+    const found = discoverAxisFromRow(RAW1, 9, /^DAERAH/i); // probe row 9 (numerator)
     const AX = found.AX.length ? found.AX : (DIST1 || []);
-    const popRow = RAW1[9]  || [];  // spreadsheet row 10
-    const accRow = RAW1[10] || [];  // spreadsheet row 11
-  
+      
+    const NUM = RAW1[8] || [];   // spreadsheet row 9: N = Pesakit baru
+    const DEN = RAW1[9] || [];   // spreadsheet row 10: D = anggaran populasi
+    
     const rows = AX.map(d => {
       const i = colIdx(d.L);
-      let a = cleanPct(accRow[i]);
-      if (a == null) a = cleanInt(accRow[i]) || 0;
-      const p = cleanInt(popRow[i]);
+      const n = cleanInt(NUM[i]);
+      const dnm = cleanInt(DEN[i]);
+      const a = dnm > 0 ? +((n / dnm) * 100).toFixed(2) : 0;
+      const p = dnm; // show D on the right axis
       return { n: d.n, a, p };
     });
+
   
     if (found.totCol != null) {
       const i = found.totCol;
-      let aTot = cleanPct(accRow[i]); if (aTot == null) aTot = cleanInt(accRow[i]) || 0;
-      const pTot = cleanInt(popRow[i]) || 0;
+      const nTot = cleanInt(NUM[i]);
+      const dTot = cleanInt(DEN[i]);
+      const aTot = dTot > 0 ? +((nTot / dTot) * 100).toFixed(2) : 0;
+      const pTot = dTot;
       const name = (found.totLabel || "").replace(/^DAERAH\s*/i, "").trim() || "Jumlah Daerah";
       rows.push({ n: name, a: aTot, p: pTot });
     }
+
   
     drawT1(rows, "t1", "main");
   }
@@ -2329,6 +2337,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
