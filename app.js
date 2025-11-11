@@ -504,8 +504,8 @@ function layoutFor(labels) {
       if (!RAW1) return;
       openModal("Akses Kepada Perkhidmatan Kesihatan Pergigian");
     
-      // Recompute axis & totals inside this scope
-      const found = discoverAxisFromRow(RAW1, 9, /^DAERAH/i);
+      // Re-discover clinic columns & total inside this handler
+      const found = discoverAxisFromRow(RAW1, 9, /^DAERAH/i); // probe row 9 (numerator)
       const AX = found.AX.length ? found.AX : (DIST1 || []);
     
       const NUM = RAW1[8] || [];  // row 9: pesakit baru (numerator)
@@ -519,6 +519,7 @@ function layoutFor(labels) {
         return { n: d.n, a, p: dnm };
       });
     
+      // Append district total (clean the label)
       if (found.totCol != null) {
         const i = found.totCol;
         const nTot = cleanInt(NUM[i]);
@@ -527,8 +528,8 @@ function layoutFor(labels) {
         const pTot = dTot;
         const name = (found.totLabel || "")
           .replace(/^DAERAH\s*/i, "")
-          .replace(/\bG-?RET\b/i, "")
-          .replace(/\bJUMLAH\b/i, "")
+          .replace(/\bG-?RET\b/gi, "")
+          .replace(/\bJUMLAH\b/gi, "")
           .replace(/\s+/g, " ")
           .trim() || "Jumlah Daerah";
         rows.push({ n: name, a: aTot, p: pTot });
@@ -2387,6 +2388,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
