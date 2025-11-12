@@ -266,7 +266,20 @@
   // Optional fine-grained overrides for header positions when a district is selected.
   // Keys: "<pageKey>.<tileKey>" → { headerRow, startCol }
   // If not provided, we use AXIS_DEFAULT (Row 5, Col C).
-
+     const AXIS_HINTS = {
+        kuala_muda: {
+          "akses.t1": { headerRow: 5, startCol: "C" },
+          "akses.t2": { headerRow: 5, startCol: "D" },
+          "akses.t3": { headerRow: 5, startCol: "C" },
+          "akses.t4": { headerRow: 5, startCol: "C" },
+          "akses.t5": { headerRow: 5, startCol: "D" },
+          "akses.t6": { headerRow: 5, startCol: "D" },
+          "akses.t7": { headerRow: 5, startCol: "D" },
+          "akses.t8": { headerRow: 5, startCol: "D" },
+          "akses.t9": { headerRow: 5, startCol: "D" }
+        }
+        // Add more districts later with their quirks if needed
+      };
 
 
         // Read names from a header row (table = CSV parsed to 2D array)
