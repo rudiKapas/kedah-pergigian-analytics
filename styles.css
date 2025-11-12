@@ -401,7 +401,7 @@ header.ph .searchbar{
 /* even half-circle controls */
 :root{
   /* distance from main to children — increase to spread further */
-  --fab-r: 120px;
+  --fab-r: 96px;
   --fab-rd: calc(var(--fab-r) * .7071); /* r / √2 */
 }
 
