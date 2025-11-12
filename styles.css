@@ -439,4 +439,19 @@ header.ph .searchbar{
   opacity:1; transform:translate(-100%, -50%) scale(1);
 }
 
+/* AKSES: make charts taller to fill the tile */
+body.akses .tile .chart,
+body.akses .chart,
+body.akses .canvas-wrap{
+  height: 460px;   /* increase from 340px */
+}
+
+@media (max-width: 640px){
+  body.akses .tile .chart,
+  body.akses .chart,
+  body.akses .canvas-wrap{
+    height: 420px; /* increase from 380px */
+  }
+}
+
 
