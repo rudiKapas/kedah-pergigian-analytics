@@ -7,9 +7,10 @@
     Chart.defaults.layout = Chart.defaults.layout || {};
     const existingPad = Chart.defaults.layout.padding || {};
     Chart.defaults.layout.padding = Object.assign(
-      { top: 8, right: 8, bottom: 140, left: 8 }, // <- key to stop clipping
+      { top: 8, right: 8, bottom: 8, left: 8 },   // keep tiny default; per-chart settings will override
       existingPad
     );
+
 
     Chart.defaults.scales = Chart.defaults.scales || {};
     Chart.defaults.scales.category = Chart.defaults.scales.category || {};
@@ -87,11 +88,11 @@ function maxLabelPx(labels) {
 }
 
 function layoutFor(labels) {
-  const bottom = Math.ceil(maxLabelPx(labels.filter(Boolean)) + 28); // space for 90° labels
-  return {
-    padding: () => ({ top: 8, right: 8, bottom, left: 8 })
-  };
+  // Measure the widest label and convert to a sane bottom gutter for 90° ticks
+  const bottom = Math.ceil(maxLabelPx(labels.filter(Boolean)) * 0.65 + 18);
+  return { padding: { top: 8, right: 8, bottom, left: 8 } };
 }
+
 
   function cleanPct(v) {
     if (v == null) return null;
@@ -2425,6 +2426,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
