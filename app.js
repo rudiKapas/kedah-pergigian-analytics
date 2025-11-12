@@ -625,43 +625,30 @@ function layoutFor(labels) {
   }
 
   function computeT2(arr, keys) {
-    
-    // Use the first category's first "baru" row as a probe to discover clinic columns
-      const probeRow = (CATS2[0]?.b?.[0]) || 8;  // spreadsheet row number
-      const found = discoverAxisFromRow(arr, probeRow, /^DAERAH/i);
-      const AX = found.AX.length ? found.AX : (DIST2 || []);
-      
-      const labels = ["", ...AX.map(d => d.n)];
-      if (found.totCol != null) {
-        const name = (found.totLabel || "").replace(/^DAERAH\s*/i, "").trim() || "Jumlah Daerah";
-        labels.push(name);
-      }
-      labels.push("");
-      
-      const per = [];
-      CATS2.forEach((c) => {
-        if (!keys.has(c.key)) return;
-        const b = [0], u = [0];
-      
-        AX.forEach(d => {
-          b.push(sumCol(arr, d.L, c.b));
-          u.push(sumCol(arr, d.L, c.u));
-        });
-      
-        if (found.totCol != null) {
-          const totL = idx2col(found.totCol);
-          b.push(sumCol(arr, totL, c.b));
-          u.push(sumCol(arr, totL, c.u));
-        }
-      
-        b.push(0); u.push(0);
-        per.push({ key: c.key, b, u });
+    // Discover clinics, but do NOT append the total column to the x-axis
+    const probeRow = (CATS2[0]?.b?.[0]) || 8;
+    const found = discoverAxisFromRow(arr, probeRow, /^DAERAH/i);
+    const AX = found.AX.length ? found.AX : (DIST2 || []);
+  
+    const labels = ["", ...AX.map(d => d.n), ""]; // pad only
+  
+    const per = [];
+    CATS2.forEach((c) => {
+      if (!keys.has(c.key)) return;
+      const b = [0], u = [0];
+  
+      AX.forEach(d => {
+        b.push(sumCol(arr, d.L, c.b));
+        u.push(sumCol(arr, d.L, c.u));
       });
-      
-      return { labels, per };
-
-    
+  
+      b.push(0); u.push(0);
+      per.push({ key: c.key, b, u });
+    });
+  
+    return { labels, per };
   }
+
   function drawT2(data, canvas, mode) {
     if (CH2) CH2.destroy();
     const sets = [];
@@ -1263,39 +1250,31 @@ function layoutFor(labels) {
     );
   }
   const chosen5 = () => chosen("dd5menu", "% TASKA dilawati");
-  function computeT5(arr, set) {
+    function computeT5(arr, set) {
+      const found = discoverAxisFromRow(arr, MET_TOD[0].row, /^DAERAH/i);
+      const AX = found.AX.length ? found.AX : (DIST_TOD || []);
     
-    const found  = discoverAxisFromRow(arr, MET_TOD[0].row, /^DAERAH/i);
-    const AX     = found.AX.length ? found.AX : (DIST_TOD || []);
-    const labels = ["", ...AX.map(d => d.n)];
-    if (found.totCol != null) {
-      const name = (found.totLabel || "").replace(/^DAERAH\s*/i,"").trim() || "Jumlah Daerah";
-      labels.push(name);
-    }
-    labels.push("");
-
+      const labels = ["", ...AX.map(d => d.n), ""]; // no total label
     
-    const per = [];
-    MET_TOD.forEach((m) => {
-      if (!set.has(m.key)) return;
-      const s = [0];
-      
-      AX.forEach(d => {
-        s.push(m.type === "pct" ? cellPct(arr, d.L + String(m.row))
-                                : cellInt(arr, d.L + String(m.row)));
+      const per = [];
+      MET_TOD.forEach((m) => {
+        if (!set.has(m.key)) return;
+        const s = [0];
+    
+        AX.forEach(d => {
+          s.push(m.type === "pct" ? cellPct(arr, d.L + String(m.row))
+                                  : cellInt(arr, d.L + String(m.row)));
+        });
+    
+        s.push(0);
+        per.push({ key: m.key, type: m.type, color: m.color, target: m.target, data: s });
       });
-      if (found.totCol != null) {
-        const totL = idx2col(found.totCol);
-        s.push(m.type === "pct" ? cellPct(arr, totL + String(m.row))
-                                : cellInt(arr, totL + String(m.row)));
-      }
-      s.push(0);
+    
+      return { labels, per };
+    }
 
-      
-      per.push({ key: m.key, type: m.type, color: m.color, target: m.target, data: s });
-    });
-    return { labels, per };
-  }
+
+  
   function straightLine(len, val) {
     const a = new Array(len);
     for (let i = 0; i < len; i++) a[i] = val;
@@ -1480,34 +1459,25 @@ function layoutFor(labels) {
     );
   const chosen6 = () => chosen("dd6menu", MET_PREG[0].key);
   function computeT6(arr, set) {
+      const found = discoverAxisFromRow(arr, MET_PREG[0].row, /^DAERAH/i);
+      const AX = found.AX.length ? found.AX : (DIST_PREG || []);
     
-    const found  = discoverAxisFromRow(arr, MET_PREG[0].row, /^DAERAH/i);
-    const AX     = found.AX.length ? found.AX : (DIST_PREG || []);
-    const labels = ["", ...AX.map(d => d.n)];
-    if (found.totCol != null) {
-      const name = (found.totLabel || "").replace(/^DAERAH\s*/i,"").trim() || "Jumlah Daerah";
-      labels.push(name);
+      const labels = ["", ...AX.map(d => d.n), ""]; // no total label
+    
+      const per = [];
+      MET_PREG.forEach((m) => {
+        if (!set.has(m.key)) return;
+        const s = [0];
+    
+        AX.forEach(d => s.push(cellPct(arr, d.L + String(m.row))));
+        s.push(0);
+    
+        per.push({ key: m.key, color: m.color, target: m.target, data: s });
+      });
+    
+      return { labels, per };
     }
-    labels.push("");
 
-    
-    const per = [];
-    MET_PREG.forEach((m) => {
-      if (!set.has(m.key)) return;
-      const s = [0];
-      
-      AX.forEach(d => s.push(cellPct(arr, d.L + String(m.row))));
-      if (found.totCol != null) {
-        const totL = idx2col(found.totCol);
-        s.push(cellPct(arr, totL + String(m.row)));
-      }
-      s.push(0);
-      
-      
-      per.push({ key: m.key, color: m.color, target: m.target, data: s });
-    });
-    return { labels, per };
-  }
   function drawT6(data, canvas, mode) {
     if (CH_PREG) CH_PREG.destroy();
     const ds = [];
@@ -2413,6 +2383,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
