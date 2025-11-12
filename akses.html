@@ -60,6 +60,27 @@
     // Let canvases fill their parent box
     Chart.defaults.responsive = true;
     Chart.defaults.maintainAspectRatio = false;
+
+    // akses.html only — shrink x-axis label gutter so the plot starts lower
+    Chart.register({
+      id: 'tightenXAxisGutter',
+      afterFit(scale) {
+        if (scale.axis === 'x') {
+          const cut = 42;          // how many px to shave off
+          const min = 26;          // keep at least this much for labels
+          scale.height = Math.max(min, scale.height - cut);
+        }
+      }
+    });
+    
+    // Make tick spacing a bit tighter to help
+    Chart.defaults.scales = Chart.defaults.scales || {};
+    Chart.defaults.scales.category = Object.assign(
+      {}, Chart.defaults.scales.category || {},
+      { ticks: Object.assign({}, (Chart.defaults.scales.category||{}).ticks, { padding: 2 }) }
+    );
+
+    
     // akses.html — expand usable plot area but keep labels clear
     Chart.defaults.layout = { padding: { top: 4, right: 8, bottom: 10, left: 8 } };
     
@@ -488,6 +509,7 @@
   
 </body>
 </html>
+
 
 
 
