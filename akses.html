@@ -66,18 +66,28 @@
       id: 'tightenXAxisGutter',
       afterFit(scale) {
         if (scale.axis === 'x') {
-          const cut = 42;          // how many px to shave off
-          const min = 26;          // keep at least this much for labels
+          const cut = 64;          // how many px to shave off
+          const min = 22;          // keep at least this much for labels
           scale.height = Math.max(min, scale.height - cut);
         }
       }
     });
     
-    // Make tick spacing a bit tighter to help
+    // Make ticks as tight as possible to help
     Chart.defaults.scales = Chart.defaults.scales || {};
     Chart.defaults.scales.category = Object.assign(
       {}, Chart.defaults.scales.category || {},
-      { ticks: Object.assign({}, (Chart.defaults.scales.category||{}).ticks, { padding: 2 }) }
+      {
+        ticks: Object.assign({}, (Chart.defaults.scales.category||{}).ticks, {
+          padding: 0,            // no extra tick padding
+          autoSkip: false,       // keep all labels (you can set true if you prefer)
+          font: { size: 10 }     // smaller label font
+        }),
+        grid: Object.assign({}, (Chart.defaults.scales.category||{}).grid, {
+          drawTicks: false,      // hide little tick marks
+          tickLength: 0
+        })
+      }
     );
 
     
@@ -509,6 +519,7 @@
   
 </body>
 </html>
+
 
 
 
