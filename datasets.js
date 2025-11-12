@@ -335,6 +335,62 @@
     wrap.style.right = 'max(12px, calc((100vw - var(--page-max)) / 2 + var(--gap)))';
 
     document.body.appendChild(wrap);
+
+     /* === Floating radial nav (under the filter bar) === */
+      (function(){
+        // Place under the filter bar and align right edge with the grid/header
+        const r = wrap.getBoundingClientRect();
+        const fab = document.createElement('div');
+        fab.className = 'fab';
+        fab.style.top = Math.round(r.bottom + 16) + 'px';
+        fab.style.right = 'max(12px, calc((100vw - var(--page-max)) / 2 + var(--gap)))';
+      
+        // Match the filter bar color theme
+        try {
+          const bg = getComputedStyle(wrap).backgroundColor;
+          fab.style.setProperty('--fab-bg', bg);
+        } catch(e){}
+      
+        // MAIN button (default icon: nav.svg; hover icon: home.svg; click → index.html)
+        const main = document.createElement('a');
+        main.className = 'fab-main';
+        main.href = 'index.html';
+        const mainImg = document.createElement('img');
+        mainImg.src = 'assets/icons/nav.svg';
+        mainImg.alt = 'Utama';
+        main.appendChild(mainImg);
+        main.addEventListener('mouseenter', () => mainImg.src = 'assets/icons/home.svg');
+        main.addEventListener('mouseleave', () => mainImg.src = 'assets/icons/nav.svg');
+        fab.appendChild(main);
+      
+        // CHILD buttons (5 items)
+        const items = [
+          ['akses.html',      'assets/icons/access.svg',     'c1'],
+          ['sekolah.html',    'assets/icons/sekolah.svg',    'c2'],
+          ['kpi.html',        'assets/icons/kpi.svg',        'c3'],
+          ['workforce.html',  'assets/icons/workforce.svg',  'c4'],
+          ['prevention.html', 'assets/icons/prevention.svg', 'c5'],
+        ];
+        items.forEach(([href, icon, cls]) => {
+          const a = document.createElement('a');
+          a.className = 'fab-child ' + cls;
+          a.href = href;
+          const img = document.createElement('img');
+          img.src = icon;
+          img.alt = '';
+          a.appendChild(img);
+          fab.appendChild(a);
+        });
+      
+        document.body.appendChild(fab);
+      
+        // Keep it snug under the filter bar on resize
+        window.addEventListener('resize', () => {
+          const rr = wrap.getBoundingClientRect();
+          fab.style.top = Math.round(rr.bottom + 16) + 'px';
+        });
+      })();
+
   });
 
 })();
