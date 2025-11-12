@@ -50,7 +50,6 @@
     }
     function __mapNames(arr){ return (arr || []).map(__mapName); }
 
-    function __mapNames(arr){ return (arr || []).map(__mapName); }
 
 
   function colIdx(L) {
@@ -830,42 +829,54 @@ function layoutFor(labels) {
 
 
   function computeT3(arr, set) {
+      // Discover clinics (don’t append total to axis when district mode is used)
+      const AXH   = (typeof __axisFor === 'function' && __axisFor('akses','t3', arr));
+      const found = AXH ? { AX: AXH, totCol: null, totLabel: null }
+                        : discoverAxisFromRow(arr, SVCS[0].b, /^DAERAH/i);
+      const AX    = AXH || (found.AX.length ? found.AX : (DIST3 || []));
     
-    const AXH   = (typeof __axisFor === 'function' && __axisFor('akses','t3', arr));
-    const found = AXH ? { AX: AXH, totCol: null, totLabel: null } : discoverAxisFromRow(arr, SVCS[0].b, /^DAERAH/i);
-    const AX    = AXH || (found.AX.length ? found.AX : (DIST3 || []));
-
-    if (found.totCol != null) {
-      const name = (found.totLabel || "").replace(/^DAERAH\s*/i,"").trim() || "Jumlah Daerah";
-      labels.push(__mapName(name));
-    }
-    labels.push("");
-
+      // Base labels (blank sentinels at both ends)
+      const baseNames = AX.map(d => d.n);
+      const labels = ["", ...(AXH ? baseNames : __mapNames(baseNames))];
     
-    const per = [];
-    SVCS.forEach((s) => {
-      if (!set.has(s.key)) return;
-      const b = [0];
-      const u = [0];
-      
-      AX.forEach(d => {
-        b.push(cellInt(arr, d.L + String(s.b)));
-        u.push(cellInt(arr, d.L + String(s.u)));
-      });
-      
+      // Optional district total label, cleaned
       if (found.totCol != null) {
-        const totL = idx2col(found.totCol);
-        b.push(cellInt(arr, totL + String(s.b)));
-        u.push(cellInt(arr, totL + String(s.u)));
+        const name = (found.totLabel || "")
+          .replace(/^DAERAH\s*/i, "")
+          .replace(/\bG-?RET\b/gi, "")
+          .replace(/\bJUMLAH\b/gi, "")
+          .replace(/\s+/g, " ")
+          .trim() || "Jumlah Daerah";
+        labels.push(__mapName(name));
       }
-      
-    b.push(0);
-    u.push(0);
+      labels.push("");
+    
+      // Build series
+      const per = [];
+      SVCS.forEach((s) => {
+        if (!set.has(s.key)) return;
+        const b = [0], u = [0];
+    
+        AX.forEach(d => {
+          b.push(cellInt(arr, d.L + String(s.b)));
+          u.push(cellInt(arr, d.L + String(s.u)));
+        });
+    
+        if (found.totCol != null) {
+          const totL = idx2col(found.totCol);
+          b.push(cellInt(arr, totL + String(s.b)));
+          u.push(cellInt(arr, totL + String(s.u)));
+        }
+    
+        b.push(0); u.push(0);
+        per.push({ key: s.key, color: s.color, b, u });
+      });
+    
+      return { labels, per };
+    }
+    
 
-      per.push({ key: s.key, color: s.color, b, u });
-    });
-    return { labels, per };
-  }
+  
   function drawT3(data, canvas, mode) {
     if (CH3) CH3.destroy();
     const sets = [];
@@ -2414,6 +2425,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
