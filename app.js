@@ -74,24 +74,32 @@
   /* ===== Dynamic bottom padding for 90° labels (keep labels visible at 90°) ===== */
 const __measureCanvas = document.createElement('canvas');
 const __mctx = __measureCanvas.getContext('2d');
+__mctx.font = '10px Inter, system-ui, -apple-system, "Segoe UI", Roboto';
 
-function maxLabelPx(labels) {
-  __mctx.font = '10px Inter, system-ui, -apple-system, "Segoe UI", Roboto';
+function maxLabelPx(labels){
   let max = 0;
   labels.forEach(l => {
-    if (!l) return;
-    const t = Array.isArray(l) ? l.join(' ') : String(l);
-    const w = __mctx.measureText(t).width;
-    if (w > max) max = w;
+    if (Array.isArray(l)) {
+      l.forEach(line => { max = Math.max(max, __mctx.measureText(String(line)).width); });
+    } else if (l) {
+      max = Math.max(max, __mctx.measureText(String(l)).width);
+    }
   });
   return max;
 }
 
-function layoutFor(labels) {
-  // Measure the widest label and convert to a sane bottom gutter for 90° ticks
-  const bottom = Math.max(16, Math.ceil(maxLabelPx(labels.filter(Boolean)) * 0.55 + 10));
+function layoutFor(labels){
+  const L = labels.filter(Boolean);
+  const maxLines = Math.max(1, ...L.map(l => Array.isArray(l) ? l.length : 1));
+  const longest  = maxLabelPx(L);
+
+  const base   = Math.ceil(longest * 0.60);   // if still tight, bump to 0.62
+  const perLn  = Math.ceil(10 * 1.15);        // 10px font * 1.15 line-height
+  const bottom = Math.max(22, base + (maxLines - 1) * perLn + 8);
+
   return { padding: { top: 8, right: 8, bottom, left: 8 } };
 }
+
 
   function cleanPct(v) {
     if (v == null) return null;
@@ -2425,6 +2433,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
