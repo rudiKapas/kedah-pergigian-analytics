@@ -648,7 +648,9 @@ function layoutFor(labels) {
     const AX   = AXH || (found.AX.length ? found.AX : (DIST2 || []));
     
       
-    const labels = ["", ...__mapNames(AX.map(d => d.n)), ""];
+    const names  = AX.map(d => d.n);
+    const labels = ["", ...(AXH ? names : __mapNames(names)), ""];
+
   
     const per = [];
     CATS2.forEach((c) => {
@@ -2412,6 +2414,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
