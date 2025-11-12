@@ -452,4 +452,27 @@ header.ph .searchbar{
 /* Keep the legend attached to the bottom edge of the tile */
 .legend{ margin-top: auto; }   /* pushes legend down; chart grows above */
 
+/* Fill the chart area without changing tile height */
+.tile{ display:flex; flex-direction:column; }
+.tile .chart{ 
+  flex: 1 1 auto;            /* take all leftover space */
+  height: auto;              /* no fixed height */
+  padding: 10px 14px 0;      /* keep top/side padding, no bottom gap */
+}
+.legend{ margin-top: auto; } /* legend hugs tile bottom */
+
+/* Chart.js canvas should stretch fully */
+.tile .chart canvas{
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* ApexCharts also needs its wrappers to be 100% height */
+.tile .chart > div{ height: 100%; }
+.tile .chart .apexcharts-canvas,
+.tile .chart .apexcharts-svg{
+  width: 100% !important;
+  height: 100% !important;
+}
 
