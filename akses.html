@@ -66,7 +66,7 @@
       id: 'tightenXAxisGutter',
       afterFit(scale) {
         if (scale.axis === 'x') {
-          const cut = 64;          // how many px to shave off
+          const cut = 16;          // how many px to shave off
           const min = 22;          // keep at least this much for labels
           scale.height = Math.max(min, scale.height - cut);
         }
@@ -519,6 +519,7 @@
   
 </body>
 </html>
+
 
 
 
