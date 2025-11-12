@@ -267,8 +267,6 @@
   // Keys: "<pageKey>.<tileKey>" → { headerRow, startCol }
   // If not provided, we use AXIS_DEFAULT (Row 5, Col C).
 
-        // Add more districts later with their quirks if needed
-      };
 
 
         // Read names from a header row (table = CSV parsed to 2D array)
