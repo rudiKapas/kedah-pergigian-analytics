@@ -76,7 +76,7 @@ const __measureCanvas = document.createElement('canvas');
 const __mctx = __measureCanvas.getContext('2d');
 
 function maxLabelPx(labels) {
-  __mctx.font = '12px Inter, system-ui, -apple-system, "Segoe UI", Roboto';
+  __mctx.font = '10px Inter, system-ui, -apple-system, "Segoe UI", Roboto';
   let max = 0;
   labels.forEach(l => {
     if (!l) return;
@@ -89,10 +89,9 @@ function maxLabelPx(labels) {
 
 function layoutFor(labels) {
   // Measure the widest label and convert to a sane bottom gutter for 90° ticks
-  const bottom = Math.ceil(maxLabelPx(labels.filter(Boolean)) * 0.65 + 18);
+  const bottom = Math.max(16, Math.ceil(maxLabelPx(labels.filter(Boolean)) * 0.55 + 10));
   return { padding: { top: 8, right: 8, bottom, left: 8 } };
 }
-
 
   function cleanPct(v) {
     if (v == null) return null;
@@ -2426,6 +2425,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
