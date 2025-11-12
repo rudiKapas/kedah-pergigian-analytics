@@ -57,11 +57,12 @@
    
    // Export small helpers for app.js
    window.__mapName = function(name){
-     const key = String(name || "").trim();
-     const { loc } = (typeof getSel === "function" ? getSel() : {loc:null});
-     const m = LABEL_REMAP[loc] || null;
-     return (m && Object.prototype.hasOwnProperty.call(m, key)) ? m[key] : key;
+     const key = String(name||"").trim();
+     const { loc } = getSel(); const mode = (AXIS_MODE[loc]?.type)||"state";
+     if (mode !== "state") return /^kuala\s*muda$/i.test(key) ? "Daerah Kuala Muda" : key;
+     const m = LABEL_REMAP[loc] || null; return (m && Object.prototype.hasOwnProperty.call(m, key)) ? m[key] : key;
    };
+
    window.__mapNames = function(arr){ return (arr||[]).map(n => window.__mapName(n)); };
 
 
