@@ -42,7 +42,7 @@
       display:block;
     }
 
-    body.akses .tb .legend{ padding-bottom:8px; } /* trims the bottom breathing room */
+    body.akses .tb .legend{ padding:0 0 4px; font-size:12px; line-height:1; }
 
     
   </style>
@@ -60,16 +60,17 @@
     // Let canvases fill their parent box
     Chart.defaults.responsive = true;
     Chart.defaults.maintainAspectRatio = false;
-    /* akses.html only — make the plot area taller & pull baseline down */
-    Chart.defaults.layout = Chart.defaults.layout || {};
-    Chart.defaults.layout.padding = { top: 6, right: 8, bottom: -12, left: 8 };
+    // akses.html — expand usable plot area but keep labels clear
+    Chart.defaults.layout = { padding: { top: 4, right: 8, bottom: 10, left: 8 } };
     
     Chart.defaults.scales = Chart.defaults.scales || {};
-    ['linear','category'].forEach(k => {
-      Chart.defaults.scales[k] = Chart.defaults.scales[k] || {};
-      Chart.defaults.scales[k].ticks = Object.assign({}, Chart.defaults.scales[k].ticks, { padding: 0 });
-      Chart.defaults.scales[k].grid  = Object.assign({}, Chart.defaults.scales[k].grid,  { drawTicks: false });
+    Chart.defaults.scales.category = Object.assign({}, Chart.defaults.scales.category, {
+      ticks: { padding: 6, autoSkip: true, maxRotation: 0, minRotation: 0 } // prevent overlap
     });
+    Chart.defaults.scales.linear = Object.assign({}, Chart.defaults.scales.linear, {
+      ticks: { padding: 6 }
+    });
+
 
   </script>
 
@@ -487,6 +488,7 @@
   
 </body>
 </html>
+
 
 
 
