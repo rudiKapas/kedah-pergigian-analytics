@@ -234,21 +234,7 @@ body{
 .close{ border:1px solid #d1d5db; background:#fff; border-radius:10px; padding:8px 12px; font-weight:700; cursor:pointer }
 .close:hover{ border-color:#ef4444; box-shadow:0 0 0 4px rgba(239,68,68,.15) }
 
-/* Make every chart area taller so 90° labels fit comfortably */
-.tile .chart,
-.chart,
-.canvas-wrap {           /* include any class you use for the chart box */
-  height: 340px;         /* try 420–460px for very long labels */
-}
 
-/* Optional: a little more bottom space on very small screens */
-@media (max-width: 640px) {
-  .tile .chart,
-  .chart,
-  .canvas-wrap {
-    height: 380px;
-  }
-}
 
 /* --- Global page + footer layout (match index.html) --- */
 :root{
@@ -439,19 +425,31 @@ header.ph .searchbar{
   opacity:1; transform:translate(-100%, -50%) scale(1);
 }
 
-/* AKSES: make charts taller to fill the tile */
-body.akses .tile .chart,
-body.akses .chart,
-body.akses .canvas-wrap{
-  height: 460px;   /* increase from 340px */
+/* Charts should expand to fill the tile; legend sits at the bottom */
+.tile { display:flex; flex-direction:column; } /* you already have this */
+
+/* Let the chart area take leftover space between header and legend */
+.tile .chart,
+.chart,
+.canvas-wrap{
+  flex: 1 1 auto;
+  height: auto;           /* no fixed height */
+  min-height: 260px;      /* safety floor so small tiles still look OK */
+  padding-bottom: 0;      /* remove any extra bottom padding */
+  display: flex;          /* so inner canvas/svg can stretch */
 }
 
-@media (max-width: 640px){
-  body.akses .tile .chart,
-  body.akses .chart,
-  body.akses .canvas-wrap{
-    height: 420px; /* increase from 380px */
-  }
+/* Make the actual drawing surface fill its container */
+.tile .chart > canvas,
+.canvas-wrap > canvas,
+.tile .chart svg,
+.canvas-wrap svg{
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
 }
+
+/* Keep the legend attached to the bottom edge of the tile */
+.legend{ margin-top: auto; }   /* pushes legend down; chart grows above */
 
 
