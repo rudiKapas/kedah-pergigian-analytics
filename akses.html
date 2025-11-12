@@ -12,19 +12,37 @@
   <link rel="stylesheet" href="styles.css?v=8">
 
   <style>
-    /* Make the chart area fill the tile on this page only */
-    .tile{ display:flex; flex-direction:column; }
-    .tb{ flex:1 1 auto; display:flex; flex-direction:column; min-height:0; }
-    .tb .chart{ flex:1 1 auto; height:auto; padding:10px 14px 0; }
-    .tb .legend{ margin-top:auto; }
+  /* Page-scoped overrides for akses.html only */
+    body.akses .tile{
+      display:grid;
+      grid-template-rows:auto minmax(0,1fr);  /* header | body that can stretch */
+      min-height:0;
+    }
+    body.akses .tb{
+      display:grid;
+      grid-template-rows:minmax(0,1fr) auto auto; /* chart | legend | err */
+      min-height:0;
+      padding-bottom:0;                           /* avoid extra gap under chart */
+    }
+    body.akses .tb .chart{
+      min-height:260px;                           /* floor only */
+    }
   
-    /* Let Chart.js size to its container */
-    .tb .chart canvas{
+    /* Kill global fixed heights for this page */
+    body.akses .tile .chart,
+    body.akses .chart,
+    body.akses .canvas-wrap{
+      height:auto !important;
+    }
+  
+    /* Let the canvas fill the chart box */
+    body.akses .tb .chart canvas{
       width:100% !important;
       height:100% !important;
       display:block;
     }
   </style>
+
 
   <style>
     /* Page-scoped overrides so only akses.html is affected */
@@ -486,6 +504,7 @@
   
 </body>
 </html>
+
 
 
 
