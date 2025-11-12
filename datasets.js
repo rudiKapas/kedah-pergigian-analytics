@@ -189,6 +189,27 @@
     location.reload();
   };
 
+      /* ------------------------------------------------------------
+         3a) (Optional) FIXED clinic labels per district
+             Use this to hard-lock the x-axis order so we don't rely on messy headers.
+         ------------------------------------------------------------ */
+      const AXIS_LABELS = {
+        kuala_muda: [
+          "KP Sg Petani",
+          "KP Bandar Sg Petani",
+          "KP Taman INTAN",
+          "KP BEDONG",
+          "KP MERBOK",
+          "KP KOTA Kuala Muda",
+          "KP UTC",
+          "KP Bukit Selambau",
+          "Daerah Kuala Muda"
+        ]
+        // Add more districts later like:
+        // kubang_pasu: ["KP A", "KP B", "KP C", "...", "Daerah Kubang Pasu"]
+      };
+      
+   
   /* ------------------------------------------------------------
      4) Axis label engine (district clinics auto-detected)
         Default: header = Row 5, starting Column = "C"
@@ -207,12 +228,20 @@
   // Keys: "<pageKey>.<tileKey>" → { headerRow, startCol }
   // If not provided, we use AXIS_DEFAULT (Row 5, Col C).
   const AXIS_HINTS = {
-    // Example overrides (uncomment and edit as needed):
-    // kuala_muda: {
-    //   "akses.t8": { headerRow: 4, startCol: "D" }, // BPE tab differs
-    //   "workforce.t1": { headerRow: 6, startCol: "E" }
-    // }
-  };
+        kuala_muda: {
+          "akses.t1": { headerRow: 5, startCol: "C" },
+          "akses.t2": { headerRow: 5, startCol: "C" },
+          "akses.t3": { headerRow: 5, startCol: "C" },
+          "akses.t4": { headerRow: 5, startCol: "C" },
+          "akses.t5": { headerRow: 5, startCol: "C" },
+          "akses.t6": { headerRow: 5, startCol: "C" },
+          "akses.t7": { headerRow: 5, startCol: "C" },
+          "akses.t8": { headerRow: 5, startCol: "C" },
+          "akses.t9": { headerRow: 5, startCol: "C" }
+        }
+        // Add more districts later with their quirks if needed
+      };
+
 
         // Read names from a header row (table = CSV parsed to 2D array)
         function readHeader(table, headerRow, startCol){
@@ -267,17 +296,25 @@
   // Usage in a tile (after you parse CSV to 2D array `table`):
   //   const AX = __axisFor('akses','t8', table) || YOUR_EXISTING_DIST_LIST;
     window.__axisFor = function(pageKey, tileKey, table2D){
-     const { loc } = getSel();
-     const mode = AXIS_MODE[loc]?.type || "state";
-     if (mode === "state") return null;
-   
-     const pageTileKey = `${pageKey}.${tileKey}`;
-     const hint = (AXIS_HINTS?.[loc] && AXIS_HINTS[loc][pageTileKey]) || AXIS_DEFAULT;
-   
-     // Try hinted; if <2 labels, auto-detect (handled inside readHeader)
-     const AX = readHeader(table2D || [], hint.headerRow, hint.startCol);
-     return (AX && AX.length >= 2) ? AX : readHeader(table2D || [], undefined, undefined);
-   };
+        const { loc } = getSel();
+        const mode = AXIS_MODE[loc]?.type || "state";
+        if (mode === "state") return null;
+      
+        const pageTileKey = `${pageKey}.${tileKey}`;
+        const hint = (AXIS_HINTS?.[loc] && AXIS_HINTS[loc][pageTileKey]) || AXIS_DEFAULT;
+      
+        // 1) If we have fixed labels for this district, synthesize axis objects
+        //    (We still provide column letters starting from the hinted startCol)
+        if (AXIS_LABELS[loc]) {
+          const start = colIdx(hint.startCol || AXIS_DEFAULT.startCol);
+          return AXIS_LABELS[loc].map((n, i) => ({ n, L: idxToCol(start + i) }));
+        }
+      
+        // 2) Otherwise read from sheet header (hinted row/col → fallback to auto-detect)
+        const AX = readHeader(table2D || [], hint.headerRow, hint.startCol);
+        return (AX && AX.length >= 2) ? AX : readHeader(table2D || [], undefined, undefined);
+      };
+
 
 
   // For state pages that simply want the 12 labels:
