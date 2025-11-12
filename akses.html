@@ -96,8 +96,9 @@
     
     Chart.defaults.scales = Chart.defaults.scales || {};
     Chart.defaults.scales.category = Object.assign({}, Chart.defaults.scales.category, {
-      ticks: { padding: 6, autoSkip: true, maxRotation: 0, minRotation: 0 } // prevent overlap
+      ticks: { padding: 0, autoSkip: true, maxRotation: 0, minRotation: 0 }
     });
+
     Chart.defaults.scales.linear = Object.assign({}, Chart.defaults.scales.linear, {
       ticks: { padding: 6 }
     });
@@ -519,6 +520,7 @@
   
 </body>
 </html>
+
 
 
 
