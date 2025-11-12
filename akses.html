@@ -60,6 +60,17 @@
     // Let canvases fill their parent box
     Chart.defaults.responsive = true;
     Chart.defaults.maintainAspectRatio = false;
+    /* akses.html only — make the plot area taller & pull baseline down */
+    Chart.defaults.layout = Chart.defaults.layout || {};
+    Chart.defaults.layout.padding = { top: 6, right: 8, bottom: -12, left: 8 };
+    
+    Chart.defaults.scales = Chart.defaults.scales || {};
+    ['linear','category'].forEach(k => {
+      Chart.defaults.scales[k] = Chart.defaults.scales[k] || {};
+      Chart.defaults.scales[k].ticks = Object.assign({}, Chart.defaults.scales[k].ticks, { padding: 0 });
+      Chart.defaults.scales[k].grid  = Object.assign({}, Chart.defaults.scales[k].grid,  { drawTicks: false });
+    });
+
   </script>
 
 
@@ -476,6 +487,7 @@
   
 </body>
 </html>
+
 
 
 
