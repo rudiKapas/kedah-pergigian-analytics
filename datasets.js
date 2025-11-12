@@ -31,6 +31,39 @@
     "Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"
   ];
 
+   /* 1A) Label remap for Kuala Muda (labels only, values unchanged) */
+   const LABEL_REMAP = {
+     kuala_muda: {
+       "Kota Setar":   "KP Sg Petani",
+       "Pendang":      "KP Bandar Sg Petani",
+       "Kuala Muda":   "KP Taman Intan",
+       "Sik":          "KP Bedong",
+       "Kulim":        "KP Merbok",
+       "Bandar Baru":  "KP Kota Kuala Muda",
+       "Kubang Pasu":  "KP UTC",
+       "Pdg Terap":    "KP Bukit Selambau",
+       "Padang Terap": "KP Bukit Selambau",   // cover both spellings
+       "Baling":       "-",
+       "Yan":          "-",
+       "Langkawi":     "-",
+       "Kedah":        "Daerah Kuala Muda",
+       "G-RET NEGERI": "-",                   // if it appears on some tabs
+       "G-RET":        "-",
+       "GRET":         "-",
+       "Giret daerah": "-"
+     }
+   };
+   
+   // Export small helpers for app.js
+   window.__mapName = function(name){
+     const key = String(name || "").trim();
+     const { loc } = (typeof getSel === "function" ? getSel() : {loc:null});
+     const m = LABEL_REMAP[loc] || null;
+     return (m && Object.prototype.hasOwnProperty.call(m, key)) ? m[key] : key;
+   };
+   window.__mapNames = function(arr){ return (arr||[]).map(n => window.__mapName(n)); };
+
+
   /* ---------------------------------------------------
      2) TILE → gid map (covers all tiles you listed)
         (Template stays the same; only BASE changes)
