@@ -219,6 +219,7 @@ function layoutFor(labels) {
      * @param {RegExp} totalHeaderRx - header text that marks the total column (e.g., /^DAERAH/i)
      * @returns {{AX: Array<{n:string,L:string}>, totCol:number|null, totLabel:string|null}}
      */
+   // mark possible totals using the supplied matcher plus common aliases
     function discoverAxisFromRow(data, probeRowNum, totalHeaderRx = /^DAERAH/i) {
         const r   = Math.max(0, probeRowNum - 1);   // A1 → 0-index
         const row = data[r] || [];
@@ -331,7 +332,7 @@ function layoutFor(labels) {
     body.appendChild(frag);
     menu.dataset.built = "1";
       // Select All — set checked and trigger 'change' so tile updates run
-      $(btnAll).addEventListener("click", () => {
+      if ($(btnAll)) $(btnAll).addEventListener("click", () => {
         menu.querySelectorAll("input").forEach((i) => {
           if (!i.checked) {
             i.checked = true;
@@ -339,8 +340,7 @@ function layoutFor(labels) {
           }
         });
       });
-      
-      $(btnNone).addEventListener("click", () => {          // <-- NEW
+      if ($(btnNone)) $(btnNone).addEventListener("click", () => {
         menu.querySelectorAll("input").forEach((i) => {
           if (i.checked) {
             i.checked = false;
@@ -348,16 +348,7 @@ function layoutFor(labels) {
           }
         });
       });
-      
-      $(btnClose).addEventListener("click", () => {
-        const box = menu.closest(".dd");
-        if (box) box.classList.remove("open");
-      });
 
-       $(btnClose).addEventListener("click", () => {
-      const box = menu.closest(".dd");
-      if (box) box.classList.remove("open");
-    });
   }
   function chosen(menuId, fb) {
     const s = new Set();
@@ -444,7 +435,7 @@ function layoutFor(labels) {
         ],
       },
       options: {
-        ...layoutFor(X), 
+        layout: layoutFor(X),
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -711,7 +702,7 @@ function layoutFor(labels) {
       type: "line",
       data: { labels: data.labels, datasets: sets },
       options: {
-        ...layoutFor(data.labels),
+        layout: layoutFor(data.labels),
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -906,7 +897,7 @@ function layoutFor(labels) {
       type: "line",
       data: { labels: data.labels, datasets: sets },
       options: {
-        ...layoutFor(data.labels),
+        layout: layoutFor(data.labels),
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -1178,7 +1169,7 @@ function layoutFor(labels) {
         ],
       },
       options: {
-        ...layoutFor(data.labels),
+        layout: layoutFor(data.labels),
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -1345,7 +1336,7 @@ function layoutFor(labels) {
       type: "line",
       data: { labels: data.labels, datasets: ds },
       options: {
-        ...layoutFor(data.labels),
+        layout: layoutFor(data.labels),
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -1544,7 +1535,7 @@ function layoutFor(labels) {
       type: "line",
       data: { labels: data.labels, datasets: ds },
       options: {
-        ...layoutFor(data.labels),
+        layout: layoutFor(data.labels),
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -1735,7 +1726,7 @@ function layoutFor(labels) {
       type: "line",
       data: { labels: data.labels, datasets: ds },
       options: {
-        ...layoutFor(data.labels),
+        layout: layoutFor(data.labels),
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -1911,7 +1902,7 @@ function layoutFor(labels) {
       type: "line",
       data: { labels: data.labels, datasets: ds },
       options: {
-        ...layoutFor(data.labels),
+        layout: layoutFor(data.labels),
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -2124,7 +2115,7 @@ function layoutFor(labels) {
       type: "line",
       data: { labels: data.labels, datasets: ds },
       options: {
-        ...layoutFor(data.labels),
+        layout: layoutFor(data.labels),
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -2239,41 +2230,40 @@ function layoutFor(labels) {
   // ============== Redraw on resize =========
   window.addEventListener("resize", function () {
     if (RAW1) {
-    const found = discoverAxisFromRow(RAW1, 9, /^DAERAH/i); // probe row 9 (numerator)
-    const AX = found.AX.length ? found.AX : (DIST1 || []);
-      
-    const NUM = RAW1[8] || [];   // spreadsheet row 9: N = Pesakit baru
-    const DEN = RAW1[9] || [];   // spreadsheet row 10: D = anggaran populasi
+      const found = discoverAxisFromRow(RAW1, 9, /^DAERAH/i); // probe row 9 (numerator)
+      const AX = found.AX.length ? found.AX : (DIST1 || []);
     
-    const rows = AX.map(d => {
-      const i = colIdx(d.L);
-      const n = cleanInt(NUM[i]);
-      const dnm = cleanInt(DEN[i]);
-      const a = dnm > 0 ? +((n / dnm) * 100).toFixed(2) : 0;
-      const p = dnm; // show D on the right axis
-      return { n: __mapName(d.n), a, p };
-    });
-
-  
-    if (found.totCol != null) {
-      const i = found.totCol;
-      const nTot = cleanInt(NUM[i]);
-      const dTot = cleanInt(DEN[i]);
-      const aTot = dTot > 0 ? +((nTot / dTot) * 100).toFixed(2) : 0;
-      const pTot = dTot;
-      const name = (found.totLabel || "")
-        .replace(/^DAERAH\s*/i, "")
-        .replace(/\bG-?RET\b/i, "")
-        .replace(/\bJUMLAH\b/i, "")
-        .replace(/\s+/g, " ")
-        .trim() || "Jumlah Daerah";
-
-      rows.push({ n: __mapName(name), a: aTot, p: pTot });
+      const N_BARU  = RAW1[8]  || [];  // row 9
+      const N_ULANG = RAW1[10] || [];  // row 11
+      const DEN     = RAW1[9]  || [];  // row 10
+    
+      const rows = AX.map(d => {
+        const i   = colIdx(d.L);
+        const n   = cleanInt(N_BARU[i]) + cleanInt(N_ULANG[i]); // include ulangan
+        const dnm = cleanInt(DEN[i]);
+        const a   = dnm > 0 ? +((n / dnm) * 100).toFixed(2) : 0;
+        const p   = dnm; // show denominator on right axis
+        return { n: __mapName(d.n), a, p };
+      });
+    
+      if (found.totCol != null) {
+        const i = found.totCol;
+        const nTot = cleanInt(N_BARU[i]) + cleanInt(N_ULANG[i]);
+        const dTot = cleanInt(DEN[i]);
+        const aTot = dTot > 0 ? +((nTot / dTot) * 100).toFixed(2) : 0;
+        const pTot = dTot;
+        const name = (found.totLabel || "")
+          .replace(/^DAERAH\s*/i, "")
+          .replace(/\bG-?RET\b/i, "")
+          .replace(/\bJUMLAH\b/i, "")
+          .replace(/\s+/g, " ")
+          .trim() || "Jumlah Daerah";
+        rows.push({ n: __mapName(name), a: aTot, p: pTot });
+      }
+    
+      drawT1(rows, "t1", "main");
     }
 
-  
-    drawT1(rows, "t1", "main");
-  }
 
 
     if (RAW2) drawT2(computeT2(RAW2, chosen2()), "t2", "main");
@@ -2417,6 +2407,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
