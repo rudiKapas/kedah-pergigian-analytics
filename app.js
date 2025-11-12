@@ -33,6 +33,39 @@
     return [parts.slice(0, mid).join(" "), parts.slice(mid).join(" ")];
   }
 
+  // --- Uniform label remapper (cleans totals/aliases, normalises names) ---
+    function __mapName(s){
+      if (s == null) return s;
+      let t = String(s).trim();
+    
+      // strip common total prefixes/markers
+      t = t.replace(/^DAERAH\s*/i, "")
+           .replace(/\b(JUMLAH|NEGERI|G-?RET(?:\s+NEGERI)?)\b/gi, "")
+           .replace(/\s+/g, " ")
+           .trim();
+    
+      // normalise common variants
+      const key = t.toLowerCase();
+      const map = {
+        "pdg terap": "Padang Terap",
+        "kota setar": "Kota Setar",
+        "kuala muda": "Kuala Muda",
+        "bandar baru": "Bandar Baru",
+        "kubang pasu": "Kubang Pasu",
+        "langkawi": "Langkawi",
+        "yan": "Yan",
+        "baling": "Baling",
+        "pendang": "Pendang",
+        "sik": "Sik",
+        "kulim": "Kulim",
+        "kedah": "Kedah",         // for sheet totals once cleaned above
+        "-": "-"                  // keep placeholder if you ever pass it in
+      };
+      return map[key] || t;
+    }
+    function __mapNames(arr){ return (arr || []).map(__mapName); }
+
+
   function colIdx(L) {
     let n = 0;
     for (let i = 0; i < L.length; i++) n = n * 26 + (L.charCodeAt(i) - 64);
@@ -487,7 +520,7 @@ function layoutFor(labels) {
         const n   = cleanInt(N_BARU[i]) + cleanInt(N_ULANG[i]); // <-- changed
         const dnm = cleanInt(DEN[i]);
         const a   = dnm > 0 ? +((n / dnm) * 100).toFixed(2) : 0;
-        return { n: d.n, a, p: dnm };
+        return { n: __mapName(d.n), a, p: dnm };
       });
 
       
@@ -540,7 +573,7 @@ function layoutFor(labels) {
         const n   = cleanInt(N_BARU[i]) + cleanInt(N_ULANG[i]); // <-- changed
         const dnm = cleanInt(DEN[i]);
         const a   = dnm > 0 ? +((n / dnm) * 100).toFixed(2) : 0;
-        return { n: d.n, a, p: dnm };
+        return { n: __mapName(d.n), a, p: dnm };
       });
       
           
@@ -557,7 +590,7 @@ function layoutFor(labels) {
           .replace(/\bJUMLAH\b/gi, "")
           .replace(/\s+/g, " ")
           .trim() || "Jumlah Daerah";
-        rows.push({ n: name, a: aTot, p: pTot });
+        rows.push({ n: __mapName(name), a: aTot, p: pTot });
       }
     
       MCH = drawT1(rows, "mcanvas", "modal");
@@ -630,7 +663,7 @@ function layoutFor(labels) {
     const found = discoverAxisFromRow(arr, probeRow, /^DAERAH/i);
     const AX = found.AX.length ? found.AX : (DIST2 || []);
   
-    const labels = ["", ...AX.map(d => d.n), ""]; // pad only
+    const labels = ["", ...__mapNames(AX.map(d => d.n)), ""];
   
     const per = [];
     CATS2.forEach((c) => {
@@ -813,10 +846,10 @@ function layoutFor(labels) {
     
     const found  = discoverAxisFromRow(arr, SVCS[0].b, /^DAERAH/i); // probe using first service row
     const AX     = found.AX.length ? found.AX : (DIST3 || []);
-    const labels = ["", ...AX.map(d => d.n)];
+    const labels = ["", ...__mapNames(AX.map(d => d.n))];
     if (found.totCol != null) {
       const name = (found.totLabel || "").replace(/^DAERAH\s*/i,"").trim() || "Jumlah Daerah";
-      labels.push(name);
+      labels.push(__mapName(name));
     }
     labels.push("");
 
@@ -1254,7 +1287,7 @@ function layoutFor(labels) {
       const found = discoverAxisFromRow(arr, MET_TOD[0].row, /^DAERAH/i);
       const AX = found.AX.length ? found.AX : (DIST_TOD || []);
     
-      const labels = ["", ...AX.map(d => d.n), ""]; // no total label
+      const labels = ["", ...__mapNames(AX.map(d => d.n)), ""]; // no total label
     
       const per = [];
       MET_TOD.forEach((m) => {
@@ -1462,7 +1495,8 @@ function layoutFor(labels) {
       const found = discoverAxisFromRow(arr, MET_PREG[0].row, /^DAERAH/i);
       const AX = found.AX.length ? found.AX : (DIST_PREG || []);
     
-      const labels = ["", ...AX.map(d => d.n), ""]; // no total label
+      const labels = ["", ...__mapNames(AX.map(d => d.n)), ""]; // no total label
+
     
       const per = [];
       MET_PREG.forEach((m) => {
@@ -1639,10 +1673,10 @@ function layoutFor(labels) {
     
     const found  = discoverAxisFromRow(arr, MET_YA[0].row, /^DAERAH/i);
     const AX     = found.AX.length ? found.AX : (DIST_YA || []);
-    const labels = ["", ...AX.map(d => d.n)];
+    const labels = ["", ...__mapNames(AX.map(d => d.n))];
     if (found.totCol != null) {
       const name = (found.totLabel || "").replace(/^DAERAH\s*/i,"").trim() || "Jumlah Daerah";
-      labels.push(name);
+      labels.push(__mapName(name));
     }
     labels.push("");
 
@@ -1830,10 +1864,10 @@ function layoutFor(labels) {
     
     const found  = discoverAxisFromRow(arr, MET_BPE[0].row, /^DAERAH/i);
     const AX     = found.AX.length ? found.AX : (DIST_BPE || []);
-    const labels = ["", ...AX.map(d => d.n)];
+    const labels = ["", ...__mapNames(AX.map(d => d.n))];
     if (found.totCol != null) {
       const name = (found.totLabel || "").replace(/^DAERAH\s*/i,"").trim() || "Jumlah Daerah";
-      labels.push(name);
+      labels.push(__mapName(name));
     }
     labels.push("");
 
@@ -2028,10 +2062,10 @@ function layoutFor(labels) {
     
     const found  = discoverAxisFromRow(arr, MET_WE[0].row, /^DAERAH/i);
     const AX     = found.AX.length ? found.AX : (DIST_WE || []);
-    const labels = ["", ...AX.map(d => d.n)];
+    const labels = ["", ...__mapNames(AX.map(d => d.n))];
     if (found.totCol != null) {
       const name = (found.totLabel || "").replace(/^DAERAH\s*/i,"").trim() || "Jumlah Daerah";
-      labels.push(name);
+      labels.push(__mapName(name));
     }
     labels.push("");
 
@@ -2217,7 +2251,7 @@ function layoutFor(labels) {
       const dnm = cleanInt(DEN[i]);
       const a = dnm > 0 ? +((n / dnm) * 100).toFixed(2) : 0;
       const p = dnm; // show D on the right axis
-      return { n: d.n, a, p };
+      return { n: __mapName(d.n), a, p };
     });
 
   
@@ -2234,7 +2268,7 @@ function layoutFor(labels) {
         .replace(/\s+/g, " ")
         .trim() || "Jumlah Daerah";
 
-      rows.push({ n: name, a: aTot, p: pTot });
+      rows.push({ n: __mapName(name), a: aTot, p: pTot });
     }
 
   
@@ -2383,6 +2417,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
