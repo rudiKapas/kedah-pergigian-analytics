@@ -33,36 +33,23 @@
     return [parts.slice(0, mid).join(" "), parts.slice(mid).join(" ")];
   }
 
-  // --- Uniform label remapper (cleans totals/aliases, normalises names) ---
-    function __mapName(s){
+  // --- Name mapper: clean totals, then hand off to datasets.js remapper ---
+    const __dsMapName = window.__mapName;
+    function __cleanName(s){
       if (s == null) return s;
-      let t = String(s).trim();
-    
-      // strip common total prefixes/markers
-      t = t.replace(/^DAERAH\s*/i, "")
-           .replace(/\b(JUMLAH|NEGERI|G-?RET(?:\s+NEGERI)?)\b/gi, "")
-           .replace(/\s+/g, " ")
-           .trim();
-    
-      // normalise common variants
-      const key = t.toLowerCase();
-      const map = {
-        "pdg terap": "Padang Terap",
-        "kota setar": "Kota Setar",
-        "kuala muda": "Kuala Muda",
-        "bandar baru": "Bandar Baru",
-        "kubang pasu": "Kubang Pasu",
-        "langkawi": "Langkawi",
-        "yan": "Yan",
-        "baling": "Baling",
-        "pendang": "Pendang",
-        "sik": "Sik",
-        "kulim": "Kulim",
-        "kedah": "Kedah",         // for sheet totals once cleaned above
-        "-": "-"                  // keep placeholder if you ever pass it in
-      };
-      return map[key] || t;
+      let t = String(s).trim()
+        .replace(/^DAERAH\s*/i, "")
+        .replace(/\b(JUMLAH|NEGERI|G-?RET(?:\s+NEGERI)?)\b/gi, "")
+        .replace(/\s+/g, " ")
+        .trim();
+      return t;
     }
+    function __mapName(s){
+      const t = __cleanName(s);
+      return (typeof __dsMapName === "function") ? __dsMapName(t) : t;
+    }
+    function __mapNames(arr){ return (arr || []).map(__mapName); }
+
     function __mapNames(arr){ return (arr || []).map(__mapName); }
 
 
@@ -460,7 +447,8 @@ function layoutFor(labels) {
               autoSkip: false,
               maxRotation: 90,
               minRotation: 90,
-              callback: (v, i) => (i === 0 || i === X.length - 1 ? "" : X[i]),
+              callback: (v, i) => (i === 0 || i === X.length - 1 ? "" : wrapLabel(X[i])),
+
             },
           },
           y1: {
@@ -497,9 +485,11 @@ function layoutFor(labels) {
       RAW1 = Papa.parse(csv, { header: false, skipEmptyLines: true }).data;
       
       // Auto-detect clinic columns from the sheet (probe: population row = spreadsheet row 10)
-      const found = discoverAxisFromRow(RAW1, 9, /^DAERAH/i); // probe row 9 (numerator)
-      const AX = found.AX.length ? found.AX : (DIST1 || []); // safe fallback if needed
+      const AXH  = (typeof __axisFor === 'function' && __axisFor('akses','t1', RAW1));
+      const found = AXH ? { AX: AXH, totCol: null, totLabel: null } : discoverAxisFromRow(RAW1, 9, /^DAERAH/i);
+      const AX   = AXH || (found.AX.length ? found.AX : (DIST1 || []));
       
+            
       // NUMERATOR = Baru + Ulangan  (row 9 + row 11)
       // DENOMINATOR = Anggaran Populasi (row 10)
       const N_BARU  = RAW1[8]  || [];
@@ -550,8 +540,10 @@ function layoutFor(labels) {
       openModal("Akses Kepada Perkhidmatan Kesihatan Pergigian");
     
       // Re-discover clinic columns & total inside this handler
-      const found = discoverAxisFromRow(RAW1, 9, /^DAERAH/i); // probe row 9 (numerator)
-      const AX = found.AX.length ? found.AX : (DIST1 || []);
+      const AXH  = (typeof __axisFor === 'function' && __axisFor('akses','t1', RAW1));
+      const found = AXH ? { AX: AXH, totCol: null, totLabel: null } : discoverAxisFromRow(RAW1, 9, /^DAERAH/i);
+      const AX   = AXH || (found.AX.length ? found.AX : (DIST1 || []));
+
     
       // NUMERATOR = Baru + Ulangan  (row 9 + row 11)
       // DENOMINATOR = Anggaran Populasi (row 10)
@@ -651,9 +643,11 @@ function layoutFor(labels) {
   function computeT2(arr, keys) {
     // Discover clinics, but do NOT append the total column to the x-axis
     const probeRow = (CATS2[0]?.b?.[0]) || 8;
-    const found = discoverAxisFromRow(arr, probeRow, /^DAERAH/i);
-    const AX = found.AX.length ? found.AX : (DIST2 || []);
-  
+    const AXH  = (typeof __axisFor === 'function' && __axisFor('akses','t2', arr));
+    const found = AXH ? { AX: AXH, totCol: null, totLabel: null } : discoverAxisFromRow(arr, probeRow, /^DAERAH/i);
+    const AX   = AXH || (found.AX.length ? found.AX : (DIST2 || []));
+    
+      
     const labels = ["", ...__mapNames(AX.map(d => d.n)), ""];
   
     const per = [];
@@ -835,9 +829,10 @@ function layoutFor(labels) {
 
   function computeT3(arr, set) {
     
-    const found  = discoverAxisFromRow(arr, SVCS[0].b, /^DAERAH/i); // probe using first service row
-    const AX     = found.AX.length ? found.AX : (DIST3 || []);
-    const labels = ["", ...__mapNames(AX.map(d => d.n))];
+    const AXH   = (typeof __axisFor === 'function' && __axisFor('akses','t3', arr));
+    const found = AXH ? { AX: AXH, totCol: null, totLabel: null } : discoverAxisFromRow(arr, SVCS[0].b, /^DAERAH/i);
+    const AX    = AXH || (found.AX.length ? found.AX : (DIST3 || []));
+
     if (found.totCol != null) {
       const name = (found.totLabel || "").replace(/^DAERAH\s*/i,"").trim() || "Jumlah Daerah";
       labels.push(__mapName(name));
@@ -1275,8 +1270,10 @@ function layoutFor(labels) {
   }
   const chosen5 = () => chosen("dd5menu", "% TASKA dilawati");
     function computeT5(arr, set) {
-      const found = discoverAxisFromRow(arr, MET_TOD[0].row, /^DAERAH/i);
-      const AX = found.AX.length ? found.AX : (DIST_TOD || []);
+      const AXH  = (typeof __axisFor === 'function' && __axisFor('akses','t5', arr));
+      const found = AXH ? { AX: AXH, totCol: null, totLabel: null } : discoverAxisFromRow(arr, MET_TOD[0].row, /^DAERAH/i);
+      const AX   = AXH || (found.AX.length ? found.AX : (DIST_TOD || []));
+
     
       const labels = ["", ...__mapNames(AX.map(d => d.n)), ""]; // no total label
     
@@ -1483,8 +1480,10 @@ function layoutFor(labels) {
     );
   const chosen6 = () => chosen("dd6menu", MET_PREG[0].key);
   function computeT6(arr, set) {
-      const found = discoverAxisFromRow(arr, MET_PREG[0].row, /^DAERAH/i);
-      const AX = found.AX.length ? found.AX : (DIST_PREG || []);
+      const AXH  = (typeof __axisFor === 'function' && __axisFor('akses','t6', arr));
+      const found = AXH ? { AX: AXH, totCol: null, totLabel: null } : discoverAxisFromRow(arr, MET_PREG[0].row, /^DAERAH/i);
+      const AX   = AXH || (found.AX.length ? found.AX : (DIST_PREG || []));
+
     
       const labels = ["", ...__mapNames(AX.map(d => d.n)), ""]; // no total label
 
@@ -1662,8 +1661,10 @@ function layoutFor(labels) {
   const chosen7 = () => chosen("dd7menu", MET_YA[0].key);
   function computeT7(arr, set) {
     
-    const found  = discoverAxisFromRow(arr, MET_YA[0].row, /^DAERAH/i);
-    const AX     = found.AX.length ? found.AX : (DIST_YA || []);
+    const AXH   = (typeof __axisFor === 'function' && __axisFor('akses','t7', arr));
+    const found = AXH ? { AX: AXH, totCol: null, totLabel: null } : discoverAxisFromRow(arr, MET_YA[0].row, /^DAERAH/i);
+    const AX    = AXH || (found.AX.length ? found.AX : (DIST_YA || []));
+
     const labels = ["", ...__mapNames(AX.map(d => d.n))];
     if (found.totCol != null) {
       const name = (found.totLabel || "").replace(/^DAERAH\s*/i,"").trim() || "Jumlah Daerah";
@@ -1853,8 +1854,9 @@ function layoutFor(labels) {
   const chosen8 = () => chosen("dd8menu", MET_BPE[0].key);
   function computeT8(arr, set) {
     
-    const found  = discoverAxisFromRow(arr, MET_BPE[0].row, /^DAERAH/i);
-    const AX     = found.AX.length ? found.AX : (DIST_BPE || []);
+    const AXH   = (typeof __axisFor === 'function' && __axisFor('akses','t8', arr));
+    const found = AXH ? { AX: AXH, totCol: null, totLabel: null } : discoverAxisFromRow(arr, MET_BPE[0].row, /^DAERAH/i);
+    const AX    = AXH || (found.AX.length ? found.AX : (DIST_BPE || []));
     const labels = ["", ...__mapNames(AX.map(d => d.n))];
     if (found.totCol != null) {
       const name = (found.totLabel || "").replace(/^DAERAH\s*/i,"").trim() || "Jumlah Daerah";
@@ -2051,8 +2053,10 @@ function layoutFor(labels) {
 
   function computeT9(arr, set) {
     
-    const found  = discoverAxisFromRow(arr, MET_WE[0].row, /^DAERAH/i);
-    const AX     = found.AX.length ? found.AX : (DIST_WE || []);
+    const AXH   = (typeof __axisFor === 'function' && __axisFor('akses','t9', arr));
+    const found = AXH ? { AX: AXH, totCol: null, totLabel: null } : discoverAxisFromRow(arr, MET_WE[0].row, /^DAERAH/i);
+    const AX    = AXH || (found.AX.length ? found.AX : (DIST_WE || []));
+
     const labels = ["", ...__mapNames(AX.map(d => d.n))];
     if (found.totCol != null) {
       const name = (found.totLabel || "").replace(/^DAERAH\s*/i,"").trim() || "Jumlah Daerah";
@@ -2230,9 +2234,10 @@ function layoutFor(labels) {
   // ============== Redraw on resize =========
   window.addEventListener("resize", function () {
     if (RAW1) {
-      const found = discoverAxisFromRow(RAW1, 9, /^DAERAH/i); // probe row 9 (numerator)
-      const AX = found.AX.length ? found.AX : (DIST1 || []);
-    
+      const AXH  = (typeof __axisFor === 'function' && __axisFor('akses','t1', RAW1));
+      const found = AXH ? { AX: AXH, totCol: null, totLabel: null } : discoverAxisFromRow(RAW1, 9, /^DAERAH/i);
+      const AX   = AXH || (found.AX.length ? found.AX : (DIST1 || []));
+
       const N_BARU  = RAW1[8]  || [];  // row 9
       const N_ULANG = RAW1[10] || [];  // row 11
       const DEN     = RAW1[9]  || [];  // row 10
@@ -2407,6 +2412,7 @@ function layoutFor(labels) {
   }catch(e){}
 
 })();
+
 
 
 
