@@ -74,7 +74,7 @@
   /* ===== Dynamic bottom padding for 90° labels (keep labels visible at 90°) ===== */
 const __measureCanvas = document.createElement('canvas');
 const __mctx = __measureCanvas.getContext('2d');
-__mctx.font = '10px Inter, system-ui, -apple-system, "Segoe UI", Roboto';
+__mctx.font = '12px Inter, system-ui, -apple-system, "Segoe UI", Roboto';
 
 function maxLabelPx(labels){
   let max = 0;
@@ -94,7 +94,7 @@ function layoutFor(labels){
   const longest  = maxLabelPx(L);
 
   const base   = Math.ceil(longest * 0.60);   // if still tight, bump to 0.62
-  const perLn  = Math.ceil(10 * 1.15);        // 10px font * 1.15 line-height
+  const perLn  = Math.ceil(12 * 1.15);        // 10px font * 1.15 line-height
   const bottom = Math.max(22, base + (maxLines - 1) * perLn + 8);
 
   return { padding: { top: 8, right: 8, bottom, left: 8 } };
@@ -2433,6 +2433,7 @@ function layoutFor(labels){
   }catch(e){}
 
 })();
+
 
 
 
