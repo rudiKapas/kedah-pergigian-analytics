@@ -33,26 +33,27 @@
 
    /* 1A) Label remap for Kuala Muda (labels only, values unchanged) */
    const LABEL_REMAP = {
-     kuala_muda: {
-       "Kota Setar":   "KP Sg Petani",
-       "Pendang":      "KP Bandar Sg Petani",
-       "Kuala Muda":   "KP Taman Intan",
-       "Sik":          "KP Bedong",
-       "Kulim":        "KP Merbok",
-       "Bandar Baru":  "KP Kota Kuala Muda",
-       "Kubang Pasu":  "KP UTC",
-       "Pdg Terap":    "KP Bukit Selambau",
-       "Padang Terap": "KP Bukit Selambau",   // cover both spellings
-       "Baling":       "-",
-       "Yan":          "-",
-       "Langkawi":     "-",
-       "Kedah":        "Daerah Kuala Muda",
-       "G-RET NEGERI": "-",                   // if it appears on some tabs
-       "G-RET":        "-",
-       "GRET":         "-",
-       "Giret daerah": "-"
-     }
-   };
+        kuala_muda: {
+          "Kota Setar":   "KP Sg Petani",
+          "Pendang":      "KP Bandar Sg Petani",
+          "Kuala Muda":   "KP Taman Intan",
+          "Sik":          "KP Bedong",
+          "Kulim":        "KP Merbok",
+          "Bandar Baru":  "KP Kota Kuala Muda",
+          "Kubang Pasu":  "KP UTC",
+          "Pdg Terap":    "KP Bukit Selambau",
+          "Padang Terap": "KP Bukit Selambau",
+          "Baling":       "-",
+          "Yan":          "-",
+          "Langkawi":     "-",
+          "Kedah":        "Daerah Kuala Muda",
+          "G-RET NEGERI": "-",
+          "G-RET":        "-",
+          "GRET":         "-",
+          "Giret daerah": "-"
+        }
+      };
+
    
    // Export small helpers for app.js
    window.__mapName = function(name){
@@ -228,16 +229,21 @@
          ------------------------------------------------------------ */
       const AXIS_LABELS = {
         kuala_muda: [
-          "KP Sg Petani",
-          "KP Bandar Sg Petani",
-          "KP Taman INTAN",
-          "KP BEDONG",
-          "KP MERBOK",
-          "KP KOTA Kuala Muda",
-          "KP UTC",
-          "KP Bukit Selambau",
-          "Daerah Kuala Muda"
+          "KP Sg Petani",           // 1. Kota Setar
+          "KP Bandar Sg Petani",    // 2. Pendang
+          "KP Taman Intan",         // 3. Kuala Muda
+          "KP Bedong",              // 4. Sik
+          "KP Merbok",              // 5. Kulim
+          "KP Kota Kuala Muda",     // 6. Bandar Baru
+          "KP UTC",                 // 7. Kubang Pasu
+          "KP Bukit Selambau",      // 8. Pdg Terap
+          "-",                      // 9. Baling
+          "-",                      // 10. Yan
+          "-",                      // 11. Langkawi
+          "Daerah Kuala Muda"       // 12. Kedah (district total)
+          // 13. “Giret daerah” → not shown on axis (treated as "-")
         ]
+
         // Add more districts later like:
         // kubang_pasu: ["KP A", "KP B", "KP C", "...", "Daerah Kubang Pasu"]
       };
