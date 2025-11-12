@@ -44,38 +44,6 @@
   </style>
 
 
-  <style>
-    /* Page-scoped overrides so only akses.html is affected */
-    body.akses .tile{                 /* header + body that fills */
-      display:grid;
-      grid-template-rows:auto 1fr;
-      min-height:0;
-    }
-    body.akses .tb{                   /* body uses grid: chart grows, legend sits below */
-      display:grid;
-      grid-template-rows:1fr auto auto;  /* chart | legend | err */
-      min-height:0;
-    }
-    body.akses .tb .chart{
-      min-height:260px;              /* floor only; it will grow to fill */
-    }
-  
-    /* Kill the global fixed heights for this page */
-    body.akses .tile .chart,
-    body.akses .chart,
-    body.akses .canvas-wrap{
-      height:auto !important;
-    }
-  
-    /* Let the canvas actually fill its parent */
-    body.akses .tb .chart canvas{
-      width:100% !important;
-      height:100% !important;
-      display:block;
-    }
-  </style>
-
-
   
   <script src="datasets.js?v=3"></script>
 
@@ -504,6 +472,7 @@
   
 </body>
 </html>
+
 
 
 
