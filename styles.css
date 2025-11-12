@@ -398,12 +398,13 @@ header.ph .searchbar{
 /* keep children interactive while open */
 .fab.open .fab-child{ pointer-events:auto; }
 
-/* fan-out on a true half-circle below the main — wider spacing */
-.fab.open .c1{ transform:translate(-140px,  50px) scale(1); opacity:1; } /* ~200° */
-.fab.open .c2{ transform:translate( -75px, 130px) scale(1); opacity:1; } /* ~240° */
-.fab.open .c3{ transform:translate(   0px, 150px) scale(1); opacity:1; } /*  270° */
-.fab.open .c4{ transform:translate(  75px, 130px) scale(1); opacity:1; } /* ~300° */
-.fab.open .c5{ transform:translate( 140px,  50px) scale(1); opacity:1; } /* ~340° */
+/* tighter half-circle fan-out */
+.fab.open .c1{ transform:translate(-72px, 40px) scale(1);  opacity:1; }  /* ~210° */
+.fab.open .c2{ transform:translate(-48px, 64px) scale(1);  opacity:1; }  /* ~240° */
+.fab.open .c3{ transform:translate(   0px, 80px) scale(1);  opacity:1; }  /* 270° */
+.fab.open .c4{ transform:translate( 48px, 64px) scale(1);  opacity:1; }  /* ~300° */
+.fab.open .c5{ transform:translate( 72px, 40px) scale(1);  opacity:1; }  /* ~330° */
+
 
 
 
