@@ -338,48 +338,56 @@
 
      /* === Floating radial nav (under the filter bar) === */
       (function(){
-        // Place under the filter bar and align right edge with the grid/header
+        // Place under the filter bar and align the right edge with the grid/header
         const r = wrap.getBoundingClientRect();
         const fab = document.createElement('div');
         fab.className = 'fab';
-        fab.style.top = Math.round(r.bottom + 16) + 'px';
+        fab.style.top   = Math.round(r.bottom + 16) + 'px';
         fab.style.right = 'max(12px, calc((100vw - var(--page-max)) / 2 + var(--gap)))';
       
-        // Match the filter bar color theme
+        // Match the filter bar color
         try {
           const bg = getComputedStyle(wrap).backgroundColor;
           fab.style.setProperty('--fab-bg', bg);
         } catch(e){}
       
+        // helper to make a button (with tooltip)
+        function makeBtn(href, icon, cls, label){
+          const a = document.createElement('a');
+          a.className = cls;
+          a.href = href;
+          a.title = label;                           // native title as fallback
+      
+          const img = document.createElement('img');
+          img.src = icon; img.alt = label;
+          a.appendChild(img);
+      
+          const tip = document.createElement('span');
+          tip.className = 'fab-tip';
+          tip.textContent = label;
+          a.appendChild(tip);
+      
+          return a;
+        }
+      
         // MAIN button (default icon: nav.svg; hover icon: home.svg; click → index.html)
-        const main = document.createElement('a');
-        main.className = 'fab-main';
-        main.href = 'index.html';
-        const mainImg = document.createElement('img');
-        mainImg.src = 'assets/icons/nav.svg';
-        mainImg.alt = 'Utama';
-        main.appendChild(mainImg);
+        const main = makeBtn('index.html', 'assets/icons/nav.svg', 'fab-main', 'Utama');
+        const mainImg = main.querySelector('img');
         main.addEventListener('mouseenter', () => mainImg.src = 'assets/icons/home.svg');
         main.addEventListener('mouseleave', () => mainImg.src = 'assets/icons/nav.svg');
         fab.appendChild(main);
       
-        // CHILD buttons (5 items)
+        // CHILD buttons (fan out down-left)
         const items = [
-          ['akses.html',      'assets/icons/access.svg',     'c1'],
-          ['sekolah.html',    'assets/icons/sekolah.svg',    'c2'],
-          ['kpi.html',        'assets/icons/kpi.svg',        'c3'],
-          ['workforce.html',  'assets/icons/workforce.svg',  'c4'],
-          ['prevention.html', 'assets/icons/prevention.svg', 'c5'],
+          ['akses.html',      'assets/icons/access.svg',     'Akses'],
+          ['sekolah.html',    'assets/icons/sekolah.svg',    'Sekolah'],
+          ['kpi.html',        'assets/icons/kpi.svg',        'KPI'],
+          ['workforce.html',  'assets/icons/workforce.svg',  'Tenaga Kerja'],
+          ['prevention.html', 'assets/icons/prevention.svg', 'Pencegahan'],
         ];
-        items.forEach(([href, icon, cls]) => {
-          const a = document.createElement('a');
-          a.className = 'fab-child ' + cls;
-          a.href = href;
-          const img = document.createElement('img');
-          img.src = icon;
-          img.alt = '';
-          a.appendChild(img);
-          fab.appendChild(a);
+        const classes = ['c1','c2','c3','c4','c5'];
+        items.forEach(([href, icon, label], i) => {
+          fab.appendChild( makeBtn(href, icon, 'fab-child ' + classes[i], label) );
         });
       
         document.body.appendChild(fab);
@@ -389,7 +397,23 @@
           const rr = wrap.getBoundingClientRect();
           fab.style.top = Math.round(rr.bottom + 16) + 'px';
         });
+      
+        // ---- OPEN/CLOSE with delay so users can travel to a child button ----
+        let closeTimer = null;
+        const open = () => { clearTimeout(closeTimer); fab.classList.add('open'); };
+        const close = () => { closeTimer = setTimeout(() => fab.classList.remove('open'), 450); };
+      
+        fab.addEventListener('mouseenter', open);
+        fab.addEventListener('mouseleave', close);
+        fab.addEventListener('focusin', open);
+        fab.addEventListener('focusout', (e) => {
+          if (!fab.contains(e.relatedTarget)) close();
+        });
+      
+        // also open when the main gets hover (snappier)
+        main.addEventListener('mouseenter', open);
       })();
+
 
   });
 
