@@ -364,4 +364,35 @@ header.ph .searchbar{
 .dd .menu .menu-body .opt:hover{ background:#f7fafc; border-radius:8px; }
 
 
+/* === Floating radial nav (below the floating filter) === */
+:root { --fab-bg:#0b1220; } /* fallback; JS will sync to filter’s bg */
+
+.fab { position:fixed; z-index:999; }
+.fab .fab-main,
+.fab .fab-child{
+  width:56px; height:56px; border-radius:999px;
+  background:var(--fab-bg);
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:var(--shadow-2);
+  display:grid; place-items:center;
+  transition:transform .28s cubic-bezier(.2,.8,.2,1), opacity .22s;
+}
+.fab .fab-main{ width:62px; height:62px; }
+
+.fab img{              /* make all icons gray */
+  width:26px; height:26px;
+  filter:grayscale(1) brightness(.55);
+}
+.fab .fab-child img{ width:22px; height:22px; }
+
+/* child circles are absolutely positioned over the main, hidden by default */
+.fab .fab-child{ position:absolute; top:0; left:0; opacity:0; pointer-events:none; }
+.fab:hover .fab-child{ pointer-events:auto; }
+
+/* fan-out positions (five children) */
+.fab:hover .c1{ transform:translate(-76px,  -6px);  opacity:1; }
+.fab:hover .c2{ transform:translate(-64px, -64px);  opacity:1; }
+.fab:hover .c3{ transform:translate( -6px, -84px);  opacity:1; }
+.fab:hover .c4{ transform:translate( 52px, -64px);  opacity:1; }
+.fab:hover .c5{ transform:translate( 72px,  -6px);  opacity:1; }
 
