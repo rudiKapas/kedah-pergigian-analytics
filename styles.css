@@ -365,34 +365,65 @@ header.ph .searchbar{
 
 
 /* === Floating radial nav (below the floating filter) === */
-:root { --fab-bg:#0b1220; } /* fallback; JS will sync to filter’s bg */
+:root { --fab-bg:#0b1220; } /* JS syncs this to the filter bar’s bg */
 
 .fab { position:fixed; z-index:999; }
+
 .fab .fab-main,
 .fab .fab-child{
-  width:56px; height:56px; border-radius:999px;
+  width:62px; height:62px;                 /* main is larger than children; we’ll scale children */
+  border-radius:999px;
   background:var(--fab-bg);
   border:1px solid rgba(255,255,255,.08);
   box-shadow:var(--shadow-2);
   display:grid; place-items:center;
   transition:transform .28s cubic-bezier(.2,.8,.2,1), opacity .22s;
+  will-change:transform, opacity;
 }
-.fab .fab-main{ width:62px; height:62px; }
+.fab .fab-child{
+  width:56px; height:56px;
+  position:absolute; top:0; left:0;
+  opacity:0; pointer-events:none;
+  transform:translate(0,0) scale(.92);
+}
 
-.fab img{              /* make all icons gray */
+.fab img{               /* icons = white + a bit larger */
+  width:30px; height:30px;
+  filter:brightness(0) invert(1);           /* force white for dark SVGs/PNGs */
+}
+.fab .fab-child img{
   width:26px; height:26px;
-  filter:grayscale(1) brightness(.55);
 }
-.fab .fab-child img{ width:22px; height:22px; }
 
-/* child circles are absolutely positioned over the main, hidden by default */
-.fab .fab-child{ position:absolute; top:0; left:0; opacity:0; pointer-events:none; }
-.fab:hover .fab-child{ pointer-events:auto; }
+/* keep children interactive while open */
+.fab.open .fab-child{ pointer-events:auto; }
 
-/* fan-out positions (five children) */
-.fab:hover .c1{ transform:translate(-76px,  -6px);  opacity:1; }
-.fab:hover .c2{ transform:translate(-64px, -64px);  opacity:1; }
-.fab:hover .c3{ transform:translate( -6px, -84px);  opacity:1; }
-.fab:hover .c4{ transform:translate( 52px, -64px);  opacity:1; }
-.fab:hover .c5{ transform:translate( 72px,  -6px);  opacity:1; }
+/* fan-out to the LEFT-BELOW quadrant */
+.fab.open .c1{ transform:translate(-84px,  10px) scale(1);  opacity:1; }
+.fab.open .c2{ transform:translate(-78px,  78px) scale(1);  opacity:1; }
+.fab.open .c3{ transform:translate(-10px, 108px) scale(1);  opacity:1; }
+.fab.open .c4{ transform:translate( 58px,  78px) scale(1);  opacity:1; }
+.fab.open .c5{ transform:translate( 84px,  10px) scale(1);  opacity:1; }
+
+/* subtle hover scale on the main button */
+.fab .fab-main{ transition:transform .18s ease; }
+.fab .fab-main:hover{ transform:scale(1.06); }
+
+/* --------- tooltips (for main + children) ---------- */
+.fab a{ position:relative; }
+.fab-tip{
+  position:absolute; top:50%; left:-10px; transform:translate(-100%, -50%) scale(.96);
+  background:var(--fab-bg);
+  color:#fff; font-size:12px; line-height:1; white-space:nowrap;
+  padding:8px 10px; border-radius:10px;
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:var(--shadow-2);
+  opacity:0; pointer-events:none;
+  transition:opacity .18s ease, transform .18s ease;
+}
+.fab a:hover .fab-tip,
+.fab a:focus-visible .fab-tip{
+  opacity:1; transform:translate(-100%, -50%) scale(1);
+}
+
 
