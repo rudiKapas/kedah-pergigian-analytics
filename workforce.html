@@ -262,7 +262,7 @@
     // Regions order & columns for this sheet (includes Pejabat TPKNG)
     const AREAS = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Pejabat TPKNG","Kedah"];
     const COLS = ['F','G','H','I','J','K','L','M','N','O','P','Q','R'];
-    const LABELS_PAD = [' ', ...AREAS, ' '];
+    const LABELS_PAD = (() => { const loc=(localStorage.getItem('dx_loc')||'kedah').toLowerCase(); const map13=["KP Sg Petani","KP Bandar Sg Petani","KP Taman Intan","KP Bedong","KP Merbok","KP Kota Kuala Muda","KP UTC","KP Bukit Selambau","-","-","-","Daerah Kuala Muda","-"]; const mapped=(loc==='kuala_muda')?AREAS.map((n,i)=>(map13[i]&&map13[i]!=='-'?map13[i]:n)):AREAS; return [' ',...mapped,' ']; })();
 
     // Helpers
     function colIndex(A){ let n=0; for(let i=0;i<A.length;i++) n=n*26+(A.charCodeAt(i)-64); return n-1; }
@@ -456,7 +456,7 @@
   (function(){
     const CSV_URL = __pickURL('workforce','t2');
     const AREAS = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
-    const LABELS_PAD = [' ', ...AREAS, ' '];
+    const LABELS_PAD = (() => { const loc=(localStorage.getItem('dx_loc')||'kedah').toLowerCase(); const map13=["KP Sg Petani","KP Bandar Sg Petani","KP Taman Intan","KP Bedong","KP Merbok","KP Kota Kuala Muda","KP UTC","KP Bukit Selambau","-","-","-","Daerah Kuala Muda","-"]; const mapped=(loc==='kuala_muda')?AREAS.map((n,i)=>(map13[i]&&map13[i]!=='-'?map13[i]:n)):AREAS; return [' ',...mapped,' ']; })();
 
     // Helpers
     function colIndex(A){ let n=0; for(let i=0;i<A.length;i++) n=n*26+(A.charCodeAt(i)-64); return n-1; }
@@ -696,7 +696,7 @@
   (function(){
     const CSV_URL = __pickURL('workforce','t3');
     const AREAS = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
-    const LABELS_PAD = [' ', ...AREAS, ' '];
+    const LABELS_PAD = (() => { const loc=(localStorage.getItem('dx_loc')||'kedah').toLowerCase(); const map13=["KP Sg Petani","KP Bandar Sg Petani","KP Taman Intan","KP Bedong","KP Merbok","KP Kota Kuala Muda","KP UTC","KP Bukit Selambau","-","-","-","Daerah Kuala Muda","-"]; const mapped=(loc==='kuala_muda')?AREAS.map((n,i)=>(map13[i]&&map13[i]!=='-'?map13[i]:n)):AREAS; return [' ',...mapped,' ']; })();
 
     function colIndex(A){ let n=0; for(let i=0;i<A.length;i++) n=n*26+(A.charCodeAt(i)-64); return n-1; }
     function getCell(tbl, A1){ const m=/^([A-Z]+)(\d+)$/.exec(A1); if(!m) return null; const r=+m[2]-1, c=colIndex(m[1]); return (tbl[r]||[])[c] ?? null; }
