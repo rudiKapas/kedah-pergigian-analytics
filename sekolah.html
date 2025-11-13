@@ -286,7 +286,7 @@
     const CSV_URL = __pickURL('sekolah','ps1');
     const AREAS = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
     const LABELS_PAD = (()=>{
-      const slug = (localStorage.getItem('dx_loc')||'kedah').toLowerCase().replace(/\s+/g,'_');
+            const slug = ((localStorage.getItem('dx_loc') || localStorage.getItem('dash_loc') || 'kedah')).toLowerCase().replace(/\s+/g,'_');
       // x-axis rename when Kuala Muda is selected
       const MAP_BY_DIST = {
         kuala_muda: [
@@ -642,7 +642,7 @@
     const CSV_URL = __pickURL('sekolah','s2');
     const AREAS = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
    const LABELS_PAD = (()=>{
-      const slug = (localStorage.getItem('dx_loc')||'kedah').toLowerCase().replace(/\s+/g,'_');
+            const slug = ((localStorage.getItem('dx_loc') || localStorage.getItem('dash_loc') || 'kedah')).toLowerCase().replace(/\s+/g,'_');
       // x-axis rename when Kuala Muda is selected
       const MAP_BY_DIST = {
         kuala_muda: [
@@ -946,7 +946,7 @@
 
     const AREAS = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
     const LABELS_PAD = (()=>{
-      const slug = (localStorage.getItem('dx_loc')||'kedah').toLowerCase().replace(/\s+/g,'_');
+            const slug = ((localStorage.getItem('dx_loc') || localStorage.getItem('dash_loc') || 'kedah')).toLowerCase().replace(/\s+/g,'_');
       // x-axis rename when Kuala Muda is selected
       const MAP_BY_DIST = {
         kuala_muda: [
