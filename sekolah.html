@@ -304,7 +304,7 @@
       };
       const base = AREAS; // (use AREAS12 if that’s what your file uses)
       const mapped = MAP_BY_DIST[slug]
-        ? base.map((n,i)=> (MAP_BY_DIST[slug][i] && MAP_BY_DIST[slug][i] !== '-') ? MAP_BY_DIST[slug][i] : n)
+        ? base.map((n,i)=> (typeof MAP_BY_DIST[slug][i] !== 'undefined' ? MAP_BY_DIST[slug][i] : n))
         : base;
       return [' ', ...mapped, ' '];
     })();
@@ -660,7 +660,7 @@
       };
       const base = AREAS; // (use AREAS12 if that’s what your file uses)
       const mapped = MAP_BY_DIST[slug]
-        ? base.map((n,i)=> (MAP_BY_DIST[slug][i] && MAP_BY_DIST[slug][i] !== '-') ? MAP_BY_DIST[slug][i] : n)
+        ? base.map((n,i)=> (typeof MAP_BY_DIST[slug][i] !== 'undefined' ? MAP_BY_DIST[slug][i] : n))
         : base;
       return [' ', ...mapped, ' '];
     })();
@@ -964,7 +964,7 @@
       };
       const base = AREAS; // (use AREAS12 if that’s what your file uses)
       const mapped = MAP_BY_DIST[slug]
-        ? base.map((n,i)=> (MAP_BY_DIST[slug][i] && MAP_BY_DIST[slug][i] !== '-') ? MAP_BY_DIST[slug][i] : n)
+        ? base.map((n,i)=> (typeof MAP_BY_DIST[slug][i] !== 'undefined' ? MAP_BY_DIST[slug][i] : n))
         : base;
       return [' ', ...mapped, ' '];
     })();
