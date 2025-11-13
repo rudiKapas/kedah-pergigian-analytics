@@ -93,9 +93,9 @@ function layoutFor(labels){
   const maxLines = Math.max(1, ...L.map(l => Array.isArray(l) ? l.length : 1));
   const longest  = maxLabelPx(L);
 
-  const base   = Math.ceil(longest * 0.60);   // if still tight, bump to 0.62
-  const perLn  = Math.ceil(12 * 1.15);        // 10px font * 1.15 line-height
-  const bottom = Math.max(22, base + (maxLines - 1) * perLn + 8);
+  const base   = Math.ceil(longest * 0.54);   // if still tight, bump to 0.62
+  const perLn  = Math.ceil(12 * 1.10);        // 10px font * 1.15 line-height
+  const bottom = Math.max(20, base + (maxLines - 1) * perLn + 4);
 
   return { padding: { top: 8, right: 8, bottom, left: 8 } };
 }
@@ -2433,6 +2433,7 @@ function layoutFor(labels){
   }catch(e){}
 
 })();
+
 
 
 
