@@ -189,9 +189,15 @@
     return { loc, per };
   }
   function setSel(loc, per){
-    if (DATA_CATALOG[loc]) localStorage.setItem("dash_loc", loc);
-    if (DATA_CATALOG[loc]?.periods?.[per]) localStorage.setItem("dash_per", per);
-  }
+        if (DATA_CATALOG[loc]) {
+          localStorage.setItem("dash_loc", loc);
+          localStorage.setItem("dx_loc", loc);   // keep old pages (sekolah/kpi/workforce/prevention) in sync
+        }
+        if (DATA_CATALOG[loc]?.periods?.[per]) {
+          localStorage.setItem("dash_per", per);
+        }
+      }
+
 
   // Build final CSV for a page+tile under current selection (prefers per-period gid overrides)
    window.__pickURL = function(pageKey, tileKey){
