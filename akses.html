@@ -96,8 +96,10 @@
     
     Chart.defaults.scales = Chart.defaults.scales || {};
     Chart.defaults.scales.category = Object.assign({}, Chart.defaults.scales.category, {
-      ticks: { padding: 2, autoSkip: true, maxRotation: 0, minRotation: 0, font: { size: 12, lineHeight: 1.15 } }
+      // more space between axis line and labels
+      ticks: { padding: 10, autoSkip: true, maxRotation: 0, minRotation: 0, font: { size: 12, lineHeight: 1.15 } }
     });
+
 
 
     Chart.defaults.scales.linear = Object.assign({}, Chart.defaults.scales.linear, {
@@ -521,6 +523,7 @@
   
 </body>
 </html>
+
 
 
 
