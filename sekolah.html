@@ -481,7 +481,7 @@
 
     function adjustXAxisTicks(){
       if(!chart || !chart.chartArea) return;
-      const n = AREAS.length;
+      const n = (chart?.data?.labels?.length || 2) - 2; // exclude the 2 padding labels
       const w = chart.chartArea.width;
       const pxPerLabel = w / n;
       const shouldRotate = (pxPerLabel < 70) || (window.innerWidth < 900);
@@ -852,7 +852,7 @@
 
     function adjustXAxisTicks(){
       if(!chart || !chart.chartArea) return;
-      const n = AREAS.length;
+      const n = (chart?.data?.labels?.length || 2) - 2; // exclude the 2 padding labels
       const w = chart.chartArea.width;
       const pxPerLabel = w / n;
       const shouldRotate = (pxPerLabel < 70) || (window.innerWidth < 900);
@@ -1159,7 +1159,7 @@
 
     function adjustXAxisTicks(){
       if(!chart || !chart.chartArea) return;
-      const n = AREAS.length;
+      const n = (chart?.data?.labels?.length || 2) - 2; // exclude the 2 padding labels
       const w = chart.chartArea.width;
       const pxPerLabel = w / n;
       const shouldRotate = (pxPerLabel < 70) || (window.innerWidth < 900);
