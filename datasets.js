@@ -495,3 +495,53 @@
   });
 
 })();
+
+// === GLOBAL AREA→CLINIC LABEL REMAPPER =============================
+// Uses window.__currentArea (set by your floating filter) to map x-axis labels.
+// Add more districts later by extending NAME_MAPS.
+(function () {
+  const NAME_MAPS = {
+    "Kuala Muda": {
+      "Kota Setar": "KP Sg Petani",
+      "Pendang": "KP Bandar Sg Petani",
+      "Kuala Muda": "KP Taman Intan",
+      "Sik": "KP Bedong",
+      "Kulim": "KP Merbok",
+      "Bandar Baru": "KP Kota Kuala Muda",
+      "Kubang Pasu": "KP UTC",
+      "Pdg Terap": "KP Bukit Selambau",
+      "Padang Terap": "KP Bukit Selambau", // in case of full spelling
+      "Baling": "-",
+      "Yan": "-",
+      "Langkawi": "-",
+      "Kedah": "Daerah Kuala Muda",
+      // some pages include this; some don't
+      "Giret daerah": "-",
+      "G-RET NEGERI": "-",
+      "G-RET daerah": "-"
+    }
+  };
+
+  // Use query param as fallback (e.g., ?daerah=Kuala%20Muda)
+  if (!window.__currentArea) {
+    try {
+      const qs = new URLSearchParams(location.search);
+      const d = qs.get("daerah") || qs.get("district") || qs.get("area");
+      if (d) window.__currentArea = decodeURIComponent(d);
+    } catch {}
+  }
+
+  window.__nameMapTables = NAME_MAPS;
+  window.__mapName = function (label) {
+    const area = (window.__currentArea || "").trim();
+    const table = NAME_MAPS[area];
+    const key = String(label).trim().replace(/\s+/g, " ");
+    if (table && Object.prototype.hasOwnProperty.call(table, key)) {
+      const mapped = table[key];
+      return mapped === "" ? label : mapped; // keep original if empty string
+    }
+    return label;
+  };
+  window.__mapNames = function (arr) { return (arr || []).map(window.__mapName); };
+})();
+
