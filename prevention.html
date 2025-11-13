@@ -292,7 +292,7 @@
 
     // padded labels
     const AREAS12 = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
-    const LABELS_PAD_12 = (() => { const loc=(localStorage.getItem('dx_loc')||'kedah').toLowerCase(); const map12=["KP Sg Petani","KP Bandar Sg Petani","KP Taman Intan","KP Bedong","KP Merbok","KP Kota Kuala Muda","KP UTC","KP Bukit Selambau","-","-","-","Daerah Kuala Muda"]; const mapped=(loc==='kuala_muda')?AREAS12.map((n,i)=>(map12[i]&&map12[i]!=='-'?map12[i]:n)):AREAS12; return [' ',...mapped,' ']; })();
+        const LABELS_PAD_12 = (() => { const loc=((localStorage.getItem('dx_loc') || localStorage.getItem('dash_loc') || 'kedah')).toLowerCase().replace(/\s+/g,'_'); const map12=["KP Sg Petani","KP Bandar Sg Petani","KP Taman Intan","KP Bedong","KP Merbok","KP Kota Kuala Muda","KP UTC","KP Bukit Selambau","-","-","-","Daerah Kuala Muda"]; const mapped=(loc==='kuala_muda')?AREAS12.map((n,i)=>(map12[i]&&map12[i]!=='-'?map12[i]:n)):AREAS12; return [' ',...mapped,' ']; })();
     const PAD_LAST_INDEX = LABELS_PAD_12.length - 1;
 
     // Generic chart drawer
