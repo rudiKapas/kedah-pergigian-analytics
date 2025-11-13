@@ -285,7 +285,29 @@
   (function(){
     const CSV_URL = __pickURL('sekolah','ps1');
     const AREAS = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
-    const LABELS_PAD = (() => { const loc=(localStorage.getItem('dx_loc')||'kedah').toLowerCase(); const map12=["KP Sg Petani","KP Bandar Sg Petani","KP Taman Intan","KP Bedong","KP Merbok","KP Kota Kuala Muda","KP UTC","KP Bukit Selambau","-","-","-","Daerah Kuala Muda"]; const mapped=(loc==='kuala_muda')?AREAS.map((n,i)=>(map12[i]&&map12[i]!=='-'?map12[i]:n)):AREAS; return [' ',...mapped,' ']; })();
+    const LABELS_PAD = (()=>{
+      const slug = (localStorage.getItem('dx_loc')||'kedah').toLowerCase().replace(/\s+/g,'_');
+      // x-axis rename when Kuala Muda is selected
+      const MAP_BY_DIST = {
+        kuala_muda: [
+          "KP Sg Petani",
+          "KP Bandar Sg Petani",
+          "KP Taman Intan",
+          "KP Bedong",
+          "KP Merbok",
+          "KP Kota Kuala Muda",
+          "KP UTC",
+          "KP Bukit Selambau",
+          "-", "-", "-",
+          "Daerah Kuala Muda"
+        ]
+      };
+      const base = AREAS; // (use AREAS12 if that’s what your file uses)
+      const mapped = MAP_BY_DIST[slug]
+        ? base.map((n,i)=> (MAP_BY_DIST[slug][i] && MAP_BY_DIST[slug][i] !== '-') ? MAP_BY_DIST[slug][i] : n)
+        : base;
+      return [' ', ...mapped, ' '];
+    })();
 
     const INST = [
       { k:'A', name:'Pra sekolah di sekolah', color:'#0ea5e9' },
@@ -619,7 +641,29 @@
   (function(){
     const CSV_URL = __pickURL('sekolah','s2');
     const AREAS = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
-    const LABELS_PAD = (() => { const loc=(localStorage.getItem('dx_loc')||'kedah').toLowerCase(); const map12=["KP Sg Petani","KP Bandar Sg Petani","KP Taman Intan","KP Bedong","KP Merbok","KP Kota Kuala Muda","KP UTC","KP Bukit Selambau","-","-","-","Daerah Kuala Muda"]; const mapped=(loc==='kuala_muda')?AREAS.map((n,i)=>(map12[i]&&map12[i]!=='-'?map12[i]:n)):AREAS; return [' ',...mapped,' ']; })();
+   const LABELS_PAD = (()=>{
+      const slug = (localStorage.getItem('dx_loc')||'kedah').toLowerCase().replace(/\s+/g,'_');
+      // x-axis rename when Kuala Muda is selected
+      const MAP_BY_DIST = {
+        kuala_muda: [
+          "KP Sg Petani",
+          "KP Bandar Sg Petani",
+          "KP Taman Intan",
+          "KP Bedong",
+          "KP Merbok",
+          "KP Kota Kuala Muda",
+          "KP UTC",
+          "KP Bukit Selambau",
+          "-", "-", "-",
+          "Daerah Kuala Muda"
+        ]
+      };
+      const base = AREAS; // (use AREAS12 if that’s what your file uses)
+      const mapped = MAP_BY_DIST[slug]
+        ? base.map((n,i)=> (MAP_BY_DIST[slug][i] && MAP_BY_DIST[slug][i] !== '-') ? MAP_BY_DIST[slug][i] : n)
+        : base;
+      return [' ', ...mapped, ' '];
+    })();
 
     function colRange(from, to){ const out=[]; for(let c=from.charCodeAt(0); c<=to.charCodeAt(0); c++) out.push(String.fromCharCode(c)); return out; }
     const COLS = colRange('D','O');
@@ -901,7 +945,29 @@
     const CSV_URL = __pickURL('sekolah','s3');
 
     const AREAS = ["Kota Setar","Pendang","Kuala Muda","Sik","Kulim","Bandar Baru","Kubang Pasu","Pdg Terap","Baling","Yan","Langkawi","Kedah"];
-    const LABELS_PAD = (() => { const loc=(localStorage.getItem('dx_loc')||'kedah').toLowerCase(); const map12=["KP Sg Petani","KP Bandar Sg Petani","KP Taman Intan","KP Bedong","KP Merbok","KP Kota Kuala Muda","KP UTC","KP Bukit Selambau","-","-","-","Daerah Kuala Muda"]; const mapped=(loc==='kuala_muda')?AREAS.map((n,i)=>(map12[i]&&map12[i]!=='-'?map12[i]:n)):AREAS; return [' ',...mapped,' ']; })();
+    const LABELS_PAD = (()=>{
+      const slug = (localStorage.getItem('dx_loc')||'kedah').toLowerCase().replace(/\s+/g,'_');
+      // x-axis rename when Kuala Muda is selected
+      const MAP_BY_DIST = {
+        kuala_muda: [
+          "KP Sg Petani",
+          "KP Bandar Sg Petani",
+          "KP Taman Intan",
+          "KP Bedong",
+          "KP Merbok",
+          "KP Kota Kuala Muda",
+          "KP UTC",
+          "KP Bukit Selambau",
+          "-", "-", "-",
+          "Daerah Kuala Muda"
+        ]
+      };
+      const base = AREAS; // (use AREAS12 if that’s what your file uses)
+      const mapped = MAP_BY_DIST[slug]
+        ? base.map((n,i)=> (MAP_BY_DIST[slug][i] && MAP_BY_DIST[slug][i] !== '-') ? MAP_BY_DIST[slug][i] : n)
+        : base;
+      return [' ', ...mapped, ' '];
+    })();
 
     function colRange(from, to){ const out=[]; for(let c=from.charCodeAt(0); c<=to.charCodeAt(0); c++) out.push(String.fromCharCode(c)); return out; }
     const COLS = colRange('D','O');
