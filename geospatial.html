@@ -199,7 +199,7 @@
   <!-- PapaParse for robust CSV parsing -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <script>
+   <script>
     // ==========================
     //  CONFIG
     // ==========================
@@ -227,7 +227,7 @@
             type:'heat',
             label:'Mean dfx tahun 1',
             valueField:'Mean dfx tahun 1',
-            invert:false // tinggi lebih terang
+            invert:false
           },
           {
             id:'mbk6_mean_dfx_target',
@@ -235,7 +235,7 @@
             label:'Mean dfx tahun 1 mencapai sasaran',
             valueField:'Mean dfx tahun 1',
             threshold:2,
-            badWhen:'>', // >2 merah
+            badWhen:'>',
             legendGood:'≤ 2 (sasaran tercapai)',
             legendBad:'> 2 (melebihi sasaran)'
           },
@@ -244,7 +244,7 @@
             type:'heat',
             label:'%MBK Tahun 1',
             valueField:'%MBK Tahun 1',
-            invert:true // rendah lebih terang
+            invert:true
           },
           {
             id:'mbk6_pct_mbk_target',
@@ -252,7 +252,7 @@
             label:'%MBK Tahun 1 mencapai sasaran',
             valueField:'%MBK Tahun 1',
             threshold:50,
-            badWhen:'<', // <50 merah
+            badWhen:'<',
             legendGood:'≥ 50% (sasaran tercapai)',
             legendBad:'< 50% (tidak capai sasaran)'
           }
@@ -289,7 +289,7 @@
             label:'Mean DMFX 12 tahun mencapai sasaran',
             valueField:'Mean DMFX 12 tahun',
             threshold:0.6,
-            badWhen:'>', // >0.6 merah
+            badWhen:'>',
             legendGood:'≤ 0.6 (sasaran tercapai)',
             legendBad:'> 0.6 (melebihi sasaran)'
           },
@@ -298,7 +298,7 @@
             type:'heat',
             label:'%BK 12 Tahun',
             valueField:'%BK 12 tahun',
-            invert:true // rendah lebih terang
+            invert:true
           },
           {
             id:'bk12_pct_bk_target',
@@ -306,7 +306,7 @@
             label:'%BK 12 tahun mencapai sasaran',
             valueField:'%BK 12 tahun',
             threshold:80,
-            badWhen:'<', // <80 merah
+            badWhen:'<',
             legendGood:'≥ 80% (sasaran tercapai)',
             legendBad:'< 80% (tidak capai sasaran)'
           }
@@ -343,7 +343,7 @@
             label:'Mean DMFX 16 tahun mencapai sasaran',
             valueField:'Mean DMFX 16 tahun',
             threshold:1.5,
-            badWhen:'>', // >1.5 merah
+            badWhen:'>',
             legendGood:'≤ 1.5 (sasaran tercapai)',
             legendBad:'> 1.5 (melebihi sasaran)'
           },
@@ -360,7 +360,7 @@
             label:'%BK 16 tahun mencapai sasaran',
             valueField:'%BK 16 tahun',
             threshold:70,
-            badWhen:'<', // <70 merah
+            badWhen:'<',
             legendGood:'≥ 70% (sasaran tercapai)',
             legendBad:'< 70% (tidak capai sasaran)'
           }
@@ -380,16 +380,44 @@
 
     function toNum(v){
       if (v === null || v === undefined) return NaN;
-      // replace comma decimal if any
-      const s = String(v).replace(/\s/g,'').replace(',', '.');
+      const s = String(v).replace(/\u00A0/g,'').replace(/\s/g,'').replace(',', '.');
       const n = parseFloat(s);
       return isNaN(n) ? NaN : n;
     }
 
+    // ---- field name normalisation (fixes header mismatches) ----
+    function normFieldName(name){
+      return String(name || '')
+        .toLowerCase()
+        .replace(/\s+/g,'')
+        .replace(/[^a-z0-9%]/g,'');
+    }
+
+    function buildFieldMap(ds){
+      ds.fieldMap = {};
+      if (!ds.rows || !ds.rows.length) return;
+      const sample = ds.rows[0];
+      Object.keys(sample).forEach(k=>{
+        ds.fieldMap[normFieldName(k)] = k;
+      });
+    }
+
+    function resolveField(ds, logicalName){
+      if (!logicalName) return logicalName;
+      const key = ds.fieldMap?.[normFieldName(logicalName)];
+      return key || logicalName;
+    }
+
+    function getFieldValue(ds, row, logicalName){
+      const key = resolveField(ds, logicalName);
+      return row[key];
+    }
+
     function buildTooltip(datasetKey, row){
-      const cfg = DATASETS[datasetKey].popupFields;
+      const ds = DATASETS[datasetKey];
+      const cfg = ds.popupFields;
       const lines = cfg.map(f=>{
-        const val = row[f.field] ?? '-';
+        const val = getFieldValue(ds, row, f.field) ?? '-';
         return `<div><strong>${f.label}:</strong> ${val}</div>`;
       });
       return lines.join('');
@@ -408,14 +436,17 @@
             skipEmptyLines:true,
             complete: (res)=>{
               ds.rows = res.data || [];
+              buildFieldMap(ds);
+
               ds.geoRows = ds.rows
                 .map(row=>{
-                  const lat = toNum(row[ds.latField]);
-                  const lng = toNum(row[ds.lngField]);
+                  const lat = toNum(getFieldValue(ds, row, ds.latField));
+                  const lng = toNum(getFieldValue(ds, row, ds.lngField));
                   if (!isFinite(lat) || !isFinite(lng)) return null;
                   return {lat, lng, row};
                 })
                 .filter(Boolean);
+
               if (ds.geoRows.length){
                 ds.bounds = ds.geoRows.reduce((b,g)=>{
                   if (!b) return L.latLngBounds([g.lat,g.lng],[g.lat,g.lng]);
@@ -429,16 +460,19 @@
         }));
     }
 
-    function buildHeatPoints(geoRows, field, invert){
+    function buildHeatPoints(ds, fieldLogicalName, invert){
+      const geoRows = ds.geoRows || [];
       const pts = [];
       let min = Infinity, max = -Infinity;
+
       geoRows.forEach(g=>{
-        const v = toNum(g.row[field]);
+        const v = toNum(getFieldValue(ds, g.row, fieldLogicalName));
         if (!isFinite(v)) return;
         if (v < min) min = v;
         if (v > max) max = v;
         pts.push({lat:g.lat, lng:g.lng, val:v});
       });
+
       if (!pts.length) return [];
 
       const span = (max - min) || 1;
@@ -447,14 +481,14 @@
         if (invert) w = 1 - w;
         if (w < 0) w = 0;
         if (w > 1) w = 1;
-        if (!w) w = 0.01;
+        if (!w) w = 0.05;
         return [p.lat, p.lng, w];
       });
     }
 
-    function buildBasicMarkerLayer(datasetKey, geoRows){
+    function buildBasicMarkerLayer(datasetKey, ds){
       const group = L.layerGroup();
-      geoRows.forEach(g=>{
+      (ds.geoRows || []).forEach(g=>{
         const m = L.circleMarker([g.lat, g.lng],{
           radius:5,
           color:'#0f172a',
@@ -479,10 +513,10 @@
       }
     }
 
-    function buildClassifiedMarkerLayer(datasetKey, geoRows, view){
+    function buildClassifiedMarkerLayer(datasetKey, ds, view){
       const group = L.layerGroup();
-      geoRows.forEach(g=>{
-        const v = toNum(g.row[view.valueField]);
+      (ds.geoRows || []).forEach(g=>{
+        const v = toNum(getFieldValue(ds, g.row, view.valueField));
         const isBad = compareWithThreshold(v, view.threshold, view.badWhen);
         const color = isBad ? '#ef4444' : '#0ea5e9';
         const m = L.circleMarker([g.lat, g.lng],{
@@ -549,19 +583,19 @@
       clearLayers();
 
       if (view.type === 'heat'){
-        const heatPoints = buildHeatPoints(ds.geoRows, view.valueField, !!view.invert);
+        const heatPoints = buildHeatPoints(ds, view.valueField, !!view.invert);
         if (heatPoints.length){
           heatLayer = L.heatLayer(heatPoints, {
-            radius:24,
-            blur:18,
-            maxZoom:18
+            radius:40,
+            blur:28,
+            maxZoom:18,
+            minOpacity:0.35
           }).addTo(map);
         }
-        // overlay simple markers for hover info
-        markerLayer = buildBasicMarkerLayer(ds.key, ds.geoRows);
+        markerLayer = buildBasicMarkerLayer(ds.key, ds);
         markerLayer.addTo(map);
       } else if (view.type === 'points'){
-        markerLayer = buildClassifiedMarkerLayer(ds.key, ds.geoRows, view);
+        markerLayer = buildClassifiedMarkerLayer(ds.key, ds, view);
         markerLayer.addTo(map);
       }
 
@@ -591,9 +625,8 @@
     // ==========================
 
     document.addEventListener('DOMContentLoaded', ()=>{
-      // Create base map
       map = L.map('map',{
-        center:[6.15, 100.4], // approx Kedah
+        center:[6.15, 100.4],
         zoom:9,
         zoomControl:true
       });
@@ -607,10 +640,8 @@
       const datasetSelect = document.getElementById('datasetSelect');
       const viewSelect = document.getElementById('viewSelect');
 
-      // Initial view options
       populateViewSelect();
 
-      // Load initial dataset & draw
       loadDataset(currentDatasetKey).then(()=>{
         updateView();
       });
@@ -629,5 +660,6 @@
       });
     });
   </script>
+
 </body>
 </html>
