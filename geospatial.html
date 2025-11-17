@@ -532,6 +532,48 @@
       return group;
     }
 
+        function valueColor(v, min, max, invert){
+          if (!isFinite(v)) return '#cbd5e1';
+          if (max === min) return '#0ea5e9';
+          let t = (v - min) / (max - min);
+          if (invert) t = 1 - t;
+          if (t < 0) t = 0;
+          if (t > 1) t = 1;
+          // 210 (biru) → 0 (merah)
+          const h = (1 - t) * 210;
+          const s = 85;
+          const l = 45 + t * 15; // lebih terang untuk nilai tinggi
+          return `hsl(${h},${s}%,${l}%)`;
+        }
+    
+        function buildGradientMarkerLayer(datasetKey, ds, view){
+          const geoRows = ds.geoRows || [];
+          const values = geoRows
+            .map(g => toNum(getFieldValue(ds, g.row, view.valueField)))
+            .filter(v => isFinite(v));
+    
+          let min = Math.min(...values);
+          let max = Math.max(...values);
+          if (!isFinite(min) || !isFinite(max)) { min = 0; max = 1; }
+    
+          const group = L.layerGroup();
+          geoRows.forEach(g=>{
+            const v = toNum(getFieldValue(ds, g.row, view.valueField));
+            const col = valueColor(v, min, max, !!view.invert);
+            const m = L.circleMarker([g.lat, g.lng],{
+              radius:7,
+              color:'#0f172a',
+              weight:0.6,
+              fillColor:col,
+              fillOpacity:0.9
+            });
+            m.bindTooltip(buildTooltip(datasetKey, g.row), {direction:'top', offset:[0,-4], sticky:true});
+            group.addLayer(m);
+          });
+          return group;
+        }
+
+     
     function updateLegend(datasetKey, view){
       const el = document.getElementById('legend');
       let html = `<div class="legend-title">${DATASETS[datasetKey].name}</div>`;
@@ -583,18 +625,11 @@
       clearLayers();
 
       if (view.type === 'heat'){
-        const heatPoints = buildHeatPoints(ds, view.valueField, !!view.invert);
-        if (heatPoints.length){
-          heatLayer = L.heatLayer(heatPoints, {
-            radius:40,
-            blur:28,
-            maxZoom:18,
-            minOpacity:0.35
-          }).addTo(map);
-        }
-        markerLayer = buildBasicMarkerLayer(ds.key, ds);
+        // Paparan berasaskan nilai: warna titik terus mewakili magnitud indikator
+        markerLayer = buildGradientMarkerLayer(ds.key, ds, view);
         markerLayer.addTo(map);
       } else if (view.type === 'points'){
+
         markerLayer = buildClassifiedMarkerLayer(ds.key, ds, view);
         markerLayer.addTo(map);
       }
