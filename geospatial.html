@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8" />
+  <title>Geospatial Analisis Kesihatan Pergigian Skolah</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <style>
+    :root{
+      --bg-card: rgba(255,255,255,0.96);
+      --border-card: rgba(148,163,184,0.6);
+      --shadow-card: 0 18px 45px rgba(15,23,42,.35);
+      --blue: #0ea5e9;
+      --red: #ef4444;
+      --text-main:#0f172a;
+      --text-sub:#64748b;
+    }
+
+    *{ box-sizing:border-box; }
+
+    html, body{
+      height:100%;
+      margin:0;
+      padding:0;
+      font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--text-main);
+    }
+
+    body{
+      overflow:hidden;
+    }
+
+    #map{
+      position:fixed;
+      inset:0;
+      width:100%;
+      height:100%;
+      z-index:0;
+    }
+
+    /* Floating panel */
+    .overlay-panel{
+      position:fixed;
+      top:12px;
+      left:12px;
+      right:auto;
+      max-width:430px;
+      width:calc(100% - 24px);
+      background:var(--bg-card);
+      border-radius:18px;
+      border:1px solid var(--border-card);
+      box-shadow:var(--shadow-card);
+      padding:14px 16px 12px;
+      z-index:1000;
+      backdrop-filter:blur(14px);
+    }
+
+    .overlay-title{
+      margin:0 0 4px;
+      font-size:18px;
+      font-weight:800;
+    }
+
+    .overlay-sub{
+      margin:0 0 10px;
+      font-size:12px;
+      color:var(--text-sub);
+    }
+
+    .controls{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin-bottom:8px;
+    }
+
+    .control-row{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+
+    .control-row label{
+      font-size:11px;
+      font-weight:600;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      color:var(--text-sub);
+    }
+
+    .control-row select{
+      width:100%;
+      height:38px;
+      border-radius:10px;
+      border:1px solid #cbd5e1;
+      padding:0 10px;
+      font-size:13px;
+      background:#ffffff;
+      outline:none;
+    }
+
+    .control-row select:focus{
+      border-color:#0ea5e9;
+      box-shadow:0 0 0 2px rgba(14,165,233,0.25);
+    }
+
+    .legend-box{
+      margin-top:4px;
+      padding:8px 10px;
+      border-radius:12px;
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      font-size:11px;
+    }
+
+    .legend-title{
+      font-weight:700;
+      margin-bottom:4px;
+    }
+
+    .legend-row{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      margin-top:2px;
+    }
+
+    .legend-dot{
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      flex-shrink:0;
+      border:1px solid rgba(15,23,42,.3);
+    }
+
+    .legend-dot.good{ background:var(--blue); }
+    .legend-dot.bad{ background:var(--red); }
+
+    .legend-note{
+      margin-top:4px;
+      font-size:10px;
+      color:var(--text-sub);
+    }
+
+    /* Leaflet control position tweak on small screens */
+    @media (max-width: 640px){
+      #map .leaflet-control-container .leaflet-top.leaflet-left{
+        top:70px;
+      }
+    }
+
+    /* Tooltip styling a bit clearer */
+    .leaflet-tooltip{
+      font-size:11px;
+      padding:6px 8px;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <div class="overlay-panel">
+    <h1 class="overlay-title">Geospatial Analisis Kesihatan Pergigian Skolah</h1>
+    <p class="overlay-sub">Pilih kohort dan jenis paparan. Halakan kursor ke sekolah untuk melihat ringkasan data.</p>
+
+    <div class="controls">
+      <div class="control-row">
+        <label for="datasetSelect">Kohort</label>
+        <select id="datasetSelect">
+          <option value="mbk6">MBK 6 Tahun</option>
+          <option value="bk12">BK 12 Tahun</option>
+          <option value="bk16">BK 16 Tahun</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <label for="viewSelect">Paparan</label>
+        <select id="viewSelect"></select>
+      </div>
+    </div>
+
+    <div id="legend" class="legend-box">
+      <!-- legend content injected by JS -->
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Leaflet heatmap plugin -->
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+  <!-- PapaParse for robust CSV parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <script>
+    // ==========================
+    //  CONFIG
+    // ==========================
+
+    const DATASETS = {
+      mbk6: {
+        key: 'mbk6',
+        name: 'MBK 6 Tahun',
+        url: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHeLiGRXsoQF5txoIk71hhTbSq1iq0KnXZD3R7JartHWfqbWt_fTQF-Nwzyy4B7Q/pub?gid=429148099&single=true&output=csv',
+        latField: 'lat',
+        lngField: 'long',
+        popupFields: [
+          {label:'Nama Sekolah', field:'Nama Sekolah'},
+          {label:'Nama Klinik', field:'Nama Klinik'},
+          {label:'Enrolment Tahun 1', field:'Enrolment tahun 1'},
+          {label:'Mean DMFX Tahun 1', field:'Mean DMFX Tahun 1'},
+          {label:'%MBK Tahun 1', field:'%MBK Tahun 1'},
+          {label:'Kebersihan mulut A', field:'Kebersihan mulut A'},
+          {label:'Kebersihan mulut C', field:'Kebersihan mulut C'},
+          {label:'Kebersihan mulut E', field:'Kebersihan mulut E'}
+        ],
+        views: [
+          {
+            id:'mbk6_mean_dfx_heat',
+            type:'heat',
+            label:'Mean dfx tahun 1',
+            valueField:'Mean dfx tahun 1',
+            invert:false // tinggi lebih terang
+          },
+          {
+            id:'mbk6_mean_dfx_target',
+            type:'points',
+            label:'Mean dfx tahun 1 mencapai sasaran',
+            valueField:'Mean dfx tahun 1',
+            threshold:2,
+            badWhen:'>', // >2 merah
+            legendGood:'≤ 2 (sasaran tercapai)',
+            legendBad:'> 2 (melebihi sasaran)'
+          },
+          {
+            id:'mbk6_pct_mbk_heat',
+            type:'heat',
+            label:'%MBK Tahun 1',
+            valueField:'%MBK Tahun 1',
+            invert:true // rendah lebih terang
+          },
+          {
+            id:'mbk6_pct_mbk_target',
+            type:'points',
+            label:'%MBK Tahun 1 mencapai sasaran',
+            valueField:'%MBK Tahun 1',
+            threshold:50,
+            badWhen:'<', // <50 merah
+            legendGood:'≥ 50% (sasaran tercapai)',
+            legendBad:'< 50% (tidak capai sasaran)'
+          }
+        ]
+      },
+
+      bk12: {
+        key: 'bk12',
+        name: 'BK 12 Tahun',
+        url: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHeLiGRXsoQF5txoIk71hhTbSq1iq0KnXZD3R7JartHWfqbWt_fTQF-Nwzyy4B7Q/pub?gid=1067638663&single=true&output=csv',
+        latField: 'lat',
+        lngField: 'long',
+        popupFields: [
+          {label:'Nama Sekolah', field:'Nama Sekolah'},
+          {label:'Nama Klinik', field:'Nama Klinik'},
+          {label:'Enrolment Tahun 6', field:'Enrolment tahun 6'},
+          {label:'Mean DMFX 12 tahun', field:'Mean DMFX 12 tahun'},
+          {label:'%BK 12 tahun', field:'%BK 12 tahun'},
+          {label:'Kebersihan mulut A', field:'Kebersihan mulut A'},
+          {label:'Kebersihan mulut C', field:'Kebersihan mulut C'},
+          {label:'Kebersihan mulut E', field:'Kebersihan mulut E'}
+        ],
+        views: [
+          {
+            id:'bk12_mean_dmfx_heat',
+            type:'heat',
+            label:'Mean DMFX 12 tahun',
+            valueField:'Mean DMFX 12 tahun',
+            invert:false
+          },
+          {
+            id:'bk12_mean_dmfx_target',
+            type:'points',
+            label:'Mean DMFX 12 tahun mencapai sasaran',
+            valueField:'Mean DMFX 12 tahun',
+            threshold:0.6,
+            badWhen:'>', // >0.6 merah
+            legendGood:'≤ 0.6 (sasaran tercapai)',
+            legendBad:'> 0.6 (melebihi sasaran)'
+          },
+          {
+            id:'bk12_pct_bk_heat',
+            type:'heat',
+            label:'%BK 12 Tahun',
+            valueField:'%BK 12 tahun',
+            invert:true // rendah lebih terang
+          },
+          {
+            id:'bk12_pct_bk_target',
+            type:'points',
+            label:'%BK 12 tahun mencapai sasaran',
+            valueField:'%BK 12 tahun',
+            threshold:80,
+            badWhen:'<', // <80 merah
+            legendGood:'≥ 80% (sasaran tercapai)',
+            legendBad:'< 80% (tidak capai sasaran)'
+          }
+        ]
+      },
+
+      bk16: {
+        key: 'bk16',
+        name: 'BK 16 Tahun',
+        url: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHeLiGRXsoQF5txoIk71hhTbSq1iq0KnXZD3R7JartHWfqbWt_fTQF-Nwzyy4B7Q/pub?gid=302471074&single=true&output=csv',
+        latField: 'lat',
+        lngField: 'long',
+        popupFields: [
+          {label:'Nama Sekolah', field:'Nama Sekolah'},
+          {label:'Nama Klinik', field:'Nama Klinik'},
+          {label:'Enrolment Tingkatan 4', field:'Enrolment tingkatan 4'},
+          {label:'Mean DMFX 16 tahun', field:'Mean DMFX 16 tahun'},
+          {label:'%BK 16 tahun', field:'%BK 16 tahun'},
+          {label:'Kebersihan mulut A', field:'Kebersihan mulut A'},
+          {label:'Kebersihan mulut C', field:'Kebersihan mulut C'},
+          {label:'Kebersihan mulut E', field:'Kebersihan mulut E'}
+        ],
+        views: [
+          {
+            id:'bk16_mean_dmfx_heat',
+            type:'heat',
+            label:'Mean DMFX 16 tahun',
+            valueField:'Mean DMFX 16 tahun',
+            invert:false
+          },
+          {
+            id:'bk16_mean_dmfx_target',
+            type:'points',
+            label:'Mean DMFX 16 tahun mencapai sasaran',
+            valueField:'Mean DMFX 16 tahun',
+            threshold:1.5,
+            badWhen:'>', // >1.5 merah
+            legendGood:'≤ 1.5 (sasaran tercapai)',
+            legendBad:'> 1.5 (melebihi sasaran)'
+          },
+          {
+            id:'bk16_pct_bk_heat',
+            type:'heat',
+            label:'%BK 16 Tahun',
+            valueField:'%BK 16 tahun',
+            invert:true
+          },
+          {
+            id:'bk16_pct_bk_target',
+            type:'points',
+            label:'%BK 16 tahun mencapai sasaran',
+            valueField:'%BK 16 tahun',
+            threshold:70,
+            badWhen:'<', // <70 merah
+            legendGood:'≥ 70% (sasaran tercapai)',
+            legendBad:'< 70% (tidak capai sasaran)'
+          }
+        ]
+      }
+    };
+
+    // ==========================
+    //  MAP + HELPERS
+    // ==========================
+
+    let map;
+    let heatLayer = null;
+    let markerLayer = null;
+    let currentDatasetKey = 'mbk6';
+    let currentViewId = null;
+
+    function toNum(v){
+      if (v === null || v === undefined) return NaN;
+      // replace comma decimal if any
+      const s = String(v).replace(/\s/g,'').replace(',', '.');
+      const n = parseFloat(s);
+      return isNaN(n) ? NaN : n;
+    }
+
+    function buildTooltip(datasetKey, row){
+      const cfg = DATASETS[datasetKey].popupFields;
+      const lines = cfg.map(f=>{
+        const val = row[f.field] ?? '-';
+        return `<div><strong>${f.label}:</strong> ${val}</div>`;
+      });
+      return lines.join('');
+    }
+
+    // Load CSV once per dataset (cached)
+    function loadDataset(key){
+      const ds = DATASETS[key];
+      if (ds.rows) return Promise.resolve(ds.rows);
+
+      return fetch(ds.url)
+        .then(r => r.text())
+        .then(text => new Promise((resolve, reject)=>{
+          Papa.parse(text,{
+            header:true,
+            skipEmptyLines:true,
+            complete: (res)=>{
+              ds.rows = res.data || [];
+              ds.geoRows = ds.rows
+                .map(row=>{
+                  const lat = toNum(row[ds.latField]);
+                  const lng = toNum(row[ds.lngField]);
+                  if (!isFinite(lat) || !isFinite(lng)) return null;
+                  return {lat, lng, row};
+                })
+                .filter(Boolean);
+              if (ds.geoRows.length){
+                ds.bounds = ds.geoRows.reduce((b,g)=>{
+                  if (!b) return L.latLngBounds([g.lat,g.lng],[g.lat,g.lng]);
+                  return b.extend([g.lat,g.lng]);
+                }, null);
+              }
+              resolve(ds.rows);
+            },
+            error: err => reject(err)
+          });
+        }));
+    }
+
+    function buildHeatPoints(geoRows, field, invert){
+      const pts = [];
+      let min = Infinity, max = -Infinity;
+      geoRows.forEach(g=>{
+        const v = toNum(g.row[field]);
+        if (!isFinite(v)) return;
+        if (v < min) min = v;
+        if (v > max) max = v;
+        pts.push({lat:g.lat, lng:g.lng, val:v});
+      });
+      if (!pts.length) return [];
+
+      const span = (max - min) || 1;
+      return pts.map(p=>{
+        let w = (p.val - min) / span;
+        if (invert) w = 1 - w;
+        if (w < 0) w = 0;
+        if (w > 1) w = 1;
+        if (!w) w = 0.01;
+        return [p.lat, p.lng, w];
+      });
+    }
+
+    function buildBasicMarkerLayer(datasetKey, geoRows){
+      const group = L.layerGroup();
+      geoRows.forEach(g=>{
+        const m = L.circleMarker([g.lat, g.lng],{
+          radius:5,
+          color:'#0f172a',
+          weight:1,
+          fillColor:'#38bdf8',
+          fillOpacity:0.85
+        });
+        m.bindTooltip(buildTooltip(datasetKey, g.row), {direction:'top', offset:[0,-4], sticky:true});
+        group.addLayer(m);
+      });
+      return group;
+    }
+
+    function compareWithThreshold(val, threshold, badWhen){
+      if (!isFinite(val)) return false;
+      switch(badWhen){
+        case '>':  return val > threshold;
+        case '>=': return val >= threshold;
+        case '<':  return val < threshold;
+        case '<=': return val <= threshold;
+        default:   return false;
+      }
+    }
+
+    function buildClassifiedMarkerLayer(datasetKey, geoRows, view){
+      const group = L.layerGroup();
+      geoRows.forEach(g=>{
+        const v = toNum(g.row[view.valueField]);
+        const isBad = compareWithThreshold(v, view.threshold, view.badWhen);
+        const color = isBad ? '#ef4444' : '#0ea5e9';
+        const m = L.circleMarker([g.lat, g.lng],{
+          radius:6,
+          color:'#ffffff',
+          weight:1,
+          fillColor:color,
+          fillOpacity:0.9
+        });
+        m.bindTooltip(buildTooltip(datasetKey, g.row), {direction:'top', offset:[0,-4], sticky:true});
+        group.addLayer(m);
+      });
+      return group;
+    }
+
+    function updateLegend(datasetKey, view){
+      const el = document.getElementById('legend');
+      let html = `<div class="legend-title">${DATASETS[datasetKey].name}</div>`;
+      html += `<div style="font-weight:600; font-size:11px; margin-bottom:4px;">${view.label}</div>`;
+
+      if (view.type === 'heat'){
+        html += `<div class="legend-note">${
+          view.invert
+            ? 'Peta haba: nilai lebih rendah dipaparkan lebih terang.'
+            : 'Peta haba: nilai lebih tinggi dipaparkan lebih terang.'
+        }</div>`;
+      } else {
+        html += `
+          <div class="legend-row">
+            <span class="legend-dot good"></span>
+            <span>${view.legendGood || 'Sasaran tercapai'}</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-dot bad"></span>
+            <span>${view.legendBad || 'Tidak capai sasaran'}</span>
+          </div>
+          <div class="legend-note">Titik merah menunjukkan sekolah yang tidak mencapai sasaran.</div>
+        `;
+      }
+      el.innerHTML = html;
+    }
+
+    function clearLayers(){
+      if (heatLayer){
+        map.removeLayer(heatLayer);
+        heatLayer = null;
+      }
+      if (markerLayer){
+        map.removeLayer(markerLayer);
+        markerLayer = null;
+      }
+    }
+
+    function updateView(){
+      const ds = DATASETS[currentDatasetKey];
+      const view = ds.views.find(v=>v.id === currentViewId) || ds.views[0];
+      currentViewId = view.id;
+
+      if (!ds.geoRows || !ds.geoRows.length){
+        clearLayers();
+        return;
+      }
+
+      clearLayers();
+
+      if (view.type === 'heat'){
+        const heatPoints = buildHeatPoints(ds.geoRows, view.valueField, !!view.invert);
+        if (heatPoints.length){
+          heatLayer = L.heatLayer(heatPoints, {
+            radius:24,
+            blur:18,
+            maxZoom:18
+          }).addTo(map);
+        }
+        // overlay simple markers for hover info
+        markerLayer = buildBasicMarkerLayer(ds.key, ds.geoRows);
+        markerLayer.addTo(map);
+      } else if (view.type === 'points'){
+        markerLayer = buildClassifiedMarkerLayer(ds.key, ds.geoRows, view);
+        markerLayer.addTo(map);
+      }
+
+      if (ds.bounds){
+        map.fitBounds(ds.bounds, { padding:[40,40] });
+      }
+
+      updateLegend(ds.key, view);
+    }
+
+    function populateViewSelect(){
+      const ds = DATASETS[currentDatasetKey];
+      const select = document.getElementById('viewSelect');
+      select.innerHTML = '';
+      ds.views.forEach((v,i)=>{
+        const opt = document.createElement('option');
+        opt.value = v.id;
+        opt.textContent = v.label;
+        if (i === 0) currentViewId = v.id;
+        select.appendChild(opt);
+      });
+      select.value = currentViewId;
+    }
+
+    // ==========================
+    //  INIT
+    // ==========================
+
+    document.addEventListener('DOMContentLoaded', ()=>{
+      // Create base map
+      map = L.map('map',{
+        center:[6.15, 100.4], // approx Kedah
+        zoom:9,
+        zoomControl:true
+      });
+      map.zoomControl.setPosition('bottomright');
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+        maxZoom:19,
+        attribution:'&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      const datasetSelect = document.getElementById('datasetSelect');
+      const viewSelect = document.getElementById('viewSelect');
+
+      // Initial view options
+      populateViewSelect();
+
+      // Load initial dataset & draw
+      loadDataset(currentDatasetKey).then(()=>{
+        updateView();
+      });
+
+      datasetSelect.addEventListener('change', ()=>{
+        currentDatasetKey = datasetSelect.value;
+        populateViewSelect();
+        loadDataset(currentDatasetKey).then(()=>{
+          updateView();
+        });
+      });
+
+      viewSelect.addEventListener('change', ()=>{
+        currentViewId = viewSelect.value;
+        updateView();
+      });
+    });
+  </script>
+</body>
+</html>
