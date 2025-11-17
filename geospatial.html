@@ -624,11 +624,22 @@
 
       clearLayers();
 
-      if (view.type === 'heat'){
-        // Paparan berasaskan nilai: warna titik terus mewakili magnitud indikator
+        if (view.type === 'heat'){
+        // Gabung peta haba + titik berwarna-magnitud
+        const heatPoints = buildHeatPoints(ds, view.valueField, !!view.invert);
+        if (heatPoints.length){
+          heatLayer = L.heatLayer(heatPoints, {
+            radius:38,
+            blur:26,
+            maxZoom:18,
+            minOpacity:0.25
+          }).addTo(map);
+        }
+        // Titik individu masih berwarna mengikut nilai untuk setiap sekolah
         markerLayer = buildGradientMarkerLayer(ds.key, ds, view);
         markerLayer.addTo(map);
       } else if (view.type === 'points'){
+
 
         markerLayer = buildClassifiedMarkerLayer(ds.key, ds, view);
         markerLayer.addTo(map);
