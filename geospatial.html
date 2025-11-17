@@ -64,6 +64,60 @@
       backdrop-filter:blur(14px);
     }
 
+        .overlay-full{
+          display:block;
+          margin-top:4px;
+        }
+    
+        .overlay-collapsed{
+          display:none;
+          width:100%;
+          border-radius:14px;
+          border:1px solid var(--border-card);
+          padding:6px 10px;
+          background:rgba(255,255,255,0.98);
+          box-shadow:0 10px 25px rgba(15,23,42,.18);
+          flex-direction:column;
+          align-items:flex-start;
+          gap:2px;
+          cursor:pointer;
+        }
+    
+        .collapsed-line{
+          font-size:12px;
+          font-weight:600;
+          color:var(--text-main);
+          line-height:1.25;
+        }
+        .collapsed-line.collapsed-sub{
+          font-size:11px;
+          color:var(--text-sub);
+          font-weight:500;
+        }
+    
+        /* When panel is collapsed (mobile) */
+        .overlay-panel.collapsed{
+          padding:8px 10px;
+          max-width:320px;
+        }
+        .overlay-panel.collapsed .overlay-full{
+          display:none;
+        }
+        .overlay-panel.collapsed .overlay-collapsed{
+          display:flex;
+        }
+    
+        /* Optional: only ever collapse on small screens */
+        @media (min-width: 641px){
+          .overlay-panel.collapsed .overlay-full{
+            display:block;
+          }
+          .overlay-panel.collapsed .overlay-collapsed{
+            display:none;
+          }
+        }
+
+
     .overlay-title{
       margin:0 0 4px;
       font-size:18px;
@@ -166,31 +220,41 @@
   </style>
 </head>
 <body>
-  <div id="map"></div>
+    <div id="map"></div>
 
-  <div class="overlay-panel">
-    <h1 class="overlay-title">Geospatial Analisis Kesihatan Pergigian Skolah</h1>
-    <p class="overlay-sub">Pilih kohort dan jenis paparan. Halakan kursor ke sekolah untuk melihat ringkasan data.</p>
-
-    <div class="controls">
-      <div class="control-row">
-        <label for="datasetSelect">Kohort</label>
-        <select id="datasetSelect">
-          <option value="mbk6">MBK 6 Tahun</option>
-          <option value="bk12">BK 12 Tahun</option>
-          <option value="bk16">BK 16 Tahun</option>
-        </select>
-      </div>
-      <div class="control-row">
-        <label for="viewSelect">Paparan</label>
-        <select id="viewSelect"></select>
+    <div class="overlay-panel" id="overlayPanel">
+      <!-- Collapsed bar (shown only in mobile collapsed mode) -->
+      <button class="overlay-collapsed" id="overlayCollapsed" type="button">
+        <div class="collapsed-line" id="collapsedDataset">MBK 6 Tahun</div>
+        <div class="collapsed-line collapsed-sub" id="collapsedView">Mean dfx tahun 1</div>
+      </button>
+  
+      <!-- Full panel -->
+      <div class="overlay-full" id="overlayFull">
+        <h1 class="overlay-title">Geospatial Analisis Kesihatan Pergigian Skolah</h1>
+        <p class="overlay-sub">Pilih kohort dan jenis paparan. Halakan kursor ke sekolah untuk melihat ringkasan data.</p>
+  
+        <div class="controls">
+          <div class="control-row">
+            <label for="datasetSelect">Kohort</label>
+            <select id="datasetSelect">
+              <option value="mbk6">MBK 6 Tahun</option>
+              <option value="bk12">BK 12 Tahun</option>
+              <option value="bk16">BK 16 Tahun</option>
+            </select>
+          </div>
+          <div class="control-row">
+            <label for="viewSelect">Paparan</label>
+            <select id="viewSelect"></select>
+          </div>
+        </div>
+  
+        <div id="legend" class="legend-box">
+          <!-- legend content injected by JS -->
+        </div>
       </div>
     </div>
 
-    <div id="legend" class="legend-box">
-      <!-- legend content injected by JS -->
-    </div>
-  </div>
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -686,24 +750,59 @@
       const datasetSelect = document.getElementById('datasetSelect');
       const viewSelect = document.getElementById('viewSelect');
 
+      const overlayPanel = document.getElementById('overlayPanel');
+      const overlayCollapsed = document.getElementById('overlayCollapsed');
+      const collapsedDataset = document.getElementById('collapsedDataset');
+      const collapsedView = document.getElementById('collapsedView');
+
+      function updateCollapsedLabels(){
+        if (!collapsedDataset || !collapsedView) return;
+        const dsText = datasetSelect.options[datasetSelect.selectedIndex]?.text || '';
+        const viewText = viewSelect.options[viewSelect.selectedIndex]?.text || '';
+        collapsedDataset.textContent = dsText;
+        collapsedView.textContent = viewText;
+      }
+
       populateViewSelect();
+      populateViewSelect();
+      updateCollapsedLabels();
+
 
       loadDataset(currentDatasetKey).then(()=>{
         updateView();
       });
 
-      datasetSelect.addEventListener('change', ()=>{
-        currentDatasetKey = datasetSelect.value;
-        populateViewSelect();
-        loadDataset(currentDatasetKey).then(()=>{
-          updateView();
+        datasetSelect.addEventListener('change', ()=>{
+          currentDatasetKey = datasetSelect.value;
+          populateViewSelect();
+          loadDataset(currentDatasetKey).then(()=>{
+            updateView();
+            updateCollapsedLabels();
+          });
         });
-      });
+  
+        viewSelect.addEventListener('change', ()=>{
+          currentViewId = viewSelect.value;
+          updateView();
+          updateCollapsedLabels();
+        });
 
-      viewSelect.addEventListener('change', ()=>{
-        currentViewId = viewSelect.value;
-        updateView();
-      });
+        // On mobile: tap map to collapse panel
+        map.on('click', ()=>{
+          if (window.innerWidth <= 640 && overlayPanel){
+            overlayPanel.classList.add('collapsed');
+          }
+        });
+  
+        // Tap collapsed bar to re-open full panel
+        if (overlayCollapsed){
+          overlayCollapsed.addEventListener('click', (e)=>{
+            e.stopPropagation();
+            overlayPanel.classList.remove('collapsed');
+          });
+        }
+
+
     });
   </script>
 
