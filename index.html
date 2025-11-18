@@ -13,6 +13,21 @@
   <script src="datasets.js?v=3"></script>
   <script src="app.js?v=1"></script>
 
+    <!-- Leaflet for geospatial preview tile -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+
 
 
   <style>
@@ -251,7 +266,72 @@
 <style>
   .dv-span-3{ grid-column: span 3; }
   .dv-span-2{ grid-column: span 2; }
-  .span-all{ grid-column: 1 / -1; }  /* NEW: span all 5 columns */
+   /* full-width tile in the grid */
+  .span-full{ grid-column: 1 / -1; }
+
+  /* Geospatial preview tile */
+  .geo-tile{
+    padding:0;
+    height:360px;                /* same height as dataviz tiles */
+  }
+  .geo-tile .geo-inner{
+    position:relative;
+    width:100%;
+    height:100%;
+    border-radius:16px;
+    overflow:hidden;
+  }
+  #geoTileMap{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    z-index:1;
+  }
+  .geo-tile .geo-overlay{
+    position:absolute;
+    left:50%;
+    bottom:18px;
+    transform:translateX(-50%);
+    background:rgba(255,255,255,.97);
+    border-radius:18px;
+    padding:12px 24px 16px;
+    box-shadow:var(--shadow-1);
+    text-align:center;
+    max-width:420px;
+    z-index:2;
+  }
+  .geo-tile .geo-icon{
+    width:48px;
+    height:48px;
+    display:block;
+    margin:0 auto 8px;
+    filter: brightness(0) saturate(100%) invert(36%) sepia(91%)
+            saturate(457%) hue-rotate(138deg) brightness(88%) contrast(90%);
+  }
+  .geo-tile .geo-title{
+    margin:0 0 4px;
+    font-weight:800;
+    font-size:16px;
+    color:var(--ink);
+  }
+  .geo-tile .geo-sub{
+    margin:0 0 8px;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .geo-tile .geo-link{
+    display:inline-flex;
+    margin-top:4px;
+    font-weight:700;
+    font-size:13px;
+    color:var(--accent);
+    text-decoration:none;
+  }
+  .geo-tile .geo-link:hover{
+    text-decoration:underline;
+  }
+
 
   .tile-card.dv{
     position:relative;
@@ -1307,18 +1387,28 @@ function buildPeriScale(){
 <!-- ===== THIRD ROW END ===== -->
 <!-- ===== END DATAVIZ TILE SECTION ===== -->
 
-  <!-- Geospatial section title -->
-  <h2 class="row-heading row-heading--muted">Geospatial Analisis</h2>
+  <!-- ===== GEOSPATIAL SECTION ===== -->
+  <h2 class="row-heading row-heading--muted">
+    Geospatial Analisis
+  </h2>
 
-  <!-- Full-width Geospatial tile -->
-  <a class="tile-card square span-all" href="geospatial.html">
-    <img class="icon" src="assets/icons/iconTab.svg" alt="Geospatial Analysis" />
-    <h3 class="title">Peta Geospatial Kesihatan Pergigian Sekolah</h3>
-    <p class="subtitle">
-      MBK 6 tahun, BK 12 &amp; 16 tahun mengikut lokasi sekolah di Kedah.
-    </p>
-    <span class="cta">buka peta</span>
-  </a>
+  <section class="tile-card geo-tile span-full" id="geoTile">
+    <div class="geo-inner">
+      <!-- live mini map -->
+      <div id="geoTileMap" aria-label="Peta Geospatial Kesihatan Pergigian Sekolah"></div>
+
+      <!-- overlay info card on top of the map -->
+      <div class="geo-overlay">
+        <img class="geo-icon" src="assets/icons/iconTab.svg" alt="Ikon peta geospatial" />
+        <h3 class="geo-title">Peta Geospatial Kesihatan Pergigian Sekolah</h3>
+        <p class="geo-sub">
+          MBK 6 tahun, BK 12 &amp; 16 tahun mengikut lokasi sekolah di Kedah.
+        </p>
+        <a class="geo-link" href="geospatial.html">buka peta</a>
+      </div>
+    </div>
+  </section>
+
 
 
   </main>
@@ -1651,6 +1741,138 @@ function buildPeriScale(){
     window.addEventListener('resize', () => requestAnimationFrame(equalizeDVChips));
   </script>
 
+  <script>
+  (function(){
+    const container = document.getElementById('geoTileMap');
+    if (!container || typeof L === 'undefined') return;
+  
+    // MBK 6 Tahun CSV (same link you gave)
+    const CSV_URL_MBK6 =
+      'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHeLiGRXsoQF5txoIk71hhTbSq1iq0KnXZD3R7JartHWfqbWt_fTQF-Nwzyy4B7Q/pub?gid=429148099&single=true&output=csv';
+  
+    function parseCSV(txt){
+      const rows = [], row = [];
+      let cur = '', q = false;
+      for (let i = 0; i < txt.length; i++){
+        const ch = txt[i], nx = txt[i+1];
+        if (ch === '"'){
+          if (q && nx === '"'){ cur += '"'; i++; }
+          else q = !q;
+        } else if (ch === ',' && !q){
+          row.push(cur); cur = '';
+        } else if ((ch === '\n' || ch === '\r') && !q){
+          row.push(cur); rows.push(row.splice(0)); cur = '';
+          if (ch === '\r' && nx === '\n') i++;
+        } else {
+          cur += ch;
+        }
+      }
+      if (cur !== '' || row.length){ row.push(cur); rows.push(row); }
+      return rows;
+    }
+  
+    const toNum = v => {
+      if (v == null) return null;
+      const n = parseFloat((''+v).replace('%','').trim());
+      return Number.isFinite(n) ? n : null;
+    };
+  
+    async function initGeoTile(){
+      const res = await fetch(CSV_URL_MBK6, { cache: 'no-store' });
+      const txt = await res.text();
+      const rows = parseCSV(txt);
+      if (!rows.length) return;
+  
+      const dataRows = rows.slice(1); // skip header
+  
+      // Map each school we have lat/long + Mean dfx Tahun 1
+      const points = [];
+      for (const r of dataRows){
+        const lat      = toNum(r[3]);   // lat
+        const lng      = toNum(r[4]);   // long
+        const meanDfx  = toNum(r[13]);  // Mean dfx tahun 1
+        if (lat == null || lng == null || meanDfx == null) continue;
+  
+        points.push({
+          lat,
+          lng,
+          meanDfx,
+          klinik:  r[1] || '',
+          sekolah: r[2] || '',
+          enrol:   r[5] || '',
+          meanDMFX: toNum(r[20]),       // Mean DMFX Tahun 1
+          mbkPct:   toNum(r[22]),       // %MBK Tahun 1
+          kmA: r[6] || '',
+          kmC: r[7] || '',
+          kmE: r[8] || ''
+        });
+      }
+      if (!points.length) return;
+  
+      // Basic Leaflet map
+      const map = L.map('geoTileMap', {
+        zoomControl: false,
+        attributionControl: false,
+        scrollWheelZoom: false        // so page scroll still feels normal
+      });
+  
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19
+      }).addTo(map);
+  
+      const latlngs = points.map(p => [p.lat, p.lng]);
+      map.fitBounds(latlngs, { padding: [10, 10] });
+  
+      // Heatmap: higher Mean dfx = brighter
+      const vals = points.map(p => p.meanDfx);
+      const max  = Math.max(...vals);
+      const min  = Math.min(...vals);
+      const norm = v => max > min ? (v - min) / (max - min) : 0.5;
+  
+      const heatPoints = points.map(p => [
+        p.lat,
+        p.lng,
+        Math.max(0.2, norm(p.meanDfx))   // keep a minimum brightness
+      ]);
+      L.heatLayer(heatPoints, {
+        radius: 25,
+        blur: 18
+      }).addTo(map);
+  
+      // Circle markers coloured by target (≤2 vs >2)
+      points.forEach(p => {
+        const good = p.meanDfx <= 2;      // green if meeting target
+        const marker = L.circleMarker([p.lat, p.lng], {
+          radius: 4,
+          color: '#ffffff',
+          weight: 1,
+          fillColor: good ? '#22c55e' : '#ef4444',
+          fillOpacity: 0.95
+        }).addTo(map);
+  
+        const fmt = n => {
+          if (n == null) return '-';
+          return (typeof n === 'number') ? n.toFixed(1) : n;
+        };
+  
+        marker.bindPopup(
+          `<strong>${p.sekolah || 'Sekolah tidak diketahui'}</strong><br>` +
+          `${p.klinik || ''}<br>` +
+          `Enrolment Tahun 1: ${p.enrol || '-'}<br>` +
+          `Mean dfx Tahun 1: ${fmt(p.meanDfx)}<br>` +
+          `Mean DMFX Tahun 1: ${fmt(p.meanDMFX)}<br>` +
+          `%MBK Tahun 1: ${fmt(p.mbkPct)}<br>` +
+          `Kebersihan mulut A/C/E: ${p.kmA || '-'} / ${p.kmC || '-'} / ${p.kmE || '-'}`
+        );
+      });
+    }
+  
+    if (document.readyState !== 'loading') initGeoTile();
+    else document.addEventListener('DOMContentLoaded', initGeoTile);
+  })();
+  </script>
 
+
+  
 </body>
 </html>
