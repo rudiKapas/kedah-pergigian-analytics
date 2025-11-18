@@ -98,10 +98,12 @@
     @media (max-width:1100px){ .tiles .row-heading{ font-size:24px; } }
     @media (max-width:720px){  .tiles .row-heading{ font-size:20px; } }
 
-    #summaryHeading {
+    #summaryHeading,
+    .row-heading--muted {
       font-weight: 600;         /* half-bold */
       color: var(--muted);      /* == #64748b */
     }
+
 
 
     /* ===== Card look (top bar removed, icon centered & larger) ===== */
@@ -1299,7 +1301,7 @@ function buildPeriScale(){
 <!-- ===== END DATAVIZ TILE SECTION ===== -->
 
   <!-- Geospatial section title -->
-  <h2 class="row-heading">Geospatial Analysis</h2>
+  <h2 class="row-heading row-heading--muted">Geospatial Analysis</h2>
 
   <!-- Full-width Geospatial tile -->
   <a class="tile-card square span-all" href="geospatial.html">
