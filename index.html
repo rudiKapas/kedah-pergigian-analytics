@@ -242,6 +242,7 @@
 <style>
   .dv-span-3{ grid-column: span 3; }
   .dv-span-2{ grid-column: span 2; }
+  .span-all{ grid-column: 1 / -1; }  /* NEW: span all 5 columns */
 
   .tile-card.dv{
     position:relative;
@@ -1297,6 +1298,18 @@ function buildPeriScale(){
 <!-- ===== THIRD ROW END ===== -->
 <!-- ===== END DATAVIZ TILE SECTION ===== -->
 
+  <!-- Geospatial section title -->
+  <h2 class="row-heading">Geospatial Analysis</h2>
+
+  <!-- Full-width Geospatial tile -->
+  <a class="tile-card square span-all" href="geospatial.html">
+    <img class="icon" src="assets/icons/iconTab.svg" alt="Geospatial Analysis" />
+    <h3 class="title">Peta Geospatial Kesihatan Pergigian Sekolah</h3>
+    <p class="subtitle">
+      MBK 6 tahun, BK 12 &amp; 16 tahun mengikut lokasi sekolah di Kedah.
+    </p>
+    <span class="cta">buka peta</span>
+  </a>
 
 
   </main>
