@@ -108,15 +108,7 @@
           display:flex;
         }
     
-        /* Optional: only ever collapse on small screens */
-        @media (min-width: 641px){
-          .overlay-panel.collapsed .overlay-full{
-            display:block;
-          }
-          .overlay-panel.collapsed .overlay-collapsed{
-            display:none;
-          }
-        }
+      
 
 
     .overlay-title{
@@ -924,12 +916,13 @@
           updateCollapsedLabels();
         });
 
-        // On mobile: tap map to collapse panel
+        // On any screen: click map to collapse panel
         map.on('click', ()=>{
-          if (window.innerWidth <= 640 && overlayPanel){
+          if (overlayPanel){
             overlayPanel.classList.add('collapsed');
           }
         });
+
   
         // Tap collapsed bar to re-open full panel
         if (overlayCollapsed){
