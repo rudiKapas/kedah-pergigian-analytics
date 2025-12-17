@@ -218,6 +218,103 @@
       font-size:11px;
       padding:6px 8px;
     }
+
+    /* ===== Top-right tools (disabled filter + nav) ===== */
+    .geo-toptools{
+      position:fixed;
+      top:12px;
+      right:12px;
+      z-index:1200;
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:10px;
+    }
+    
+    .geo-filter-disabled{
+      height:44px;
+      padding:0 14px;
+      border-radius:14px;
+      background: rgba(15,23,42,.70);
+      border:1px solid rgba(255,255,255,.10);
+      color: rgba(255,255,255,.65);
+      font-weight:700;
+      font-size:13px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      opacity:.55;
+      cursor:not-allowed;
+      pointer-events:none; /* non-clickable */
+      user-select:none;
+    }
+    
+    /* ===== Geospatial floating nav (local to this page) ===== */
+    .geo-fab{
+      --fab-bg:#0b1220;
+      --fab-step: 68px;
+      position:relative;
+    }
+    
+    .geo-fab .fab-main,
+    .geo-fab .fab-child{
+      width:62px; height:62px;
+      border-radius:999px;
+      background:var(--fab-bg);
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:0 18px 45px rgba(15,23,42,.28);
+      display:grid;
+      place-items:center;
+      transition:transform .28s cubic-bezier(.2,.8,.2,1), opacity .22s;
+      will-change:transform, opacity;
+    }
+    
+    .geo-fab .fab-child{
+      width:56px; height:56px;
+      position:absolute; top:0; left:0;
+      opacity:0;
+      pointer-events:none;
+      transform:translate(0,0) scale(.92);
+    }
+    
+    .geo-fab img{
+      width:30px; height:30px;
+      filter:brightness(0) invert(1);
+    }
+    .geo-fab .fab-child img{ width:26px; height:26px; }
+    
+    .geo-fab.open .fab-child{ pointer-events:auto; }
+    .geo-fab.open .fab-child{
+      opacity:1;
+      transform: translate(0, calc(var(--i) * var(--fab-step))) scale(1);
+    }
+    
+    /* Tooltip */
+    .geo-fab a{ position:relative; text-decoration:none; }
+    .geo-fab .fab-tip{
+      position:absolute;
+      top:50%;
+      left:-10px;
+      transform:translate(-100%, -50%) scale(.96);
+      background:var(--fab-bg);
+      color:#fff;
+      font-size:12px;
+      line-height:1;
+      white-space:nowrap;
+      padding:8px 10px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:0 18px 45px rgba(15,23,42,.28);
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .18s ease, transform .18s ease;
+    }
+    .geo-fab a:hover .fab-tip,
+    .geo-fab a:focus-visible .fab-tip{
+      opacity:1;
+      transform:translate(-100%, -50%) scale(1);
+    }
+
   </style>
 </head>
 <body>
@@ -255,6 +352,39 @@
         </div>
       </div>
     </div>
+
+        <!-- Top-right tools: disabled filter placeholder + navigation -->
+        <div class="geo-toptools" aria-label="Geospatial tools">
+          <div class="geo-filter-disabled" aria-disabled="true">
+            Penapis (tidak tersedia)
+          </div>
+    
+          <div class="geo-fab" id="geoFab">
+            <!-- Main (opens menu; click goes to index) -->
+            <a class="fab-main" href="index.html" title="Utama">
+              <img src="assets/icons/nav.svg" alt="Utama">
+              <span class="fab-tip">Utama</span>
+            </a>
+    
+            <!-- Children (stack downward) -->
+            <a class="fab-child" href="akses.html" title="Akses" style="--i:1">
+              <img src="assets/icons/access.svg" alt="Akses"><span class="fab-tip">Akses</span>
+            </a>
+            <a class="fab-child" href="sekolah.html" title="Sekolah" style="--i:2">
+              <img src="assets/icons/sekolah.svg" alt="Sekolah"><span class="fab-tip">Sekolah</span>
+            </a>
+            <a class="fab-child" href="kpi.html" title="KPI" style="--i:3">
+              <img src="assets/icons/kpi.svg" alt="KPI"><span class="fab-tip">KPI</span>
+            </a>
+            <a class="fab-child" href="workforce.html" title="Tenaga Kerja" style="--i:4">
+              <img src="assets/icons/workforce.svg" alt="Tenaga Kerja"><span class="fab-tip">Tenaga Kerja</span>
+            </a>
+            <a class="fab-child" href="prevention.html" title="Pencegahan" style="--i:5">
+              <img src="assets/icons/prevention.svg" alt="Pencegahan"><span class="fab-tip">Pencegahan</span>
+            </a>
+          </div>
+        </div>
+
 
 
   <!-- Leaflet JS -->
@@ -805,7 +935,38 @@
 
 
     });
-  </script>
+    </script>
 
-</body>
+    <script>
+      // Geospatial floating nav open/close (local)
+      (function(){
+        const fab = document.getElementById('geoFab');
+        if(!fab) return;
+  
+        const main = fab.querySelector('.fab-main');
+        const mainImg = main ? main.querySelector('img') : null;
+  
+        // match other pages: nav icon → home icon on hover
+        if(main && mainImg){
+          main.addEventListener('mouseenter', () => mainImg.src = 'assets/icons/home.svg');
+          main.addEventListener('mouseleave', () => mainImg.src = 'assets/icons/nav.svg');
+        }
+  
+        let closeTimer = null;
+        const open = () => { clearTimeout(closeTimer); fab.classList.add('open'); };
+        const close = () => { closeTimer = setTimeout(() => fab.classList.remove('open'), 450); };
+  
+        fab.addEventListener('mouseenter', open);
+        fab.addEventListener('mouseleave', close);
+        fab.addEventListener('focusin', open);
+        fab.addEventListener('focusout', (e) => {
+          if (!fab.contains(e.relatedTarget)) close();
+        });
+  
+        if(main) main.addEventListener('mouseenter', open);
+      })();
+    </script>
+  
+  </body>
+
 </html>
