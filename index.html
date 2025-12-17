@@ -76,7 +76,7 @@
     .hero p.sub{ margin:0 0 12px; opacity:.95; font-weight:600; }
 
     /* Search row in hero (back button removed) */
-    .searchbar{ display:grid; grid-template-columns:1fr auto; align-items:center; gap:12px; margin-top:8px; }
+    .searchbar{ display:grid; grid-template-columns:auto 1fr; align-items:center; gap:12px; margin-top:8px; }
     .searchbar input{ height:var(--ctl); border-radius:12px; border:1px solid #d1d5db; padding:0 14px; background:#fff; box-shadow:var(--shadow-1); }
     .searchbar button.search{ height:var(--ctl); width:var(--ctl); border-radius:12px; border:1px solid var(--accent); background:var(--accent); color:#fff; box-shadow:0 4px 14px rgba(14,165,160,.25); cursor:pointer; }
 
@@ -200,10 +200,10 @@
       <div class="gs-box">
         <div class="searchbar">
           <!-- Back button intentionally removed -->
-          <input id="globalSearch" type="search" placeholder="Cari halaman, graf atau saringan…" autocomplete="off" />
           <button class="search" id="goBtn" title="Cari">
             <svg class="ico"><use href="#i-search" /></svg>
           </button>
+          <input id="globalSearch" type="search" placeholder="Cari halaman, graf atau saringan…" autocomplete="off" />
         </div>
         <div class="gs-suggest" id="suggestBox"></div>
       </div>
