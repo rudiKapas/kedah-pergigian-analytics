@@ -384,21 +384,16 @@ header.ph .searchbar{
 /* keep children interactive while open */
 .fab.open .fab-child{ pointer-events:auto; }
 
-/* even half-circle controls */
+/* vertical stack controls (children slide downward from the main button) */
 :root{
-  /* distance from main to children — increase to spread further */
-  --fab-r: 96px;
-  --fab-rd: calc(var(--fab-r) * .7071); /* r / √2 */
+  --fab-step: 68px; /* spacing between child buttons (56px button + ~12px gap) */
 }
 
-
-/* true half-circle: endpoints level with main, middle directly below */
-.fab.open .c1{ transform: translate(calc(-1 * var(--fab-r)), 0px)        scale(1); opacity:1; } /* 180° */
-.fab.open .c2{ transform: translate(calc(-1 * var(--fab-rd)), var(--fab-rd)) scale(1); opacity:1; } /* 225° */
-.fab.open .c3{ transform: translate(0px,                     var(--fab-r))  scale(1); opacity:1; } /* 270° */
-.fab.open .c4{ transform: translate(var(--fab-rd),           var(--fab-rd)) scale(1); opacity:1; } /* 315° */
-.fab.open .c5{ transform: translate(var(--fab-r),            0px)           scale(1); opacity:1; } /* 360° */
-
+/* when open, each child moves down by (index * step) */
+.fab.open .fab-child{
+  transform: translate(0, calc(var(--i) * var(--fab-step))) scale(1);
+  opacity: 1;
+}
 
 
 
