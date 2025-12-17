@@ -460,18 +460,21 @@
         main.addEventListener('mouseleave', () => mainImg.src = 'assets/icons/nav.svg');
         fab.appendChild(main);
       
-        // CHILD buttons (fan out down-left)
-        const items = [
-          ['akses.html',      'assets/icons/access.svg',     'Akses'],
-          ['sekolah.html',    'assets/icons/sekolah.svg',    'Sekolah'],
-          ['kpi.html',        'assets/icons/kpi.svg',        'KPI'],
-          ['workforce.html',  'assets/icons/workforce.svg',  'Tenaga Kerja'],
-          ['prevention.html', 'assets/icons/prevention.svg', 'Pencegahan'],
-        ];
-        const classes = ['c1','c2','c3','c4','c5'];
-        items.forEach(([href, icon, label], i) => {
-          fab.appendChild( makeBtn(href, icon, 'fab-child ' + classes[i], label) );
-        });
+        // CHILD buttons (stack downward)
+         const items = [
+           ['akses.html',      'assets/icons/access.svg',     'Akses'],
+           ['sekolah.html',    'assets/icons/sekolah.svg',    'Sekolah'],
+           ['kpi.html',        'assets/icons/kpi.svg',        'KPI'],
+           ['workforce.html',  'assets/icons/workforce.svg',  'Tenaga Kerja'],
+           ['prevention.html', 'assets/icons/prevention.svg', 'Pencegahan'],
+         ];
+         
+         items.forEach(([href, icon, label], i) => {
+           const child = makeBtn(href, icon, 'fab-child', label);
+           child.style.setProperty('--i', i + 1); // 1,2,3... used by CSS for vertical spacing
+           fab.appendChild(child);
+         });
+
       
         document.body.appendChild(fab);
       
