@@ -467,6 +467,7 @@
            ['kpi.html',        'assets/icons/kpi.svg',        'KPI'],
            ['workforce.html',  'assets/icons/workforce.svg',  'Tenaga Kerja'],
            ['prevention.html', 'assets/icons/prevention.svg', 'Pencegahan'],
+           ['geospatial.html', 'assets/icons/geospatial.svg', 'Geospatial'],
          ];
          
          items.forEach(([href, icon, label], i) => {
