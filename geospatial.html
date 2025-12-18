@@ -937,34 +937,73 @@
     </script>
 
     <script>
-      // Geospatial floating nav open/close (local)
+      // Geospatial floating nav (mobile + desktop)
       (function(){
         const fab = document.getElementById('geoFab');
         if(!fab) return;
-  
+    
         const main = fab.querySelector('.fab-main');
         const mainImg = main ? main.querySelector('img') : null;
-  
-        // match other pages: nav icon → home icon on hover
-        if(main && mainImg){
-          main.addEventListener('mouseenter', () => mainImg.src = 'assets/icons/home.svg');
-          main.addEventListener('mouseleave', () => mainImg.src = 'assets/icons/nav.svg');
+    
+        const isTouchLike = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+    
+        function setMainIcon(isOpen){
+          if(!mainImg) return;
+          mainImg.src = isOpen ? 'assets/icons/home.svg' : 'assets/icons/nav.svg';
         }
-  
+    
         let closeTimer = null;
-        const open = () => { clearTimeout(closeTimer); fab.classList.add('open'); };
-        const close = () => { closeTimer = setTimeout(() => fab.classList.remove('open'), 450); };
-  
-        fab.addEventListener('mouseenter', open);
-        fab.addEventListener('mouseleave', close);
-        fab.addEventListener('focusin', open);
-        fab.addEventListener('focusout', (e) => {
-          if (!fab.contains(e.relatedTarget)) close();
+    
+        function openMenu(){
+          clearTimeout(closeTimer);
+          fab.classList.add('open');
+          setMainIcon(true);
+        }
+    
+        function closeMenu(immediate){
+          clearTimeout(closeTimer);
+          const doClose = () => {
+            fab.classList.remove('open');
+            setMainIcon(false);
+          };
+          if(immediate) doClose();
+          else closeTimer = setTimeout(doClose, 450);
+        }
+    
+        // Desktop hover support (unchanged behavior for desktop)
+        fab.addEventListener('mouseenter', () => { if(!isTouchLike) openMenu(); });
+        fab.addEventListener('mouseleave', () => { if(!isTouchLike) closeMenu(false); });
+    
+        // Mobile/touch: first tap opens; second tap navigates (keeps your current <a href="index.html">)
+        if(main){
+          main.addEventListener('click', (e) => {
+            if(!fab.classList.contains('open')){
+              e.preventDefault();      // stop navigation on first tap
+              e.stopPropagation();
+              openMenu();
+              return;
+            }
+            // already open -> allow navigation
+          }, { passive:false });
+        }
+    
+        // Keep taps inside FAB from bubbling to the map/page
+        fab.addEventListener('click', (e) => e.stopPropagation());
+    
+        // Tap outside closes
+        document.addEventListener('click', (e) => {
+          if(!fab.contains(e.target)) closeMenu(true);
         });
-  
-        if(main) main.addEventListener('mouseenter', open);
+    
+        // Close immediately when tapping a child link (before navigation)
+        fab.querySelectorAll('.fab-child:not(.is-current)').forEach(a => {
+          a.addEventListener('click', () => closeMenu(true));
+        });
+    
+        setMainIcon(false);
       })();
     </script>
+
   
   </body>
 
