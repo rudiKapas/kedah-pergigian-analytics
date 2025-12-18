@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Inventori & Peruntukan Bekalan Pergigian Kedah</title>
+
+  <!-- Shared stylesheet (same as other pages) -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Chart + CSV parsing (same approach as other pages) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <style>
+    /* Keep changes LOCAL to this page only */
+    .sel{
+      height:36px;
+      border:1px solid #d1d5db;
+      border-radius:10px;
+      background:#fff;
+      padding:0 10px;
+      font-weight:700;
+      font-size:13px;
+      color:#0f172a;
+      cursor:pointer;
+    }
+    .sel:focus{ outline:none; box-shadow:0 0 0 3px rgba(16,185,129,.18); }
+
+    .muted-note{ color:#64748b; font-size:12px; }
+
+    /* Make the first tile feel “infographic” */
+    .kpi-strip{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      padding:10px 14px 0;
+    }
+    .kpi-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      border:1px solid #e5e7eb;
+      border-radius:12px;
+      background:#fff;
+      box-shadow:var(--shadow-1);
+      font-size:12px;
+      color:#334155;
+    }
+    .kpi-pill strong{ font-size:12px; }
+
+    /* Simple table styling inside .tb (uses existing .tb padding & border) */
+    .tb table{ width:100%; border-collapse:collapse; min-width:520px; }
+    .tb th,.tb td{ padding:8px 10px; border-bottom:1px solid #eef2f7; font-size:13px; }
+    .tb th{ text-align:left; color:#475569; font-weight:800; background:#fafafa; }
+    .tb td.num{ text-align:right; font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+
+<body>
+
+  <!-- ===== Header (same structure class names as your other pages) ===== -->
+  <header class="ph">
+    <h1>Inventori &amp; Peruntukan Bekalan Pergigian Kedah</h1>
+    <p>Ringkasan inventori, tempoh bekalan, dan keperluan peruntukan tambahan mengikut daerah.</p>
+
+    <!-- Search row (same “search-left + input stretches right” pattern) -->
+    <div class="searchbar" role="search">
+      <button id="btnSearch" type="button" aria-label="Cari">
+        <!-- inline svg icon to avoid dependency -->
+        <svg class="ico" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M21 21l-4.3-4.3m1.8-5.2a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <input id="q" type="search" placeholder="Cari komponen atau penapis…" autocomplete="off" />
+      <div id="suggest" class="gs-suggest" style="display:none"></div>
+    </div>
+  </header>
+
+  <!-- ===== Tiles grid ===== -->
+  <main class="grid">
+
+    <!-- TILE 1 -->
+    <section class="tile wide" id="tile-inv">
+      <div class="th">
+        <div>
+          <h2 class="ttl">Laporan Bulanan Inventori</h2>
+          <div class="sub">
+            <span class="muted-note" id="invSub">Pilih kategori (Tier 1) dan metrik (Tier 2). Graf menunjukkan trend mengikut tempoh.</span>
+          </div>
+        </div>
+
+        <div class="act">
+          <!-- Tempoh “end point” selector (controls how many periods are included) -->
+          <select id="invEndPeriod" class="sel" title="Tempoh">
+            <!-- populated by JS -->
+          </select>
+
+          <!-- Tier 1 -->
+          <select id="invTier1" class="sel" title="Tier 1">
+            <!-- populated by JS -->
+          </select>
+
+          <!-- Tier 2 -->
+          <select id="invTier2" class="sel" title="Tier 2">
+            <!-- populated by JS -->
+          </select>
+
+          <button class="icbtn" id="invRefresh" type="button" title="Segarkan">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M20 12a8 8 0 10-2.3 5.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M20 4v6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+
+          <button class="icbtn" id="invExpand" type="button" title="Besarkan">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 3H3v6M15 3h6v6M9 21H3v-6M15 21h6v-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Small “infographic pills” -->
+      <div class="kpi-strip" id="invPills"></div>
+
+      <!-- Chart -->
+      <div class="chart">
+        <canvas id="invChart" aria-label="Graf inventori" role="img"></canvas>
+      </div>
+
+      <!-- Table (latest period snapshot) -->
+      <div class="tb" id="invTableWrap"></div>
+
+      <div class="err" id="invErr"></div>
+    </section>
+
+    <!-- TILE 2 -->
+    <section class="tile wide" id="tile-lbpp">
+      <div class="th">
+        <div>
+          <h2 class="ttl">Laporan Bulanan Perbelanjaan &amp; Peruntukan (LBPP)</h2>
+          <div class="sub">
+            <span class="muted-note">Belum diaktifkan (menunggu pautan dataset LBPP).</span>
+          </div>
+        </div>
+        <div class="act">
+          <button class="icbtn" type="button" title="Segarkan" disabled style="opacity:.55; cursor:not-allowed">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M20 12a8 8 0 10-2.3 5.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M20 4v6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <button class="icbtn" type="button" title="Besarkan" disabled style="opacity:.55; cursor:not-allowed">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 3H3v6M15 3h6v6M9 21H3v-6M15 21h6v-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="tb">
+        <strong>Status:</strong> Data LBPP belum dimasukkan. Bila anda beri CSV/gid, saya akan sambungkan tile ini dengan gaya dan logik yang sama.
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== Modal (same pattern as other pages) ===== -->
+  <div class="modal" id="modal">
+    <div class="mcard" role="dialog" aria-modal="true" aria-label="Paparan besar">
+      <div class="mhead">
+        <div>
+          <div class="mtitle" id="mTitle">Paparan Besar</div>
+          <div class="msub" id="mSub"></div>
+        </div>
+        <button class="icbtn" id="mClose" type="button" title="Tutup">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="mbody">
+        <div class="canvas-wrap">
+          <canvas id="mChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Keep your shared JS injection (floating filter + nav) -->
+  <script src="datasets.js"></script>
+
+  <script>
+    /**********************************************************************
+     * 1) ADD/UPDATE GOOGLE SHEETS LINKS HERE (THIS IS THE ONLY PLACE)
+     *
+     * Insert new 3-month links by adding a new object to INV_PERIOD_SHEETS.
+     * Only the gid changes (same published base).
+     **********************************************************************/
+    const INV_BASE_PUB =
+      'https://docs.google.com/spreadsheets/d/e/2PACX-1vRZRpifcVPwsoPOrErphZlbDRWHPpPzBnCfvSzwR6PllYv9CZPZt1uZsG4XwuHNSidAciHjzzxYjjNN/pub';
+
+    const INV_PERIOD_SHEETS = [
+      { key:'2025_janmar', label:'Jan–Mac 2025', gid:'1604801621' },
+      { key:'2025_janjun', label:'Jan–Jun 2025', gid:'351296455' },
+      { key:'2025_jansep', label:'Jan–Sept 2025', gid:'47821166' },
+      // { key:'2025_jandis', label:'Jan–Dis 2025', gid:'PASTE_NEW_GID_HERE' },
+    ];
+
+    /**********************************************************************
+     * 2) Tier filters
+     **********************************************************************/
+    const TIER1 = [
+      'Reagent',
+      'Consumable',
+      'Instrument',
+      'Injection material',
+      'Consumable injection material',
+      'Other consumable injection material',
+      'Ubat bukan ubat (belum tersedia)'
+    ];
+
+    const TIER2 = [
+      { key:'STOK_PERMULAAN', label:'STOK PERMULAAN (RM)', unit:'RM' },
+      { key:'STOK_DITERIMA_PEROLEHAN_SENDIRI', label:'STOK DITERIMA (PEROLEHAN SENDIRI) (RM)', unit:'RM' },
+      { key:'STOK_DIKELUARKAN_INTRA_FASILITI', label:'STOK DIKELUARKAN (INTRA FASILITI) (RM)', unit:'RM' },
+      { key:'BAKI_STOK_KESELURUHAN', label:'BAKI STOK KESELURUHAN (RM)', unit:'RM' },
+      { key:'ANGGARAN_TEMPOH_BOLEH_BERTAHAN', label:'ANGGARAN TEMPOH BOLEH BERTAHAN (BULAN)', unit:'BULAN' },
+      { key:'KEPERLUAN_PERUNTUKAN_TAMBAHAN', label:'KEPERLUAN PERUNTUKAN TAMBAHAN (RM)', unit:'RM' },
+    ];
+
+    /**********************************************************************
+     * 3) Cell locations (A1 notation) — EXACTLY as you provided
+     **********************************************************************/
+    const CELLS = {
+      'Reagent': {
+        'Kota Setar dan Pendang': { STOK_PERMULAAN:'F280', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G280', STOK_DIKELUARKAN_INTRA_FASILITI:'J280', BAKI_STOK_KESELURUHAN:'L280', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q280', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R280' },
+        'Kuala Muda dan Sik':     { STOK_PERMULAAN:'F281', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G281', STOK_DIKELUARKAN_INTRA_FASILITI:'J281', BAKI_STOK_KESELURUHAN:'L281', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q281', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R281' },
+        'Kulim dan Bandar Baru':  { STOK_PERMULAAN:'F282', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G282', STOK_DIKELUARKAN_INTRA_FASILITI:'J282', BAKI_STOK_KESELURUHAN:'L282', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q282', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R282' },
+        'Kubang Pasu':            { STOK_PERMULAAN:'F283', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G283', STOK_DIKELUARKAN_INTRA_FASILITI:'J283', BAKI_STOK_KESELURUHAN:'L283', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q283', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R283' },
+        'Padang Terap':           { STOK_PERMULAAN:'F284', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G284', STOK_DIKELUARKAN_INTRA_FASILITI:'J284', BAKI_STOK_KESELURUHAN:'L284', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q284', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R284' },
+        'Baling':                 { STOK_PERMULAAN:'F285', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G285', STOK_DIKELUARKAN_INTRA_FASILITI:'J285', BAKI_STOK_KESELURUHAN:'L285', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q285', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R285' },
+        'Yan':                    { STOK_PERMULAAN:'F286', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G286', STOK_DIKELUARKAN_INTRA_FASILITI:'J286', BAKI_STOK_KESELURUHAN:'L286', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q286', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R286' },
+        'Langkawi':               { STOK_PERMULAAN:'F288', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G288', STOK_DIKELUARKAN_INTRA_FASILITI:'J288', BAKI_STOK_KESELURUHAN:'L288', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q288', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R288' },
+        'Kedah':                  { STOK_PERMULAAN:'F287', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G287', STOK_DIKELUARKAN_INTRA_FASILITI:'J287', BAKI_STOK_KESELURUHAN:'L287', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q287', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R287' },
+      },
+
+      'Consumable': {
+        'Kota Setar dan Pendang': { STOK_PERMULAAN:'F295', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G295', STOK_DIKELUARKAN_INTRA_FASILITI:'J295', BAKI_STOK_KESELURUHAN:'L295', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q295', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R295' },
+        'Kuala Muda dan Sik':     { STOK_PERMULAAN:'F296', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G296', STOK_DIKELUARKAN_INTRA_FASILITI:'J296', BAKI_STOK_KESELURUHAN:'L296', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q296', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R296' },
+        'Kulim dan Bandar Baru':  { STOK_PERMULAAN:'F297', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G297', STOK_DIKELUARKAN_INTRA_FASILITI:'J297', BAKI_STOK_KESELURUHAN:'L297', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q297', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R297' },
+        'Kubang Pasu':            { STOK_PERMULAAN:'F298', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G298', STOK_DIKELUARKAN_INTRA_FASILITI:'J298', BAKI_STOK_KESELURUHAN:'L298', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q298', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R298' },
+        'Padang Terap':           { STOK_PERMULAAN:'F299', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G299', STOK_DIKELUARKAN_INTRA_FASILITI:'J299', BAKI_STOK_KESELURUHAN:'L299', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q299', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R299' },
+        'Baling':                 { STOK_PERMULAAN:'F300', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G300', STOK_DIKELUARKAN_INTRA_FASILITI:'J300', BAKI_STOK_KESELURUHAN:'L300', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q300', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R300' },
+        'Yan':                    { STOK_PERMULAAN:'F301', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G301', STOK_DIKELUARKAN_INTRA_FASILITI:'J301', BAKI_STOK_KESELURUHAN:'L301', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q301', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R301' },
+        'Langkawi':               { STOK_PERMULAAN:'F303', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G303', STOK_DIKELUARKAN_INTRA_FASILITI:'J303', BAKI_STOK_KESELURUHAN:'L303', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q303', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R303' },
+        'Kedah':                  { STOK_PERMULAAN:'F302', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G302', STOK_DIKELUARKAN_INTRA_FASILITI:'J302', BAKI_STOK_KESELURUHAN:'L302', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q302', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R302' },
+      },
+
+      'Instrument': {
+        'Kota Setar dan Pendang': { STOK_PERMULAAN:'F310', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G310', STOK_DIKELUARKAN_INTRA_FASILITI:'J310', BAKI_STOK_KESELURUHAN:'L310', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q310', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R310' },
+        'Kuala Muda dan Sik':     { STOK_PERMULAAN:'F311', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G311', STOK_DIKELUARKAN_INTRA_FASILITI:'J311', BAKI_STOK_KESELURUHAN:'L311', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q311', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R311' },
+        'Kulim dan Bandar Baru':  { STOK_PERMULAAN:'F312', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G312', STOK_DIKELUARKAN_INTRA_FASILITI:'J312', BAKI_STOK_KESELURUHAN:'L312', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q312', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R312' },
+        'Kubang Pasu':            { STOK_PERMULAAN:'F313', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G313', STOK_DIKELUARKAN_INTRA_FASILITI:'J313', BAKI_STOK_KESELURUHAN:'L313', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q313', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R313' },
+        'Padang Terap':           { STOK_PERMULAAN:'F314', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G314', STOK_DIKELUARKAN_INTRA_FASILITI:'J314', BAKI_STOK_KESELURUHAN:'L314', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q314', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R314' },
+        'Baling':                 { STOK_PERMULAAN:'F315', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G315', STOK_DIKELUARKAN_INTRA_FASILITI:'J315', BAKI_STOK_KESELURUHAN:'L315', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q315', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R315' },
+        'Yan':                    { STOK_PERMULAAN:'F316', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G316', STOK_DIKELUARKAN_INTRA_FASILITI:'J316', BAKI_STOK_KESELURUHAN:'L316', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q316', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R316' },
+        'Langkawi':               { STOK_PERMULAAN:'F318', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G318', STOK_DIKELUARKAN_INTRA_FASILITI:'J318', BAKI_STOK_KESELURUHAN:'L318', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q318', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R318' },
+        'Kedah':                  { STOK_PERMULAAN:'F317', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G317', STOK_DIKELUARKAN_INTRA_FASILITI:'J317', BAKI_STOK_KESELURUHAN:'L317', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q317', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R317' },
+      },
+
+      'Injection material': {
+        'Kota Setar dan Pendang': { STOK_PERMULAAN:'F325', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G325', STOK_DIKELUARKAN_INTRA_FASILITI:'J325', BAKI_STOK_KESELURUHAN:'L325', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q325', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R325' },
+        'Kuala Muda dan Sik':     { STOK_PERMULAAN:'F326', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G326', STOK_DIKELUARKAN_INTRA_FASILITI:'J326', BAKI_STOK_KESELURUHAN:'L326', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q326', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R326' },
+        'Kulim dan Bandar Baru':  { STOK_PERMULAAN:'F327', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G327', STOK_DIKELUARKAN_INTRA_FASILITI:'J327', BAKI_STOK_KESELURUHAN:'L327', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q327', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R327' },
+        'Kubang Pasu':            { STOK_PERMULAAN:'F328', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G328', STOK_DIKELUARKAN_INTRA_FASILITI:'J328', BAKI_STOK_KESELURUHAN:'L328', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q328', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R328' },
+        'Padang Terap':           { STOK_PERMULAAN:'F329', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G329', STOK_DIKELUARKAN_INTRA_FASILITI:'J329', BAKI_STOK_KESELURUHAN:'L329', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q329', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R329' },
+        'Baling':                 { STOK_PERMULAAN:'F330', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G330', STOK_DIKELUARKAN_INTRA_FASILITI:'J330', BAKI_STOK_KESELURUHAN:'L330', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q330', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R330' },
+        'Yan':                    { STOK_PERMULAAN:'F331', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G331', STOK_DIKELUARKAN_INTRA_FASILITI:'J331', BAKI_STOK_KESELURUHAN:'L331', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q331', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R331' },
+        'Langkawi':               { STOK_PERMULAAN:'F333', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G333', STOK_DIKELUARKAN_INTRA_FASILITI:'J333', BAKI_STOK_KESELURUHAN:'L333', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q333', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R333' },
+        'Kedah':                  { STOK_PERMULAAN:'F332', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G332', STOK_DIKELUARKAN_INTRA_FASILITI:'J332', BAKI_STOK_KESELURUHAN:'L332', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q332', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R332' },
+      },
+
+      'Consumable injection material': {
+        'Kota Setar dan Pendang': { STOK_PERMULAAN:'F340', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G340', STOK_DIKELUARKAN_INTRA_FASILITI:'J340', BAKI_STOK_KESELURUHAN:'L340', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q340', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R340' },
+        'Kuala Muda dan Sik':     { STOK_PERMULAAN:'F341', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G341', STOK_DIKELUARKAN_INTRA_FASILITI:'J341', BAKI_STOK_KESELURUHAN:'L341', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q341', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R341' },
+        'Kulim dan Bandar Baru':  { STOK_PERMULAAN:'F342', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G342', STOK_DIKELUARKAN_INTRA_FASILITI:'J342', BAKI_STOK_KESELURUHAN:'L342', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q342', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R342' },
+        'Kubang Pasu':            { STOK_PERMULAAN:'F343', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G343', STOK_DIKELUARKAN_INTRA_FASILITI:'J343', BAKI_STOK_KESELURUHAN:'L343', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q343', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R343' },
+        'Padang Terap':           { STOK_PERMULAAN:'F344', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G344', STOK_DIKELUARKAN_INTRA_FASILITI:'J344', BAKI_STOK_KESELURUHAN:'L344', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q344', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R344' },
+        'Baling':                 { STOK_PERMULAAN:'F345', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G345', STOK_DIKELUARKAN_INTRA_FASILITI:'J345', BAKI_STOK_KESELURUHAN:'L345', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q345', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R345' },
+        'Yan':                    { STOK_PERMULAAN:'F346', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G346', STOK_DIKELUARKAN_INTRA_FASILITI:'J346', BAKI_STOK_KESELURUHAN:'L346', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q346', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R346' },
+        'Langkawi':               { STOK_PERMULAAN:'F348', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G348', STOK_DIKELUARKAN_INTRA_FASILITI:'J348', BAKI_STOK_KESELURUHAN:'L348', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q348', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R348' },
+        'Kedah':                  { STOK_PERMULAAN:'F347', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G347', STOK_DIKELUARKAN_INTRA_FASILITI:'J347', BAKI_STOK_KESELURUHAN:'L347', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q347', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R347' },
+      },
+
+      'Other consumable injection material': {
+        'Kota Setar dan Pendang': { STOK_PERMULAAN:'F355', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G355', STOK_DIKELUARKAN_INTRA_FASILITI:'J355', BAKI_STOK_KESELURUHAN:'L355', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q355', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R355' },
+        'Kuala Muda dan Sik':     { STOK_PERMULAAN:'F356', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G356', STOK_DIKELUARKAN_INTRA_FASILITI:'J356', BAKI_STOK_KESELURUHAN:'L356', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q356', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R356' },
+        'Kulim dan Bandar Baru':  { STOK_PERMULAAN:'F357', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G357', STOK_DIKELUARKAN_INTRA_FASILITI:'J357', BAKI_STOK_KESELURUHAN:'L357', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q357', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R357' },
+        'Kubang Pasu':            { STOK_PERMULAAN:'F358', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G358', STOK_DIKELUARKAN_INTRA_FASILITI:'J358', BAKI_STOK_KESELURUHAN:'L358', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q358', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R358' },
+        'Padang Terap':           { STOK_PERMULAAN:'F359', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G359', STOK_DIKELUARKAN_INTRA_FASILITI:'J359', BAKI_STOK_KESELURUHAN:'L359', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q359', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R359' },
+        'Baling':                 { STOK_PERMULAAN:'F360', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G360', STOK_DIKELUARKAN_INTRA_FASILITI:'J360', BAKI_STOK_KESELURUHAN:'L360', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q360', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R360' },
+        'Yan':                    { STOK_PERMULAAN:'F361', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G361', STOK_DIKELUARKAN_INTRA_FASILITI:'J361', BAKI_STOK_KESELURUHAN:'L361', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q361', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R361' },
+        'Langkawi':               { STOK_PERMULAAN:'F363', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G363', STOK_DIKELUARKAN_INTRA_FASILITI:'J363', BAKI_STOK_KESELURUHAN:'L363', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q363', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R363' },
+        'Kedah':                  { STOK_PERMULAAN:'F362', STOK_DITERIMA_PEROLEHAN_SENDIRI:'G362', STOK_DIKELUARKAN_INTRA_FASILITI:'J362', BAKI_STOK_KESELURUHAN:'L362', ANGGARAN_TEMPOH_BOLEH_BERTAHAN:'Q362', KEPERLUAN_PERUNTUKAN_TAMBAHAN:'R362' },
+      },
+    };
+
+    /**********************************************************************
+     * 4) Helpers
+     **********************************************************************/
+    function invUrlForGid(gid){
+      return `${INV_BASE_PUB}?gid=${encodeURIComponent(gid)}&single=true&output=csv`;
+    }
+
+    function a1ToRC(a1){
+      const m = String(a1).trim().match(/^([A-Z]+)(\d+)$/i);
+      if(!m) return null;
+      const letters = m[1].toUpperCase();
+      const row = parseInt(m[2],10) - 1;
+      let col = 0;
+      for(const ch of letters) col = col * 26 + (ch.charCodeAt(0) - 64);
+      col -= 1;
+      return { row, col };
+    }
+
+    function parseNum(v){
+      if(v == null) return NaN;
+      const s = String(v).trim();
+      if(!s || s === '-' ) return NaN;
+      const cleaned = s
+        .replace(/RM/gi,'')
+        .replace(/[^\d.,-]/g,'')
+        .replace(/,/g,'');
+      const n = Number(cleaned);
+      return Number.isFinite(n) ? n : NaN;
+    }
+
+    function fmtRM(n){
+      if(!Number.isFinite(n)) return '—';
+      return 'RM ' + Math.round(n).toLocaleString('en-MY');
+    }
+
+    function fmtBulan(n){
+      if(!Number.isFinite(n)) return '—';
+      return (Math.round(n * 10) / 10).toString() + ' bln';
+    }
+
+    async function fetchMatrix(url){
+      const res = await fetch(url, { cache:'no-store' });
+      if(!res.ok) throw new Error(`Fetch gagal (${res.status})`);
+      const csv = await res.text();
+      const parsed = Papa.parse(csv, { skipEmptyLines:false });
+      const rows = parsed.data || [];
+      return rows.map(r => Array.isArray(r) ? r : [r]);
+    }
+
+    function getCell(matrix, a1){
+      const rc = a1ToRC(a1);
+      if(!rc) return '';
+      const r = matrix[rc.row];
+      if(!r) return '';
+      return (r[rc.col] ?? '');
+    }
+
+    /**********************************************************************
+     * 5) UI wiring
+     **********************************************************************/
+    const el = {
+      invEndPeriod: document.getElementById('invEndPeriod'),
+      invTier1: document.getElementById('invTier1'),
+      invTier2: document.getElementById('invTier2'),
+      invRefresh: document.getElementById('invRefresh'),
+      invExpand: document.getElementById('invExpand'),
+      invErr: document.getElementById('invErr'),
+      invPills: document.getElementById('invPills'),
+      invTableWrap: document.getElementById('invTableWrap'),
+
+      modal: document.getElementById('modal'),
+      mClose: document.getElementById('mClose'),
+      mTitle: document.getElementById('mTitle'),
+      mSub: document.getElementById('mSub'),
+      mChart: document.getElementById('mChart'),
+
+      q: document.getElementById('q'),
+      suggest: document.getElementById('suggest'),
+    };
+
+    function fillSelect(selectEl, items, getLabel = x => x, getValue = x => x){
+      selectEl.innerHTML = '';
+      for(const it of items){
+        const opt = document.createElement('option');
+        opt.value = getValue(it);
+        opt.textContent = getLabel(it);
+        selectEl.appendChild(opt);
+      }
+    }
+
+    // Populate dropdowns
+    fillSelect(el.invEndPeriod, INV_PERIOD_SHEETS, x => x.label, x => x.key);
+    fillSelect(el.invTier1, TIER1);
+    fillSelect(el.invTier2, TIER2, x => x.label, x => x.key);
+
+    // Default selections
+    el.invEndPeriod.value = INV_PERIOD_SHEETS[INV_PERIOD_SHEETS.length - 1].key; // latest
+    el.invTier1.value = 'Reagent';
+    el.invTier2.value = 'BAKI_STOK_KESELURUHAN';
+
+    // Charts
+    let invChart = null;
+    let modalChart = null;
+
+    const DISTRICT_ORDER = [
+      'Kota Setar dan Pendang',
+      'Kuala Muda dan Sik',
+      'Kulim dan Bandar Baru',
+      'Kubang Pasu',
+      'Padang Terap',
+      'Baling',
+      'Yan',
+      'Langkawi',
+      'Kedah'
+    ];
+
+    const LINE_COLORS = [
+      '#0ea5a0','#3b82f6','#f59e0b','#ef4444','#8b5cf6',
+      '#22c55e','#06b6d4','#f97316','#64748b'
+    ];
+
+    function makeGradient(ctx, hex){
+      // hex like #0ea5a0
+      const g = ctx.createLinearGradient(0, 0, 0, 260);
+      // convert to rgba quickly
+      const c = hex.replace('#','');
+      const r = parseInt(c.substring(0,2),16);
+      const gg = parseInt(c.substring(2,4),16);
+      const b = parseInt(c.substring(4,6),16);
+      g.addColorStop(0, `rgba(${r},${gg},${b},0.22)`);
+      g.addColorStop(1, `rgba(${r},${gg},${b},0.00)`);
+      return g;
+    }
+
+    function setError(msg){
+      el.invErr.style.display = msg ? 'block' : 'none';
+      el.invErr.textContent = msg || '';
+    }
+
+    function buildPills(t1, t2Obj, endPeriodLabel){
+      const unit = t2Obj.unit;
+      el.invPills.innerHTML = `
+        <div class="kpi-pill"><strong>Tier 1:</strong> ${t1}</div>
+        <div class="kpi-pill"><strong>Tier 2:</strong> ${t2Obj.label}</div>
+        <div class="kpi-pill"><strong>Tempoh:</strong> Sehingga ${endPeriodLabel}</div>
+        <div class="kpi-pill"><strong>Unit:</strong> ${unit === 'RM' ? 'Ringgit (RM)' : 'Bulan'}</div>
+      `;
+    }
+
+    function buildTable(latestLabel, unit, latestByDistrict){
+      const fmt = unit === 'RM' ? fmtRM : fmtBulan;
+      let html = `<div class="muted-note" style="margin-bottom:8px;">
+        Snapshot untuk <strong>${latestLabel}</strong> (nilai tempoh terakhir pada graf).
+      </div>`;
+      html += `<table>
+        <thead><tr><th>Daerah</th><th class="num">Nilai</th></tr></thead><tbody>`;
+      for(const d of DISTRICT_ORDER){
+        const v = latestByDistrict[d];
+        html += `<tr><td>${d}</td><td class="num">${fmt(v)}</td></tr>`;
+      }
+      html += `</tbody></table>`;
+      el.invTableWrap.innerHTML = html;
+    }
+
+    async function renderInventory(){
+      setError('');
+
+      const tier1 = el.invTier1.value;
+      const tier2Key = el.invTier2.value;
+      const tier2Obj = TIER2.find(x => x.key === tier2Key);
+
+      const endKey = el.invEndPeriod.value;
+      const endIdx = Math.max(0, INV_PERIOD_SHEETS.findIndex(x => x.key === endKey));
+      const activePeriods = INV_PERIOD_SHEETS.slice(0, endIdx + 1);
+
+      // Guard for “not available” category
+      if(!CELLS[tier1]){
+        setError('Data untuk kategori ini belum tersedia (tiada cell mapping lagi).');
+        if(invChart){ invChart.destroy(); invChart = null; }
+        el.invTableWrap.innerHTML = '';
+        el.invPills.innerHTML = '';
+        return;
+      }
+
+      buildPills(tier1, tier2Obj, activePeriods[activePeriods.length - 1].label);
+
+      // Fetch all matrices first (one per period)
+      const matrices = [];
+      for(const p of activePeriods){
+        const url = invUrlForGid(p.gid);
+        matrices.push(await fetchMatrix(url));
+      }
+
+      // Build series for each district
+      const labels = activePeriods.map(p => p.label);
+      const series = {};
+      for(const d of DISTRICT_ORDER){
+        series[d] = [];
+        for(let i=0;i<activePeriods.length;i++){
+          const mtx = matrices[i];
+          const a1 = (CELLS[tier1][d] && CELLS[tier1][d][tier2Key]) ? CELLS[tier1][d][tier2Key] : null;
+          const raw = a1 ? getCell(mtx, a1) : '';
+          series[d].push(parseNum(raw));
+        }
+      }
+
+      // Latest snapshot values
+      const latestByDistrict = {};
+      for(const d of DISTRICT_ORDER){
+        latestByDistrict[d] = series[d][series[d].length - 1];
+      }
+      buildTable(labels[labels.length - 1], tier2Obj.unit, latestByDistrict);
+
+      // Chart render
+      const ctx = document.getElementById('invChart').getContext('2d');
+      const datasets = DISTRICT_ORDER.map((d, i) => ({
+        label: d,
+        data: series[d],
+        borderColor: LINE_COLORS[i % LINE_COLORS.length],
+        backgroundColor: (context) => {
+          const chart = context.chart;
+          const cctx = chart.ctx;
+          return makeGradient(cctx, LINE_COLORS[i % LINE_COLORS.length]);
+        },
+        fill: true,
+        borderWidth: 2,
+        tension: 0.35,
+        pointRadius: 2,
+        pointHoverRadius: 4,
+      }));
+
+      if(invChart) invChart.destroy();
+
+      invChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode:'nearest', intersect:false },
+          plugins: {
+            legend: { position:'bottom' },
+            tooltip: {
+              callbacks: {
+                label: (item) => {
+                  const v = item.raw;
+                  const f = (tier2Obj.unit === 'RM') ? fmtRM : fmtBulan;
+                  return `${item.dataset.label}: ${f(v)}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: { grid: { display:false } },
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: (v) => {
+                  const n = Number(v);
+                  if(!Number.isFinite(n)) return v;
+                  if(tier2Obj.unit === 'RM') return 'RM ' + n.toLocaleString('en-MY');
+                  return n + ' bln';
+                }
+              }
+            }
+          }
+        }
+      });
+
+      // Make the tile chart area tall enough (Chart.js needs height)
+      document.querySelector('#tile-inv .chart').style.minHeight = '340px';
+    }
+
+    // Modal expand (uses same data as current chart)
+    function openInvModal(){
+      if(!invChart) return;
+
+      el.modal.style.display = 'flex';
+      el.mTitle.textContent = 'Laporan Bulanan Inventori (Paparan Besar)';
+      el.mSub.textContent = `${el.invTier1.value} — ${TIER2.find(x => x.key === el.invTier2.value).label}`;
+
+      const cfg = invChart.config;
+      const ctx = el.mChart.getContext('2d');
+      if(modalChart) modalChart.destroy();
+      modalChart = new Chart(ctx, JSON.parse(JSON.stringify(cfg)));
+    }
+
+    function closeModal(){
+      el.modal.style.display = 'none';
+      if(modalChart){ modalChart.destroy(); modalChart = null; }
+    }
+
+    // Search (simple jump to tiles)
+    const SEARCH_ITEMS = [
+      { label:'Laporan Bulanan Inventori', id:'tile-inv' },
+      { label:'Laporan Bulanan Perbelanjaan & Peruntukan (LBPP)', id:'tile-lbpp' },
+    ];
+
+    function renderSuggest(q){
+      const s = q.trim().toLowerCase();
+      if(!s){ el.suggest.style.display='none'; el.suggest.innerHTML=''; return; }
+      const hits = SEARCH_ITEMS.filter(x => x.label.toLowerCase().includes(s)).slice(0, 8);
+      if(!hits.length){ el.suggest.style.display='none'; el.suggest.innerHTML=''; return; }
+
+      el.suggest.innerHTML = hits.map((h, idx) => {
+        const safe = h.label.replace(new RegExp(s,'ig'), m => `<em>${m}</em>`);
+        return `<div class="opt" data-id="${h.id}" data-idx="${idx}">${safe}</div>`;
+      }).join('');
+      el.suggest.style.display='block';
+    }
+
+    el.q.addEventListener('input', () => renderSuggest(el.q.value));
+    el.suggest.addEventListener('click', (e) => {
+      const opt = e.target.closest('.opt');
+      if(!opt) return;
+      const id = opt.getAttribute('data-id');
+      const target = document.getElementById(id);
+      if(target){
+        target.scrollIntoView({ behavior:'smooth', block:'start' });
+        target.classList.add('flash');
+        setTimeout(() => target.classList.remove('flash'), 900);
+      }
+      el.suggest.style.display='none';
+    });
+
+    el.invRefresh.addEventListener('click', renderInventory);
+    el.invExpand.addEventListener('click', openInvModal);
+    el.mClose.addEventListener('click', closeModal);
+    el.modal.addEventListener('click', (e) => { if(e.target === el.modal) closeModal(); });
+
+    el.invTier1.addEventListener('change', renderInventory);
+    el.invTier2.addEventListener('change', renderInventory);
+    el.invEndPeriod.addEventListener('change', renderInventory);
+
+    // Initial render
+    renderInventory().catch(err => setError('Ralat memuat data: ' + err.message));
+  </script>
+
+</body>
+</html>
