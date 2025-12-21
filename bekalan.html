@@ -243,24 +243,7 @@
       </div>
     </section>
 
-    <!-- TILE 2 (WIDE) -->
-    <section class="tile wide" id="lbpp-tile">
-      <div class="th">
-        <div>
-          <h2 class="ttl">LAPORAN BULANAN PERUNTUKAN DAN PERBELANJAAN (LBPP) UBAT DAN BUKAN UBAT</h2>
-          <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="lbppTime">—</span></div>
-        </div>
-        <div class="act">
-          <button id="lbppRefresh" class="btn" title="Kemas Kini"><svg class="ico"><use href="#i-refresh"/></svg></button>
-          <button id="lbppExpand"  class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
-        </div>
-      </div>
-      <div class="tb">
-        <div class="tags" id="lbppTags"></div>
-        <div class="chart"><canvas id="lbppChart"></canvas></div>
-        <div class="err" id="lbppErr"></div>
-      </div>
-    </section>
+
   </main>
 
   <!-- MODAL -->
@@ -805,51 +788,7 @@
   })();
   </script>
 
-  <!-- TILE 2 LOGIC (LBPP) — placeholder scaffold -->
-  <script>
-  (function(){
-    let chart = null;
-    document.getElementById('lbppTime').textContent = new Date().toLocaleString();
 
-    function drawPlaceholder(){
-      const ctx = document.getElementById('lbppChart').getContext('2d');
-      chart?.destroy();
-      chart = new Chart(ctx, {
-        type:"line",
-        data:{ labels:[" "], datasets:[] },
-        options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} } }
-      });
-
-      const err = document.getElementById('lbppErr');
-      err.textContent = "Tile LBPP telah disediakan, tetapi konfigurasi data (CSV + lokasi sel) belum diberikan. Masukkan mapping sel untuk LBPP bila sedia.";
-      err.style.display = "block";
-
-      // smart search registration
-      window.__bSearch.suggestions.push({type:"tile", tile:"lbpp-tile", confirm:"", label:"LAPORAN BULANAN PERUNTUKAN DAN PERBELANJAAN (LBPP) UBAT DAN BUKAN UBAT"});
-    }
-
-    document.getElementById('lbppRefresh').addEventListener('click', ()=>{
-      document.getElementById('lbppTime').textContent = new Date().toLocaleString();
-      drawPlaceholder();
-    });
-
-    document.getElementById('lbppExpand').addEventListener('click', ()=>{
-      document.getElementById('mtitle').textContent = "LBPP Ubat dan Bukan Ubat (Placeholder)";
-      const modal = document.getElementById('modal');
-      modal.classList.add('open');
-
-      const mctx = document.getElementById('mcanvas').getContext('2d');
-      window.__mchart?.destroy();
-      window.__mchart = new Chart(mctx, {
-        type:"line",
-        data:{ labels:[" "], datasets:[] },
-        options:{ plugins:{ legend:{display:false} } }
-      });
-    });
-
-    drawPlaceholder();
-  })();
-  </script>
 
   <!-- SMART SEARCH (tiles + filters) -->
   <script>
