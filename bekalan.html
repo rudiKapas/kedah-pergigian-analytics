@@ -419,7 +419,16 @@
     let selectedMetric = "baki";                          // default: BAKI STOK
     let selectedDatasetId = DATASETS.find(d=>d.gid)?.id || DATASETS[0].id;
 
-    const PAD_LABELS = ()=> [' ', ...AREAS.map(a=>a.label), ' '];
+    function split2Lines(label){
+      if(!label) return label;
+      if(label.includes(" & ")){
+        const [a,b] = label.split(" & ");
+        return [a.trim(), "& " + b.trim()];
+      }
+      return label;
+    }
+    const PAD_LABELS = ()=> [' ', ...AREAS.map(a=>split2Lines(a.label)), ' '];
+
 
     // =========================================================
     // 5) UI RENDERERS (Period + Filter)
@@ -630,7 +639,7 @@
             }
           },
           scales: {
-            x: { ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } },
+            x: { ticks:{ autoSkip:false, maxRotation:90, minRotation:90 } },
             y: {
               beginAtZero: true,
               ticks: {
@@ -650,17 +659,14 @@
     }
 
     function adjustXAxisTicks(){
-      if(!chart || !chart.chartArea) return;
-      const n = (chart?.data?.labels?.length || 2) - 2;
-      const w = chart.chartArea.width;
-      const pxPerLabel = w / n;
-      const shouldRotate = (pxPerLabel < 70) || (window.innerWidth < 900);
+      if(!chart || !chart.options?.scales?.x?.ticks) return;
       const ticks = chart.options.scales.x.ticks;
-      ticks.maxRotation = shouldRotate ? 90 : 0;
-      ticks.minRotation = shouldRotate ? 90 : 0;
-      ticks.autoSkip   = !shouldRotate;
+      ticks.maxRotation = 90;
+      ticks.minRotation = 90;
+      ticks.autoSkip = false;
       chart.update();
     }
+
     let __rto=null;
     window.addEventListener('resize', ()=>{ clearTimeout(__rto); __rto=setTimeout(adjustXAxisTicks, 120); });
 
@@ -782,7 +788,7 @@
         options:{
           responsive:true, maintainAspectRatio:false,
           plugins:{ legend:{ display:false } },
-          scales:{ x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } }, y:{ beginAtZero:true } }
+          scales:{ x:{ ticks:{ autoSkip:false, maxRotation:90, minRotation:90 } }, y:{ beginAtZero:true } }
         }
       });
     });
