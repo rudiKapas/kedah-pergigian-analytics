@@ -2,7 +2,7 @@
 <html lang="ms">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=1200, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Stok Bekalan Inventori Pergigian Negeri Kedah</title>
 
   <!-- Favicon -->
@@ -145,6 +145,39 @@
     .fab-panel.open{ display:flex; }
     .fab-link{ text-decoration:none; color:inherit; }
     .fab.active{ outline:4px solid rgba(18,163,154,.18); }
+
+    /* Mobile upgrade: real responsive layout (no desktop scaling) */
+    @media (max-width: 900px){
+    
+      /* tighter page padding */
+      header.ph, .grid{ padding:0 14px; }
+    
+      /* header typography */
+      header.ph{ padding-top:16px; }
+      header.ph h1{ font-size:20px; line-height:1.2; }
+      header.ph p{ font-size:13px; margin-bottom:12px; }
+    
+      /* search bar: 2 columns only (button + input) */
+      .ph .searchbar{ grid-template-columns:44px 1fr; gap:10px; }
+    
+      /* suggestions box aligns nicely on mobile */
+      .sugg-box{ left:56px; right:14px; }
+    
+      /* tile header layout: prevent cramped action buttons */
+      .th{ flex-direction:column; align-items:flex-start; gap:10px; }
+      .th .act{ width:100%; justify-content:flex-end; }
+    
+      /* reduce chart height to avoid overly tall tiles */
+      .tile .chart{ height:320px; }
+    
+      /* dropdown menus fit small screens */
+      .dd .menu{ width:min(92vw, 360px); }
+    
+      /* floating buttons slightly smaller so they don’t cover content */
+      .fab{ width:50px; height:50px; border-radius:14px; }
+      .fab img{ width:20px; height:20px; }
+    }
+
   </style>
 
   <!-- icons -->
