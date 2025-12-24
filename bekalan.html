@@ -170,8 +170,7 @@
         margin: 0 0 12px;
       }
 
-      /* If you have a fixed/sticky top bar that overlaps content, keep this.
-        If not needed, set to 0. */
+      /* Fixed spacing */
       body{
         padding-top: 56px;
       }
@@ -192,158 +191,101 @@
         min-width: 0;
       }
 
-      /* Suggestions box aligned to input (no right button on this page) */
+      /* Suggestions box aligned to input */
       .sugg-box{
         left: 56px;
         right: 0;
       }
 
-      /* ---------- Grid + tiles: SAME padding as header + force stretch ---------- */
+      /* ============================================================
+        MOBILE: TILE HORIZONTAL SWIPE (CAROUSEL)
+        ============================================================ */
       main.grid{
-        padding: 0 14px !important;
-        grid-template-columns: 1fr !important;
-        justify-items: stretch !important; /* important: prevent centered/shrunk tiles */
-      }
-
-      .tile.wide{
-        grid-column: 1 / span 1 !important;
+        padding: 10px 0 30px !important; /* Vertical space only */
+        display: flex !important;       /* Change grid to flex row */
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;     /* Enable swiping right to see other tiles */
+        overflow-y: hidden !important;
+        scroll-snap-type: x mandatory;   /* Snap to tiles */
+        -webkit-overflow-scrolling: touch;
+        gap: 16px !important;
       }
 
       .grid .tile{
-        width: 100% !important;
-        max-width: 100% !important;
-        justify-self: stretch !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
+        flex: 0 0 calc(100vw - 40px) !important; /* Tiles take up most of screen */
+        width: calc(100vw - 40px) !important;
+        margin-left: 20px !important;            /* Gutter at start */
+        scroll-snap-align: center;
+        box-sizing: border-box;
       }
 
-      /* Charts shorter on mobile */
+      /* Handle last tile margin */
+      .grid .tile:last-child {
+        margin-right: 20px !important;
+      }
+
+      .tile.wide{
+        grid-column: auto !important; /* Wide spans don't apply in flex-row scroller */
+      }
+
+      /* Inner chart scroller (Data inside the tile) */
+      #lbi-tile .chart-scroll{
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        margin-bottom: 10px;
+        display: block;
+      }
+
+      #lbi-tile .chart-scroll .chart{
+        display: block;
+        width: 1000px !important;      /* Graph stays wide so districts aren't squashed */
+        min-width: 1000px !important;
+      }
+
+      /* Charts height on mobile */
       .tile .chart{
         height: 320px;
       }
 
       /* Dropdown menus fit screen */
       .dd .menu{
-        width: min(92vw, 360px);
+        width: min(85vw, 360px);
       }
 
-      /* ============================================================
-        MOBILE: LBI tile header restructure (title -> time -> buttons)
-        ============================================================ */
+      /* MOBILE: LBI tile header restructure */
       #lbi-tile .th{
         height: auto !important;
-        min-height: 0 !important;
-        overflow: visible !important;
-
         display: flex;
         flex-direction: column;
         align-items: stretch;
         gap: 6px;
       }
 
-      #lbi-tile .th > div:first-child{
-        width: 100%;
-        min-width: 0;
-      }
-
       #lbi-tile .ttl{
-        display: block;
-        width: 100%;
-        min-width: 0;
-        max-width: 100%;
         font-size: 14px;
-        line-height: 1.2;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        margin: 0;
+        white-space: normal;
+        line-height: 1.3;
       }
 
-      #lbi-tile .sub{
-        font-size: 12px;
-        margin-top: 2px;
-      }
-
-      /* Force grid even if inline style sets display:flex */
       #lbi-tile .act{
         width: 100%;
-        margin-top: 6px;
-
         display: grid !important;
         grid-template-columns: 1fr 44px 44px 44px;
-        gap: 10px;
-        align-items: center;
-        justify-content: unset !important;
-        flex-wrap: nowrap !important;
+        gap: 8px;
+        margin-top: 6px;
       }
 
-      #lbi-tile #lbiPeriodDD{ width: 100%; }
-
-      #lbi-tile #lbiPeriodBtn{
-        width: 100%;
-        max-width: none;
-        padding: 0 12px;
-      }
-
-      #lbi-tile #lbiPeriodBtn .mini{
-        display: none;
-      }
-
-      #lbi-tile #lbiPeriodLabel{
-        display: block;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      #lbi-tile #lbiFilterDD{ width: 44px; }
-
-      main.grid > .tile{ width:100% !important; justify-self:stretch !important; }
-      main.grid{ justify-items:stretch !important; }
+      #lbi-tile #lbiPeriodBtn{ width: 100%; }
+      #lbi-tile #lbiPeriodBtn .mini{ display: none; }
       
-      /* Prevent the whole page/header/search from horizontal scrolling */
+      /* Disable the body global horizontal overflow to keep swipe smooth */
       html, body{
         overflow-x: hidden;
       }
-
-      /* Prevent the whole page/header/search from horizontal scrolling */
-      html, body{ overflow-x: hidden; }
-
-      /* Allow ONLY the graph area to scroll horizontally */
-      #lbi-tile .chart-scroll{
-        width: 100%;
-        overflow-x: scroll;              /* force scroll container */
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior-x: contain;
-        touch-action: pan-x;
-        padding-bottom: 6px;
-      }
-
-
-      /* Make inner chart wider than viewport */
-      #lbi-tile .chart-scroll .chart{
-        display: inline-block;
-        width: 980px !important;
-        min-width: 980px !important;
-        max-width: none !important;
-      }
-
-
-      #lbi-tile .chart-scroll canvas{
-        pointer-events: none;        /* lets swipe go to the scroller */
-        touch-action: pan-x;
-      }
-
-
     }
-
-
-
-
-
-
-
   </style>
 
   <!-- icons -->
@@ -444,6 +386,7 @@
       </div>
     </section>
 
+    <!-- ADDITIONAL TILES GO HERE (They will now swipe horizontally on mobile) -->
 
   </main>
 
@@ -455,6 +398,38 @@
         <button class="close" id="mclose">Tutup</button>
       </div>
       <div class="mb"><div class="mchart"><canvas id="mcanvas"></canvas></div></div>
+    </div>
+  </div>
+
+  <div class="fab-wrap">
+    <div class="fab-panel" id="fabPanel">
+      <a href="index.html" class="fab-link">
+        <div class="fab"><div class="lbl">Halaman Utama</div><img src="assets/icons/home.svg" alt=""></div>
+      </a>
+      <a href="kpi.html" class="fab-link">
+        <div class="fab"><div class="lbl">Pencapaian KPI</div><img src="assets/icons/kpi.svg" alt=""></div>
+      </a>
+      <a href="bekalan.html" class="fab-link">
+        <div class="fab active"><div class="lbl">Bekalan Inventori</div><img src="assets/icons/bekalan.svg" alt=""></div>
+      </a>
+      <a href="workforce.html" class="fab-link">
+        <div class="fab"><div class="lbl">Sumber Manusia</div><img src="assets/icons/workforce.svg" alt=""></div>
+      </a>
+      <a href="akses.html" class="fab-link">
+        <div class="fab"><div class="lbl">Akses Perkhidmatan</div><img src="assets/icons/access.svg" alt=""></div>
+      </a>
+      <a href="prevention.html" class="fab-link">
+        <div class="fab"><div class="lbl">Pencegahan</div><img src="assets/icons/prevention.svg" alt=""></div>
+      </a>
+      <a href="sekolah.html" class="fab-link">
+        <div class="fab"><div class="lbl">Kesihatan Sekolah</div><img src="assets/icons/sekolah.svg" alt=""></div>
+      </a>
+      <a href="geospatial.html" class="fab-link">
+        <div class="fab"><div class="lbl">Geospatial</div><img src="assets/icons/geospatial.svg" alt=""></div>
+      </a>
+    </div>
+    <div class="fab" id="fabMain" style="background:#12a39a; border-color:#12a39a; box-shadow:0 14px 30px rgba(18,163,154,.3);">
+      <img src="assets/icons/nav.svg" alt="" style="filter:brightness(0) invert(1);">
     </div>
   </div>
 
@@ -581,8 +556,8 @@
       const row = e.target.closest('.opt[data-ds]');
       if(!row) return;
       const id = row.dataset.ds;
-      const ds = DATASETS.find(x=>x.id===id);
-      if(!ds || !ds.gid) return;
+      const actualDs = DATASETS.find(x=>x.id===id);
+      if(!actualDs || !actualDs.gid) return;
 
       selectedDatasetId = id;
       renderPeriodMenu();
@@ -784,8 +759,6 @@
         }
       });
 
-      if(isMobile) chart.canvas.style.touchAction = 'pan-x';
-
       document.getElementById('lbiTime').textContent = new Date().toLocaleString();
       setTimeout(adjustXAxisTicks, 0);
     }
@@ -930,8 +903,6 @@
           }
         }
       });
-
-      if(isMobile) window.__mchart.canvas.style.touchAction = 'pan-x';
     });
 
 
@@ -940,43 +911,10 @@
       window.__mchart?.destroy();
     });
 
-    function enableMobileChartDragScroll(){
-      if(!window.matchMedia('(max-width: 900px)').matches) return;
-
-      const scroller = document.querySelector('#lbi-tile .chart-scroll');
-      if(!scroller) return;
-
-      let startX = 0, startY = 0, startLeft = 0, dragging = false;
-
-      scroller.addEventListener('touchstart', (e)=>{
-        if(e.touches.length !== 1) return;
-        dragging = true;
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
-        startLeft = scroller.scrollLeft;
-      }, { passive: true });
-
-      scroller.addEventListener('touchmove', (e)=>{
-        if(!dragging || e.touches.length !== 1) return;
-
-        const dx = e.touches[0].clientX - startX;
-        const dy = e.touches[0].clientY - startY;
-
-        if(Math.abs(dx) > Math.abs(dy)){
-          scroller.scrollLeft = startLeft - dx;
-          e.preventDefault();
-        }
-      }, { passive: false });
-
-      scroller.addEventListener('touchend', ()=> dragging = false, { passive: true });
-      scroller.addEventListener('touchcancel', ()=> dragging = false, { passive: true });
-    }
-
 
     // init
     renderPeriodMenu();
     renderFilterMenu();
-    enableMobileChartDragScroll();
     loadAndDraw();
   })();
   </script>
@@ -1099,6 +1037,24 @@
       document.addEventListener('click', (e)=>{
         if(!box.contains(e.target) && e.target!==inp && e.target!==btn){ closeBox(); }
       });
+    })();
+  </script>
+
+  <!-- FAB toggle script -->
+  <script>
+    (function(){
+      const fabMain = document.getElementById('fabMain');
+      const fabPanel = document.getElementById('fabPanel');
+      if(fabMain && fabPanel){
+        fabMain.addEventListener('click', ()=>{
+          fabPanel.classList.toggle('open');
+        });
+        document.addEventListener('click', (e)=>{
+          if(!fabMain.contains(e.target) && !fabPanel.contains(e.target)){
+            fabPanel.classList.remove('open');
+          }
+        });
+      }
     })();
   </script>
 
