@@ -4,6 +4,8 @@
   <meta charset="utf-8" />
   <title>Geospatial Analisis Kesihatan Pergigian Sekolah</title>
   <link rel="icon" type="image/svg+xml" href="assets/icons/iconTab.svg">
+  <link rel="stylesheet" href="styles.css?v=1" />
+  <script src="datasets.js?v=3"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Font -->
@@ -16,6 +18,10 @@
   />
 
   <style>
+
+    /* geospatial.html only: hide the global floating filter bar, keep our disabled pill */
+    #floatingFilter { display: none !important; }
+
     :root{
       --bg-card: rgba(255,255,255,0.96);
       --border-card: rgba(148,163,184,0.6);
@@ -241,79 +247,6 @@
       user-select:none;
     }
     
-    /* ===== Geospatial floating nav (local to this page) ===== */
-    .geo-fab{
-      --fab-bg:#0b1220;
-      --fab-step: 68px;
-      position:relative;
-    }
-    
-    .geo-fab .fab-main,
-    .geo-fab .fab-child{
-      width:62px; height:62px;
-      border-radius:999px;
-      background:var(--fab-bg);
-      border:1px solid rgba(255,255,255,.08);
-      box-shadow:0 18px 45px rgba(15,23,42,.28);
-      display:grid;
-      place-items:center;
-      transition:transform .28s cubic-bezier(.2,.8,.2,1), opacity .22s;
-      will-change:transform, opacity;
-    }
-    
-    .geo-fab .fab-child{
-      width:56px; height:56px;
-      position:absolute; top:0; left:0;
-      opacity:0;
-      pointer-events:none;
-      transform:translate(0,0) scale(.92);
-    }
-    
-    .geo-fab img{
-      width:30px; height:30px;
-      filter:brightness(0) invert(1);
-    }
-    .geo-fab .fab-child img{ width:26px; height:26px; }
-    
-    .geo-fab.open .fab-child{ pointer-events:auto; }
-    .geo-fab.open .fab-child{
-      opacity:1;
-      transform: translate(0, calc(var(--i) * var(--fab-step))) scale(1);
-    }
-    
-    /* Tooltip */
-    .geo-fab a{ position:relative; text-decoration:none; }
-    .geo-fab .fab-tip{
-      position:absolute;
-      top:50%;
-      left:-10px;
-      transform:translate(-100%, -50%) scale(.96);
-      background:var(--fab-bg);
-      color:#fff;
-      font-size:12px;
-      line-height:1;
-      white-space:nowrap;
-      padding:8px 10px;
-      border-radius:10px;
-      border:1px solid rgba(255,255,255,.08);
-      box-shadow:0 18px 45px rgba(15,23,42,.28);
-      opacity:0;
-      pointer-events:none;
-      transition:opacity .18s ease, transform .18s ease;
-    }
-    .geo-fab a:hover .fab-tip,
-    .geo-fab a:focus-visible .fab-tip{
-      opacity:1;
-      transform:translate(-100%, -50%) scale(1);
-    }
-
-    /* Mobile/touch: show the CURRENT page label when the menu is open */
-    @media (hover: none), (pointer: coarse){
-      .geo-fab.open .fab-child .fab-tip{
-        opacity:1;
-        transform:translate(-100%, -50%) scale(1);
-      }
-    }
 
   </style>
 </head>
@@ -359,40 +292,6 @@
             Filter (tidak tersedia)
           </div>
     
-          <div class="geo-fab" id="geoFab">
-            <!-- Main (opens menu; click goes to index) -->
-            <a class="fab-main" href="index.html" title="Utama">
-              <img src="assets/icons/nav.svg" alt="Utama">
-              <span class="fab-tip">Utama</span>
-            </a>
-    
-            <!-- Children (stack downward) -->
-            <a class="fab-child" href="akses.html" title="Akses" style="--i:1">
-              <img src="assets/icons/access.svg" alt="Akses"><span class="fab-tip">Akses</span>
-            </a>
-            <a class="fab-child" href="sekolah.html" title="Sekolah" style="--i:2">
-              <img src="assets/icons/sekolah.svg" alt="Sekolah"><span class="fab-tip">Sekolah</span>
-            </a>
-            <a class="fab-child" href="kpi.html" title="KPI" style="--i:3">
-              <img src="assets/icons/kpi.svg" alt="KPI"><span class="fab-tip">KPI</span>
-            </a>
-            <a class="fab-child" href="workforce.html" title="Tenaga Kerja" style="--i:4">
-              <img src="assets/icons/workforce.svg" alt="Tenaga Kerja"><span class="fab-tip">Tenaga Kerja</span>
-            </a>
-            <a class="fab-child" href="prevention.html" title="Pencegahan" style="--i:5">
-              <img src="assets/icons/prevention.svg" alt="Pencegahan"><span class="fab-tip">Pencegahan</span>
-            </a>
-            
-            <!-- Current page (keep in same position order, but disable click) -->
-            <a class="fab-child is-current" href="geospatial.html" title="Geospatial" aria-current="page" style="--i:6">
-              <img src="assets/icons/geospatial.svg" alt="Geospatial"><span class="fab-tip">Geospatial</span>
-            </a>
-            <a class="fab-child" href="bekalan.html" title="Bekalan" style="--i:7">
-              <img src="assets/icons/bekalan.svg" alt="Bekalan"><span class="fab-tip">Bekalan</span>
-            </a>
-
-
-          </div>
         </div>
 
 
@@ -946,74 +845,6 @@
 
 
     });
-    </script>
-
-    <script>
-      // Geospatial floating nav (mobile + desktop)
-      (function(){
-        const fab = document.getElementById('geoFab');
-        if(!fab) return;
-    
-        const main = fab.querySelector('.fab-main');
-        const mainImg = main ? main.querySelector('img') : null;
-    
-        const isTouchLike = window.matchMedia('(hover: none), (pointer: coarse)').matches;
-    
-        function setMainIcon(isOpen){
-          if(!mainImg) return;
-          mainImg.src = isOpen ? 'assets/icons/home.svg' : 'assets/icons/nav.svg';
-        }
-    
-        let closeTimer = null;
-    
-        function openMenu(){
-          clearTimeout(closeTimer);
-          fab.classList.add('open');
-          setMainIcon(true);
-        }
-    
-        function closeMenu(immediate){
-          clearTimeout(closeTimer);
-          const doClose = () => {
-            fab.classList.remove('open');
-            setMainIcon(false);
-          };
-          if(immediate) doClose();
-          else closeTimer = setTimeout(doClose, 450);
-        }
-    
-        // Desktop hover support (unchanged behavior for desktop)
-        fab.addEventListener('mouseenter', () => { if(!isTouchLike) openMenu(); });
-        fab.addEventListener('mouseleave', () => { if(!isTouchLike) closeMenu(false); });
-    
-        // Mobile/touch: first tap opens; second tap navigates (keeps your current <a href="index.html">)
-        if(main){
-          main.addEventListener('click', (e) => {
-            if(!fab.classList.contains('open')){
-              e.preventDefault();      // stop navigation on first tap
-              e.stopPropagation();
-              openMenu();
-              return;
-            }
-            // already open -> allow navigation
-          }, { passive:false });
-        }
-    
-        // Keep taps inside FAB from bubbling to the map/page
-        fab.addEventListener('click', (e) => e.stopPropagation());
-    
-        // Tap outside closes
-        document.addEventListener('click', (e) => {
-          if(!fab.contains(e.target)) closeMenu(true);
-        });
-    
-        // Close immediately when tapping a child link (before navigation)
-        fab.querySelectorAll('.fab-child:not(.is-current)').forEach(a => {
-          a.addEventListener('click', () => closeMenu(true));
-        });
-    
-        setMainIcon(false);
-      })();
     </script>
 
   
