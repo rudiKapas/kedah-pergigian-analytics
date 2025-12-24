@@ -371,6 +371,7 @@
      --------------------------------------------------------- */
   document.addEventListener("DOMContentLoaded", () => {
     const wrap = document.createElement("div");
+    wrap.id = "floatingFilter";
     wrap.style.cssText = [
       "position:fixed","right:12px","top:12px","z-index:9999",
       "background:#0f172a","color:#fff","border-radius:12px",
