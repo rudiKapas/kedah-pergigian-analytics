@@ -126,31 +126,6 @@
 
     .err{ display:none; margin-top:10px; color:#b91c1c; font-weight:800; background:#fee2e2; border:1px solid #fecaca; padding:8px 10px; border-radius:10px; }
 
-    /* Floating buttons (self-contained; if you already have global floating nav in other pages, keep your existing version) */
-    .fab-wrap{ position:fixed; right:18px; bottom:18px; z-index:9998; display:flex; flex-direction:column; gap:10px; align-items:flex-end; }
-    .fab{ width:54px; height:54px; border-radius:16px; border:1px solid #e5edf7; background:#fff;
-      box-shadow:0 14px 30px rgba(15,27,45,.18);
-      display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; }
-    .fab img{ width:22px; height:22px; }
-    .fab .lbl{
-      position:absolute; right:64px; white-space:nowrap;
-      background:rgba(255,255,255,.92);
-      border:1px solid #e5edf7;
-      padding:6px 10px; border-radius:999px;
-      box-shadow:0 14px 30px rgba(15,27,45,.18);
-      font-weight:800; font-size:12px; color:#0f172a;
-      opacity:1;
-    }
-    .fab-panel{
-      display:none;
-      flex-direction:column;
-      gap:10px;
-      align-items:flex-end;
-      margin-bottom:2px;
-    }
-    .fab-panel.open{ display:flex; }
-    .fab-link{ text-decoration:none; color:inherit; }
-    .fab.active{ outline:4px solid rgba(18,163,154,.18); }
 
     @media (max-width: 900px){
 
@@ -1070,68 +1045,9 @@
     })();
   </script>
 
-  <!-- NAV FAB -->
-  <div class="fab-wrap">
-    <div class="fab-panel" id="fabPanel">
-  
-      <a href="index.html" class="fab-link">
-        <div class="fab"><div class="lbl">Utama</div><img src="assets/icons/home.svg" alt=""></div>
-      </a>
-  
-      <a href="akses.html" class="fab-link">
-        <div class="fab"><div class="lbl">Akses</div><img src="assets/icons/access.svg" alt=""></div>
-      </a>
-  
-      <a href="sekolah.html" class="fab-link">
-        <div class="fab"><div class="lbl">Sekolah</div><img src="assets/icons/sekolah.svg" alt=""></div>
-      </a>
-  
-      <a href="kpi.html" class="fab-link">
-        <div class="fab"><div class="lbl">KPI</div><img src="assets/icons/kpi.svg" alt=""></div>
-      </a>
-  
-      <a href="workforce.html" class="fab-link">
-        <div class="fab"><div class="lbl">Tenaga Kerja</div><img src="assets/icons/workforce.svg" alt=""></div>
-      </a>
-  
-      <a href="prevention.html" class="fab-link">
-        <div class="fab"><div class="lbl">Pencegahan</div><img src="assets/icons/prevention.svg" alt=""></div>
-      </a>
-  
-      <a href="geospatial.html" class="fab-link">
-        <div class="fab"><div class="lbl">Geospatial</div><img src="assets/icons/geospatial.svg" alt=""></div>
-      </a>
-  
-      <!-- Bekalan MUST be the lowest -->
-      <a href="bekalan.html" class="fab-link">
-        <div class="fab active"><div class="lbl">Bekalan</div><img src="assets/icons/bekalan.svg" alt=""></div>
-      </a>
-  
-    </div>
-  
-    <div class="fab" id="fabMain" aria-label="Navigasi">
-      <img src="assets/icons/nav.svg" alt="">
-    </div>
-  </div>
 
 
-  <!-- FAB toggle script -->
-  <script>
-    (function(){
-      const fabMain = document.getElementById('fabMain');
-      const fabPanel = document.getElementById('fabPanel');
-      if(fabMain && fabPanel){
-        fabMain.addEventListener('click', ()=>{
-          fabPanel.classList.toggle('open');
-        });
-        document.addEventListener('click', (e)=>{
-          if(!fabMain.contains(e.target) && !fabPanel.contains(e.target)){
-            fabPanel.classList.remove('open');
-          }
-        });
-      }
-    })();
-  </script>
+
 
   <footer class="wrap">
     <div class="content">Analisa Kesihatan Pergigian Negeri Kedah • Paparan optimum disyorkan melalui pelayar web desktop</div>
