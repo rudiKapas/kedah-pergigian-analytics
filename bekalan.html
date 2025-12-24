@@ -289,6 +289,24 @@
         width: min(85vw, 360px);
       }
 
+      /* Mobile fix: dropdown menus must not be clipped by the horizontal tile scroller */
+      #lbi-tile .dd .menu{
+        position: fixed !important;
+        left: 14px !important;
+        right: 14px !important;
+        bottom: 14px !important;
+        top: auto !important;
+
+        width: auto !important;
+        max-height: 70vh;
+        z-index: 10000;
+      }
+
+      #lbi-tile .dd .menu .menu-body{
+        max-height: calc(70vh - 56px);
+      }
+
+
       /* MOBILE: LBI tile header restructure */
       #lbi-tile .th{
         height: auto !important;
@@ -443,37 +461,7 @@
     </div>
   </div>
 
-  <div class="fab-wrap">
-    <div class="fab-panel" id="fabPanel">
-      <a href="index.html" class="fab-link">
-        <div class="fab"><div class="lbl">Halaman Utama</div><img src="assets/icons/home.svg" alt=""></div>
-      </a>
-      <a href="kpi.html" class="fab-link">
-        <div class="fab"><div class="lbl">Pencapaian KPI</div><img src="assets/icons/kpi.svg" alt=""></div>
-      </a>
-      <a href="bekalan.html" class="fab-link">
-        <div class="fab active"><div class="lbl">Bekalan Inventori</div><img src="assets/icons/bekalan.svg" alt=""></div>
-      </a>
-      <a href="workforce.html" class="fab-link">
-        <div class="fab"><div class="lbl">Sumber Manusia</div><img src="assets/icons/workforce.svg" alt=""></div>
-      </a>
-      <a href="akses.html" class="fab-link">
-        <div class="fab"><div class="lbl">Akses Perkhidmatan</div><img src="assets/icons/access.svg" alt=""></div>
-      </a>
-      <a href="prevention.html" class="fab-link">
-        <div class="fab"><div class="lbl">Pencegahan</div><img src="assets/icons/prevention.svg" alt=""></div>
-      </a>
-      <a href="sekolah.html" class="fab-link">
-        <div class="fab"><div class="lbl">Kesihatan Sekolah</div><img src="assets/icons/sekolah.svg" alt=""></div>
-      </a>
-      <a href="geospatial.html" class="fab-link">
-        <div class="fab"><div class="lbl">Geospatial</div><img src="assets/icons/geospatial.svg" alt=""></div>
-      </a>
-    </div>
-    <div class="fab" id="fabMain" style="background:#12a39a; border-color:#12a39a; box-shadow:0 14px 30px rgba(18,163,154,.3);">
-      <img src="assets/icons/nav.svg" alt="" style="filter:brightness(0) invert(1);">
-    </div>
-  </div>
+
 
   <script>window.__bSearch = window.__bSearch || { suggestions: [] };</script>
 
@@ -937,13 +925,13 @@
         options:{
           responsive:true,
           maintainAspectRatio:false,
-          events: isMobile ? ['click'] : undefined,
           plugins:{ legend:{ display:false } },
           scales:{
             x:{ ticks:{ autoSkip:false, maxRotation:90, minRotation:90 } },
             y:{ beginAtZero:true }
           }
         }
+
       });
     });
 
