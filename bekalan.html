@@ -25,7 +25,13 @@
     header.ph p{ margin:0 0 16px; color:#5b6b83; }
 
     .ph .searchwrap{ position:relative; }
-    .ph .searchbar{ display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:12px; }
+    .ph .searchbar{
+      display:grid;
+      grid-template-columns:44px 1fr;
+      align-items:center;
+      gap:12px;
+    }
+
     .ph .btn-ghost{ height:44px; width:44px; border-radius:12px; background:#fff; color:#0f172a;
       border:1px solid #d8dee8; box-shadow:0 4px 14px rgba(15,27,45,.06); }
     .ph .btn-ghost:hover{ box-shadow:0 0 0 4px rgba(16,185,129,.15), 0 4px 14px rgba(15,27,45,.06); }
@@ -146,37 +152,197 @@
     .fab-link{ text-decoration:none; color:inherit; }
     .fab.active{ outline:4px solid rgba(18,163,154,.18); }
 
-    /* Mobile upgrade: real responsive layout (no desktop scaling) */
     @media (max-width: 900px){
-    
-      /* tighter page padding */
-      header.ph, .grid{ padding:0 14px; }
-    
-      /* header typography */
-      header.ph{ padding-top:16px; }
-      header.ph h1{ font-size:20px; line-height:1.2; }
-      header.ph p{ font-size:13px; margin-bottom:12px; }
-    
-      /* search bar: 2 columns only (button + input) */
-      .ph .searchbar{ grid-template-columns:44px 1fr; gap:10px; }
-    
-      /* suggestions box aligns nicely on mobile */
-      .sugg-box{ left:56px; right:14px; }
-    
-      /* tile header layout: prevent cramped action buttons */
-      .th{ flex-direction:column; align-items:flex-start; gap:10px; }
-      .th .act{ width:100%; justify-content:flex-end; }
-    
-      /* reduce chart height to avoid overly tall tiles */
-      .tile .chart{ height:320px; }
-    
-      /* dropdown menus fit small screens */
-      .dd .menu{ width:min(92vw, 360px); }
-    
-      /* floating buttons slightly smaller so they don’t cover content */
-      .fab{ width:50px; height:50px; border-radius:14px; }
-      .fab img{ width:20px; height:20px; }
+
+      /* ---------- Header (match exact padding with grid) ---------- */
+      header.ph{
+        padding: 16px 14px 0 !important;   /* top, LR, bottom */
+      }
+
+      header.ph h1{
+        font-size: 20px;
+        line-height: 1.2;
+        margin: 0 0 6px;
+      }
+
+      header.ph p{
+        font-size: 13px;
+        margin: 0 0 12px;
+      }
+
+      /* If you have a fixed/sticky top bar that overlaps content, keep this.
+        If not needed, set to 0. */
+      body{
+        padding-top: 56px;
+      }
+
+      /* ---------- Search row: fill the same width as grid ---------- */
+      .ph .searchwrap{ width: 100%; }
+
+      .ph .searchbar{
+        width: 100%;
+        display: grid !important;
+        grid-template-columns: 44px minmax(0, 1fr) !important;
+        align-items: center;
+        gap: 10px;
+      }
+
+      #bekalanSearchInput{
+        width: 100%;
+        min-width: 0;
+      }
+
+      /* Suggestions box aligned to input (no right button on this page) */
+      .sugg-box{
+        left: 56px;
+        right: 0;
+      }
+
+      /* ---------- Grid + tiles: SAME padding as header + force stretch ---------- */
+      main.grid{
+        padding: 0 14px !important;
+        grid-template-columns: 1fr !important;
+        justify-items: stretch !important; /* important: prevent centered/shrunk tiles */
+      }
+
+      .tile.wide{
+        grid-column: 1 / span 1 !important;
+      }
+
+      .grid .tile{
+        width: 100% !important;
+        max-width: 100% !important;
+        justify-self: stretch !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+
+      /* Charts shorter on mobile */
+      .tile .chart{
+        height: 320px;
+      }
+
+      /* Dropdown menus fit screen */
+      .dd .menu{
+        width: min(92vw, 360px);
+      }
+
+      /* ============================================================
+        MOBILE: LBI tile header restructure (title -> time -> buttons)
+        ============================================================ */
+      #lbi-tile .th{
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+      }
+
+      #lbi-tile .th > div:first-child{
+        width: 100%;
+        min-width: 0;
+      }
+
+      #lbi-tile .ttl{
+        display: block;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        font-size: 14px;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin: 0;
+      }
+
+      #lbi-tile .sub{
+        font-size: 12px;
+        margin-top: 2px;
+      }
+
+      /* Force grid even if inline style sets display:flex */
+      #lbi-tile .act{
+        width: 100%;
+        margin-top: 6px;
+
+        display: grid !important;
+        grid-template-columns: 1fr 44px 44px 44px;
+        gap: 10px;
+        align-items: center;
+        justify-content: unset !important;
+        flex-wrap: nowrap !important;
+      }
+
+      #lbi-tile #lbiPeriodDD{ width: 100%; }
+
+      #lbi-tile #lbiPeriodBtn{
+        width: 100%;
+        max-width: none;
+        padding: 0 12px;
+      }
+
+      #lbi-tile #lbiPeriodBtn .mini{
+        display: none;
+      }
+
+      #lbi-tile #lbiPeriodLabel{
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      #lbi-tile #lbiFilterDD{ width: 44px; }
+
+      main.grid > .tile{ width:100% !important; justify-self:stretch !important; }
+      main.grid{ justify-items:stretch !important; }
+      
+      /* Prevent the whole page/header/search from horizontal scrolling */
+      html, body{
+        overflow-x: hidden;
+      }
+
+      /* Prevent the whole page/header/search from horizontal scrolling */
+      html, body{ overflow-x: hidden; }
+
+      /* Allow ONLY the graph area to scroll horizontally */
+      #lbi-tile .chart-scroll{
+        width: 100%;
+        overflow-x: scroll;              /* force scroll container */
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+        touch-action: pan-x;
+        padding-bottom: 6px;
+      }
+
+
+      /* Make inner chart wider than viewport */
+      #lbi-tile .chart-scroll .chart{
+        display: inline-block;
+        width: 980px !important;
+        min-width: 980px !important;
+        max-width: none !important;
+      }
+
+
+      #lbi-tile .chart-scroll canvas{
+        pointer-events: none;        /* lets swipe go to the scroller */
+        touch-action: pan-x;
+      }
+
+
     }
+
+
+
+
+
+
 
   </style>
 
@@ -270,7 +436,9 @@
 
       <div class="tb">
         <div class="tags" id="lbiTags"></div>
-        <div class="chart"><canvas id="lbiChart"></canvas></div>
+        <div class="chart-scroll">
+          <div class="chart"><canvas id="lbiChart"></canvas></div>
+        </div>
         <div class="legend" id="lbiLegend"></div>
         <div class="err" id="lbiErr"></div>
       </div>
@@ -290,66 +458,8 @@
     </div>
   </div>
 
-  <!-- FLOATING NAV + FILTER -->
-  <div class="fab-wrap" aria-label="Floating actions">
-    <div class="fab-panel" id="fabPanel">
-      <a class="fab fab-link" href="index.html" title="Utama">
-        <img src="assets/icons/home.svg" alt="">
-        <span class="lbl">Utama</span>
-      </a>
-      <a class="fab fab-link" href="akses.html" title="Akses">
-        <img src="assets/icons/akses.svg" alt="">
-        <span class="lbl">Akses</span>
-      </a>
-      <a class="fab fab-link" href="sekolah.html" title="Sekolah">
-        <img src="assets/icons/sekolah.svg" alt="">
-        <span class="lbl">Sekolah</span>
-      </a>
-      <a class="fab fab-link active" href="bekalan.html" title="Bekalan">
-        <img src="assets/icons/bekalan.svg" alt="">
-        <span class="lbl">Bekalan</span>
-      </a>
-      <a class="fab fab-link" href="geospatial.html" title="Geospatial">
-        <img src="assets/icons/geospatial.svg" alt="">
-        <span class="lbl">Geospatial</span>
-      </a>
-    </div>
+  <script>window.__bSearch = window.__bSearch || { suggestions: [] };</script>
 
-    <button class="fab" id="fabFilter" title="Tapis (Tile LBI)">
-      <img src="assets/icons/filter.svg" alt="">
-      <span class="lbl">Tapis</span>
-    </button>
-
-    <button class="fab" id="fabNav" title="Navigasi">
-      <img src="assets/icons/menu.svg" alt="">
-      <span class="lbl">Menu</span>
-    </button>
-  </div>
-
-  <script>
-    // Global container for search suggestions and hooks
-    window.__bSearch = window.__bSearch || { suggestions: [] };
-
-    // Floating nav toggle
-    (function(){
-      const navBtn = document.getElementById('fabNav');
-      const panel  = document.getElementById('fabPanel');
-      navBtn?.addEventListener('click', (e)=>{
-        e.stopPropagation();
-        panel.classList.toggle('open');
-      });
-      document.addEventListener('click', (e)=>{
-        if(!panel.contains(e.target) && e.target !== navBtn) panel.classList.remove('open');
-      });
-
-      // Floating filter triggers Tile 1 filter dropdown + scroll to tile
-      const fbtn = document.getElementById('fabFilter');
-      fbtn?.addEventListener('click', ()=>{
-        document.getElementById('lbi-tile')?.scrollIntoView({behavior:'smooth', block:'start'});
-        setTimeout(()=> document.getElementById('lbiFilterBtn')?.click(), 260);
-      });
-    })();
-  </script>
 
   <!-- TILE 1 LOGIC (LBI) -->
   <script>
@@ -632,12 +742,16 @@
       const isRM = met.unit === "rm";
       const isBulan = met.unit === "bulan";
 
+      const isMobile = window.matchMedia('(max-width: 900px)').matches;
+
+
       chart = new Chart(ctx, {
         type: "line",
         data: { labels, datasets: buildDatasets(ctx) },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          events: isMobile ? ['click'] : undefined,
           plugins: {
             legend: { display:false },
             tooltip: {
@@ -669,6 +783,8 @@
           }
         }
       });
+
+      if(isMobile) chart.canvas.style.touchAction = 'pan-x';
 
       document.getElementById('lbiTime').textContent = new Date().toLocaleString();
       setTimeout(adjustXAxisTicks, 0);
@@ -796,27 +912,71 @@
       const modal = document.getElementById('modal');
       modal.classList.add('open');
 
+      const isMobile = window.matchMedia('(max-width: 900px)').matches;
+
       const mctx = document.getElementById('mcanvas').getContext('2d');
       window.__mchart?.destroy();
       window.__mchart = new Chart(mctx, {
         type:"line",
         data:{ labels: PAD_LABELS(), datasets: buildDatasets(mctx) },
         options:{
-          responsive:true, maintainAspectRatio:false,
+          responsive:true,
+          maintainAspectRatio:false,
+          events: isMobile ? ['click'] : undefined,
           plugins:{ legend:{ display:false } },
-          scales:{ x:{ ticks:{ autoSkip:false, maxRotation:90, minRotation:90 } }, y:{ beginAtZero:true } }
+          scales:{
+            x:{ ticks:{ autoSkip:false, maxRotation:90, minRotation:90 } },
+            y:{ beginAtZero:true }
+          }
         }
       });
+
+      if(isMobile) window.__mchart.canvas.style.touchAction = 'pan-x';
     });
+
 
     document.getElementById('mclose').addEventListener('click', ()=>{
       document.getElementById('modal').classList.remove('open');
       window.__mchart?.destroy();
     });
 
+    function enableMobileChartDragScroll(){
+      if(!window.matchMedia('(max-width: 900px)').matches) return;
+
+      const scroller = document.querySelector('#lbi-tile .chart-scroll');
+      if(!scroller) return;
+
+      let startX = 0, startY = 0, startLeft = 0, dragging = false;
+
+      scroller.addEventListener('touchstart', (e)=>{
+        if(e.touches.length !== 1) return;
+        dragging = true;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        startLeft = scroller.scrollLeft;
+      }, { passive: true });
+
+      scroller.addEventListener('touchmove', (e)=>{
+        if(!dragging || e.touches.length !== 1) return;
+
+        const dx = e.touches[0].clientX - startX;
+        const dy = e.touches[0].clientY - startY;
+
+        if(Math.abs(dx) > Math.abs(dy)){
+          scroller.scrollLeft = startLeft - dx;
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      scroller.addEventListener('touchend', ()=> dragging = false, { passive: true });
+      scroller.addEventListener('touchcancel', ()=> dragging = false, { passive: true });
+    }
+
+
     // init
     renderPeriodMenu();
     renderFilterMenu();
+    enableMobileChartDragScroll();
     loadAndDraw();
   })();
   </script>
