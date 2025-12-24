@@ -240,7 +240,13 @@
     
     /* ensure child buttons/labels align visually to the right side */
     .fab a{ text-decoration:none; }
-    .fab .fab-tip{ right: 72px; left: auto; }   /* optional: keeps tooltip from drifting left weirdly */
+    /* geospatial.html only: make tooltip distance match global style */
+    .fab .fab-tip{
+      left: -10px !important;
+      right: auto !important;
+      transform: translate(-100%, -50%) scale(.96) !important;
+    }
+
 
     
     .geo-filter-disabled{
