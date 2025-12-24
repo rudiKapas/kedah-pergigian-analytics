@@ -469,6 +469,7 @@
            ['workforce.html',  'assets/icons/workforce.svg',  'Tenaga Kerja'],
            ['prevention.html', 'assets/icons/prevention.svg', 'Pencegahan'],
            ['geospatial.html', 'assets/icons/geospatial.svg', 'Geospatial'],
+           ['bekalan.html',    'assets/icons/bekalan.svg',    'Bekalan'],
          ];
          
          items.forEach(([href, icon, label], i) => {
