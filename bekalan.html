@@ -57,6 +57,38 @@
     .tile.wide{ grid-column:1 / span 2; }
     @media (max-width: 900px){ .grid{ grid-template-columns:1fr; } .tile.wide{ grid-column:1 / span 1; } }
 
+    /* Row 1 container: behaves like normal grid on desktop, becomes a horizontal strip on mobile */
+    .tile-strip{ display: contents; } /* desktop: children participate in the grid */
+    
+    @media (max-width: 900px){
+      .tile-strip{
+        display: flex;
+        gap: 20px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        padding: 2px 0 10px;
+      }
+      .tile-strip::-webkit-scrollbar{ display:none; }
+    
+      .tile-strip .tile{
+        flex: 0 0 calc(100vw - 40px);
+        width: calc(100vw - 40px);
+        margin-left: 20px;
+        scroll-snap-align: center;
+        box-sizing: border-box;
+      }
+      .tile-strip .tile:last-child{ margin-right: 20px; }
+    
+      /* wide tile should behave like a normal card in the strip */
+      .tile-strip .tile.wide{
+        grid-column: auto !important;
+      }
+    }
+
+
     .tile .chart{ height:440px; }
     .tile .chart canvas{ width:100% !important; height:100% !important; }
 
@@ -82,6 +114,8 @@
       scroll-snap-type: x mandatory;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
+      touch-action: pan-x;
+      overscroll-behavior-x: contain;
     }
     .bekalan-mini-strip::-webkit-scrollbar{ display:none; }
     
@@ -149,6 +183,8 @@
       .bekalan-mini-strip{ padding-left: 60px; padding-right: 60px; }
       .bekalan-mini-arrow.left{ left: 12px; }
       .bekalan-mini-arrow.right{ right: 12px; }
+      .bekalan-mini-arrow{ opacity: .5; }
+      .bekalan-mini-arrow:hover{ opacity: 1; }
     }
 
 
@@ -264,28 +300,7 @@
         right: 0;
       }
 
-      /* ============================================================
-        MOBILE: TILE HORIZONTAL SWIPE (CAROUSEL)
-        ============================================================ */
-
-      main.grid::-webkit-scrollbar { display: none; }
-
-      .grid .tile{
-        flex: 0 0 calc(100vw - 40px) !important; /* Tiles take up most of screen */
-        width: calc(100vw - 40px) !important;
-        margin-left: 20px !important;            /* Gutter at start */
-        scroll-snap-align: center;
-        box-sizing: border-box;
-      }
-
-      /* Handle last tile margin */
-      .grid .tile:last-child {
-        margin-right: 20px !important;
-      }
-
-      .tile.wide{
-        grid-column: auto !important; /* Wide spans don't apply in flex-row scroller */
-      }
+    
 
       /* ============================================================
         MOBILE: INTERNAL TILE SCROLLING (TAGS & LEGEND)
@@ -403,85 +418,7 @@
       }
     }
 
-    /* ============================================================
-       Bekalan: 2nd-row mini tiles (square, half-height feel, scrollable)
-       ============================================================ */
-    
-    /* Set size = ~half of the main chart height (440px -> 220px) */
-    :root{
-      --bekalan-mini: 220px;
-    }
-    
-    .mini-tiles-row{
-      grid-column: 1 / -1;          /* sit BELOW the first wide tile across full width */
-      display: flex;
-      gap: 16px;
-      overflow-x: auto;
-      overflow-y: hidden;
-      -webkit-overflow-scrolling: touch;
-      padding: 2px 2px 6px;
-      scrollbar-width: none;         /* Firefox: hide scrollbar */
-    }
-    .mini-tiles-row::-webkit-scrollbar{ display:none; } /* Chrome/Safari: hide scrollbar */
-    
-    .mini-tile{
-      flex: 0 0 var(--bekalan-mini);
-      width: var(--bekalan-mini);
-      height: var(--bekalan-mini);
-      border-radius: 16px;
-      border: 1px solid var(--bd, #e3e8f0);
-      background: var(--panel, #ffffff);
-      box-shadow: var(--shadow-1, 0 10px 24px rgba(15,27,45,.10));
-      position: relative;
-      overflow: hidden;
-      text-decoration: none;
-      color: inherit;
-    }
-    
-    .mini-tile--img{
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-    }
-    
-    .mini-tile__label{
-      position: absolute;
-      left: 10px;
-      bottom: 10px;
-      padding: 6px 10px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 800;
-      color: #0f172a;
-      background: rgba(255,255,255,.88);
-      border: 1px solid rgba(227,232,240,.9);
-      backdrop-filter: blur(6px);
-    }
-    
-    /* ============================================================
-       IMPORTANT: Bekalan currently has a mobile "main.grid carousel" rule.
-       That would prevent any "row below" layout.
-       This override forces main.grid back to normal grid on mobile.
-       ============================================================ */
-    @media (max-width: 900px){
-      main.grid{
-        display: grid !important;
-        grid-template-columns: 1fr !important;
-        overflow: visible !important;
-        scroll-snap-type: none !important;
-        flex-direction: initial !important;
-        flex-wrap: initial !important;
-      }
-      .grid .tile{
-        flex: initial !important;
-        width: auto !important;
-        margin: 0 !important;
-        scroll-snap-align: initial !important;
-      }
-      .grid .tile:last-child{
-        margin-right: 0 !important;
-      }
-    }
+
 
   </style>
 
@@ -524,6 +461,7 @@
   </header>
 
   <main class="grid">
+   <div class="tile-strip" id="bekalanMainStrip">
     <!-- TILE 1 (WIDE) -->
     <section class="tile wide" id="lbi-tile">
       <div class="th">
@@ -567,6 +505,9 @@
         <div class="err" id="lbiErr"></div>
       </div>
     </section>
+
+  </div>
+
 
     <!-- ADDITIONAL TILES GO HERE (They will now swipe horizontally on mobile) -->
     <!-- ROW 2: Mini tiles strip (Bekalan only) -->
