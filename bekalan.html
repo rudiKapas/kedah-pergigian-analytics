@@ -108,6 +108,9 @@
     
     .bekalan-mini-strip{
       display:flex;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
       gap:16px;
       overflow-x:auto;
       padding: 2px 4px 8px;
@@ -117,6 +120,12 @@
       touch-action: pan-x;
       overscroll-behavior-x: contain;
     }
+
+    .bekalan-mini-row,
+    .bekalan-mini-wrap{
+      min-width: 0;
+    }
+
     .bekalan-mini-strip::-webkit-scrollbar{ display:none; }
     
     .bekalan-mini-tile{
