@@ -167,6 +167,54 @@
       font-size:12px;
       box-shadow:0 10px 22px rgba(15,23,42,.12);
     }
+
+    /* Bekalan mini tile: top-left note + right liquid-glass stats */
+    .mini-topnote{
+      position:absolute;
+      left:12px;
+      top:12px;
+      max-width: calc(100% - 24px);
+      padding: 6px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #0f172a;
+      background: rgba(255,255,255,.78);
+      border: 1px solid rgba(227,232,240,.9);
+      backdrop-filter: blur(6px);
+    }
+    
+    .mini-glass{
+      position:absolute;
+      right:12px;
+      top:50%;
+      transform: translateY(-50%);
+      width: min(210px, 62%);
+      padding: 10px 10px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.58);
+      border: 1px solid rgba(227,232,240,.85);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 22px rgba(15,23,42,.14);
+    }
+    
+    .mini-glass-row{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items:center;
+      font-size: 11px;
+      line-height: 1.2;
+      color: #0f172a;
+      padding: 3px 0;
+    }
+    
+    .mini-glass-row b{
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
     
     /* Desktop-only arrows */
     .bekalan-mini-arrow{
@@ -532,9 +580,19 @@
         </button>
     
         <div class="bekalan-mini-strip" id="bekalanMiniStrip">
-          <a class="bekalan-mini-tile is-image" href="#" title="Inventori">
-            <span class="mini-badge">Inventori</span>
+          <a class="bekalan-mini-tile is-image" href="#" title="Kedah">
+            <span class="mini-topnote">Anggaran Stok Boleh bertahan (Bulan)</span>
+          
+            <div class="mini-glass" aria-label="Anggaran stok boleh bertahan (bulan)">
+              <div class="mini-glass-row"><span>Consumable bukan konsesi</span><b id="invCbnk">—</b></div>
+              <div class="mini-glass-row"><span>Consumable konsesi</span><b id="invCk">—</b></div>
+              <div class="mini-glass-row"><span>Reagent</span><b id="invReagent">—</b></div>
+              <div class="mini-glass-row"><span>X-ray</span><b id="invXray">—</b></div>
+            </div>
+          
+            <span class="mini-badge">Kedah</span>
           </a>
+
     
           <a class="bekalan-mini-tile" href="#" title="Tile 2"><span class="mini-badge">Tile 2</span></a>
           <a class="bekalan-mini-tile" href="#" title="Tile 3"><span class="mini-badge">Tile 3</span></a>
@@ -645,6 +703,40 @@
     // 4) STATE
     // =========================================================
     let TABLE = null;
+
+    function __colToIndex(colLetters){
+      let n = 0;
+      for(const ch of colLetters.toUpperCase()){
+        n = n * 26 + (ch.charCodeAt(0) - 64);
+      }
+      return n - 1; // 0-based
+    }
+    
+    function __getCell(table, ref){
+      const m = /^([A-Z]+)(\d+)$/i.exec(String(ref).trim());
+      if(!m) return null;
+      const c = __colToIndex(m[1]);
+      const r = parseInt(m[2], 10) - 1; // 0-based
+      if(!table || !table[r] || typeof table[r][c] === "undefined") return null;
+      const v = String(table[r][c]).trim();
+      return v === "" ? null : v;
+    }
+    
+    function updateMiniTileInventory(table){
+      const set = (id, ref) => {
+        const el = document.getElementById(id);
+        if(!el) return;
+        const v = __getCell(table, ref);
+        el.textContent = (v == null) ? "—" : v;
+      };
+    
+      // As requested (cell references from the same CSV as Tile 1)
+      set("invCbnk", "Q40");    // Consumable bukan konsesi
+      set("invCk",   "Q45");    // Consumable konsesi
+      set("invReagent", "Q38"); // Reagent
+      set("invXray", "Q41");    // X-ray
+    }
+
     let chart = null;
     let selectedCats = new Set(CATEGORIES.map(x=>x.id));  // default: all categories shown
     let selectedMetric = "baki";                          // default: BAKI STOK
@@ -923,8 +1015,8 @@
         skipEmptyLines: true,
         complete: (res)=>{
           TABLE = res.data;
+          updateMiniTileInventory(TABLE);
           renderFilterMenu();
-
           syncTagsLegendAndVisibility(true);
 
           // smart search registration
