@@ -371,21 +371,6 @@
         </div>
 
         <div class="act">
-          <!-- PERIOD DROPDOWN -->
-          <div class="dd" id="lbiPeriodDD">
-            <button class="btn-pill" id="lbiPeriodBtn" title="Tukar tempoh laporan">
-              <span class="mini">Tempoh</span>
-              <span id="lbiPeriodLabel">—</span>
-            </button>
-            <div class="menu" id="lbiPeriodMenu" style="width:320px;">
-              <div class="menu-body" id="lbiPeriodBody"></div>
-              <div class="mfoot">
-                <button class="icbtn" id="lbiPeriodClose" title="Tutup" aria-label="Tutup">
-                  <svg class="ico"><use href="#i-x"/></svg>
-                </button>
-              </div>
-            </div>
-          </div>
 
           <!-- FILTER (2-tier) -->
           <div class="dd" id="lbiFilterDD">
@@ -565,7 +550,7 @@
       if(!actualDs || !actualDs.gid) return;
 
       selectedDatasetId = id;
-      renderPeriodMenu();
+
       loadAndDraw();
       periodDD.classList.remove('open');
     });
@@ -821,7 +806,7 @@
     // =========================================================
     function loadAndDraw(){
       const ds = DATASETS.find(x=>x.id===selectedDatasetId) || DATASETS[0];
-      const url = urlOf(ds.gid);
+      const url = __pickURL('bekalan','b1');
 
       const err = document.getElementById('lbiErr');
       if(!url){
@@ -836,14 +821,14 @@
         complete: (res)=>{
           TABLE = res.data;
           renderFilterMenu();
-          renderPeriodMenu();
+
           syncTagsLegendAndVisibility(true);
 
           // smart search registration
           window.__bSearch.suggestions.push({type:"tile", tile:"lbi-tile", label:"LAPORAN BULANAN INVENTORI (LBI) UBAT DAN BUKAN UBAT"});
           CATEGORIES.forEach(c=> window.__bSearch.suggestions.push({type:"filter", tile:"lbi", key:c.id, label:c.label}));
           METRICS.forEach(m=> window.__bSearch.suggestions.push({type:"filter", tile:"lbi", key:m.id, label:m.label}));
-          DATASETS.filter(x=>x.gid).forEach(d=> window.__bSearch.suggestions.push({type:"filter", tile:"lbi", key:d.id, label:d.label}));
+
         },
         error: ()=>{
           err.textContent = "Gagal memuatkan CSV (Tile LBI).";
@@ -872,15 +857,7 @@
         filterDD.classList.add('open');
         return;
       }
-      // If key matches dataset -> select dataset
-      if(DATASETS.some(d=>d.id===key && d.gid)){
-        selectedDatasetId = key;
-        renderPeriodMenu();
-        loadAndDraw();
-        document.getElementById('lbi-tile').scrollIntoView({behavior:'smooth', block:'start'});
-        periodDD.classList.add('open');
-        return;
-      }
+
     };
 
     document.getElementById('lbiRefresh').addEventListener('click', loadAndDraw);
@@ -918,7 +895,7 @@
 
 
     // init
-    renderPeriodMenu();
+
     renderFilterMenu();
     loadAndDraw();
   })();
