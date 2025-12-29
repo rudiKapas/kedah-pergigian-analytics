@@ -321,6 +321,87 @@
         overflow-x: hidden;
       }
     }
+
+    /* ============================================================
+       Bekalan: 2nd-row mini tiles (square, half-height feel, scrollable)
+       ============================================================ */
+    
+    /* Set size = ~half of the main chart height (440px -> 220px) */
+    :root{
+      --bekalan-mini: 220px;
+    }
+    
+    .mini-tiles-row{
+      grid-column: 1 / -1;          /* sit BELOW the first wide tile across full width */
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      padding: 2px 2px 6px;
+      scrollbar-width: none;         /* Firefox: hide scrollbar */
+    }
+    .mini-tiles-row::-webkit-scrollbar{ display:none; } /* Chrome/Safari: hide scrollbar */
+    
+    .mini-tile{
+      flex: 0 0 var(--bekalan-mini);
+      width: var(--bekalan-mini);
+      height: var(--bekalan-mini);
+      border-radius: 16px;
+      border: 1px solid var(--bd, #e3e8f0);
+      background: var(--panel, #ffffff);
+      box-shadow: var(--shadow-1, 0 10px 24px rgba(15,27,45,.10));
+      position: relative;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+    }
+    
+    .mini-tile--img{
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    
+    .mini-tile__label{
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      padding: 6px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #0f172a;
+      background: rgba(255,255,255,.88);
+      border: 1px solid rgba(227,232,240,.9);
+      backdrop-filter: blur(6px);
+    }
+    
+    /* ============================================================
+       IMPORTANT: Bekalan currently has a mobile "main.grid carousel" rule.
+       That would prevent any "row below" layout.
+       This override forces main.grid back to normal grid on mobile.
+       ============================================================ */
+    @media (max-width: 900px){
+      main.grid{
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        overflow: visible !important;
+        scroll-snap-type: none !important;
+        flex-direction: initial !important;
+        flex-wrap: initial !important;
+      }
+      .grid .tile{
+        flex: initial !important;
+        width: auto !important;
+        margin: 0 !important;
+        scroll-snap-align: initial !important;
+      }
+      .grid .tile:last-child{
+        margin-right: 0 !important;
+      }
+    }
+
   </style>
 
   <!-- icons -->
@@ -407,6 +488,27 @@
     </section>
 
     <!-- ADDITIONAL TILES GO HERE (They will now swipe horizontally on mobile) -->
+    <!-- SECOND ROW: MINI SQUARE TILES (scrollable on desktop + mobile) -->
+    <div class="mini-tiles-row" id="bekalanMiniTiles">
+      <!-- Tile 1: background image -->
+      <a class="mini-tile mini-tile--img"
+         href="#"
+         style="background-image:url('assets/images/inventoryTile.png')"
+         aria-label="Inventory (placeholder)">
+        <span class="mini-tile__label">Inventori</span>
+      </a>
+    
+      <!-- Tiles 2–9: placeholders (you will link data later) -->
+      <a class="mini-tile" href="#" aria-label="Tile 2 placeholder"><span class="mini-tile__label">Tile 2</span></a>
+      <a class="mini-tile" href="#" aria-label="Tile 3 placeholder"><span class="mini-tile__label">Tile 3</span></a>
+      <a class="mini-tile" href="#" aria-label="Tile 4 placeholder"><span class="mini-tile__label">Tile 4</span></a>
+      <a class="mini-tile" href="#" aria-label="Tile 5 placeholder"><span class="mini-tile__label">Tile 5</span></a>
+      <a class="mini-tile" href="#" aria-label="Tile 6 placeholder"><span class="mini-tile__label">Tile 6</span></a>
+      <a class="mini-tile" href="#" aria-label="Tile 7 placeholder"><span class="mini-tile__label">Tile 7</span></a>
+      <a class="mini-tile" href="#" aria-label="Tile 8 placeholder"><span class="mini-tile__label">Tile 8</span></a>
+      <a class="mini-tile" href="#" aria-label="Tile 9 placeholder"><span class="mini-tile__label">Tile 9</span></a>
+    </div>
+
 
   </main>
 
