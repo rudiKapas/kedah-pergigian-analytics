@@ -130,34 +130,69 @@
      ------------------------------------------------- */
       const DATA_CATALOG = {
         kedah: {
-          label: "Kedah",
-          periods: {
-            "2025_JAN_JUN": {
-              label: "Jan–Jun 2025",
-              base: "https://docs.google.com/spreadsheets/u/2/d/e/2PACX-1vSmv-uyuolofm_RuuTtXCSApabklB8VYYTs85oqZesufEsrFzCIgqADjOQ7XZtoq0EErPIoJizKyLUG/pub",
-              gids: {
-                index:   { i1: 1827987097, i2: 580313871,  i3: 1862452815, i4: 367803577 },
-                akses:   { t1: 1827987097, t2: 1742536311, t3: 1032207232, t4: 191939163,  t5: 580313871,  t6: 1862452815, t7: 1768020288, t8: 725930955,  t9: 367803577 },
-                sekolah: { ps1: 605621560,  s2: 274289184,  s3: 1805739398 },
-                kpi:     { k1: 644789028,  k2: 1996563275, k3: 1049078623 },
-                workforce:{ t1: 1685402195, t2: 1636304038, t3: 1636304038 },
-                prevention:{ p1: 2118307164, p2: 153273302,  p3: 1648630853 }
-              }
-            },
-            "2025_JAN_SEP": {
-              label: "Jan–Sep 2025",
-              base: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub",
-              gids: {
-                index:   { i1: 1057141723, i2: 1851801564, i3: 205423549,  i4: 480846724 },
-                akses:   { t1: 1057141723, t2: 1808391684, t3: 1032207232, t4: 666852668,  t5: 1851801564, t6: 205423549, t7: 543945307, t8: 1983552555, t9: 480846724 },
-                sekolah: { ps1: 1190173258, s2: 282265418,  s3: 1143057439 },
-                kpi:     { k1: 898117748,  k2: 64245750,   k3: 455214076 },
-                workforce:{ t1: 68768251,   t2: 1636304038, t3: 1636304038 },
-                prevention:{ p1: 1006276802, p2: 3425549,    p3: 529560061 }
-              }
-            }
-          }
-        },
+           label: "Kedah",
+           periods: {
+         
+             "2025_JAN_MAR": {
+               label: "Jan–Mac 2025",
+               base: "https://docs.google.com/spreadsheets/u/2/d/e/2PACX-1vSmv-uyuolofm_RuuTtXCSApabklB8VYYTs85oqZesufEsrFzCIgqADjOQ7XZtoq0EErPIoJizKyLUG/pub",
+               bases: {
+                 inventori: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5BDbjWy7dS7jk9yD3yRerVSl2U8e0klgsMG4zwfu5k70v4IxnIJWvCQJ5uaE58Q/pub"
+               },
+               gids: {
+                 // NOTE: Only bekalan is defined for Jan–Mac right now
+                 bekalan: { b1: 1604801621 }
+               }
+             },
+         
+             "2025_JAN_JUN": {
+               label: "Jan–Jun 2025",
+               base: "https://docs.google.com/spreadsheets/u/2/d/e/2PACX-1vSmv-uyuolofm_RuuTtXCSApabklB8VYYTs85oqZesufEsrFzCIgqADjOQ7XZtoq0EErPIoJizKyLUG/pub",
+               bases: {
+                 inventori: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5BDbjWy7dS7jk9yD3yRerVSl2U8e0klgsMG4zwfu5k70v4IxnIJWvCQJ5uaE58Q/pub"
+               },
+               gids: {
+                 index:      { i1: 1827987097, i2: 580313871,  i3: 1862452815, i4: 367803577 },
+                 akses:      { t1: 1827987097, t2: 1742536311, t3: 1032207232, t4: 191939163,  t5: 580313871,  t6: 1862452815, t7: 1768020288, t8: 725930955,  t9: 367803577 },
+                 sekolah:    { ps1: 605621560,  s2: 274289184,  s3: 1805739398 },
+                 kpi:        { k1: 644789028,  k2: 1996563275, k3: 1049078623 },
+                 workforce:  { t1: 1685402195, t2: 1636304038, t3: 1636304038 },
+                 prevention: { p1: 2118307164, p2: 153273302,  p3: 1648630853 },
+                 bekalan:    { b1: 1609047015 }
+               }
+             },
+         
+             "2025_JAN_SEP": {
+               label: "Jan–Sep 2025",
+               base: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub",
+               bases: {
+                 inventori: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5BDbjWy7dS7jk9yD3yRerVSl2U8e0klgsMG4zwfu5k70v4IxnIJWvCQJ5uaE58Q/pub"
+               },
+               gids: {
+                 index:      { i1: 1057141723, i2: 1851801564, i3: 205423549,  i4: 480846724 },
+                 akses:      { t1: 1057141723, t2: 1808391684, t3: 1032207232, t4: 666852668,  t5: 1851801564, t6: 205423549, t7: 543945307, t8: 1983552555, t9: 480846724 },
+                 sekolah:    { ps1: 1190173258, s2: 282265418,  s3: 1143057439 },
+                 kpi:        { k1: 898117748,  k2: 64245750,   k3: 455214076 },
+                 workforce:  { t1: 68768251,   t2: 1636304038, t3: 1636304038 },
+                 prevention: { p1: 1006276802, p2: 3425549,    p3: 529560061 },
+                 bekalan:    { b1: 930472244 }
+               }
+             },
+         
+             "2025_JAN_DIS": {
+               label: "Jan–Dis 2025 (Belum ada link)",
+               base: "https://docs.google.com/spreadsheets/u/2/d/e/2PACX-1vSmv-uyuolofm_RuuTtXCSApabklB8VYYTs85oqZesufEsrFzCIgqADjOQ7XZtoq0EErPIoJizKyLUG/pub",
+               bases: {
+                 inventori: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5BDbjWy7dS7jk9yD3yRerVSl2U8e0klgsMG4zwfu5k70v4IxnIJWvCQJ5uaE58Q/pub"
+               },
+               gids: {
+                 bekalan: { b1: null }
+               }
+             }
+         
+           }
+         },
+
       
         kuala_muda: {
           label: "Kuala Muda",
@@ -211,7 +246,9 @@
      const gid = overrideGid ?? fallbackGid;
      if (!gid) { console.warn("[datasets] Unknown page/tile:", pageKey, tileKey); return ""; }
    
-     return buildCsvURL(perObj.base, gid);
+     const base = (perObj?.bases?.[pageKey]) || (perObj?.bases?.inventori) || perObj.base;
+     return buildCsvURL(base, gid);
+
    };
 
 
