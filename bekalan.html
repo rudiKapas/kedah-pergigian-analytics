@@ -10,7 +10,7 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=1">
-  <script src="datasets.js?v=3"></script>
+  <script src="datasets.js?v=4"></script>
 
   <!-- libs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -432,16 +432,9 @@
     // =========================================================
     // 1) DATASET (CSV) CONFIG
     // =========================================================
-    const SHEET_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5BDbjWy7dS7jk9yD3yRerVSl2U8e0klgsMG4zwfu5k70v4IxnIJWvCQJ5uaE58Q/pub?single=true&output=csv&gid=";
+  
 
-    // >>> ADD NEW CSV LINKS HERE (append new objects; for same year just change gid)
-    const DATASETS = [
-      { id:"2025_jan_mar",  label:"Jan – Mac 2025",  gid:"1604801621" },
-      { id:"2025_jan_jun",  label:"Jan – Jun 2025",  gid:"1609047015" },
-      { id:"2025_jan_sept", label:"Jan – Sept 2025", gid:"930472244"  },
-      { id:"2025_jan_dis",  label:"Jan – Dis 2025",  gid:"" } // no link yet
-    ];
-    const urlOf = (gid)=> gid ? (SHEET_BASE + gid) : "";
+
 
     // =========================================================
     // 2) FILTER CONFIG (2-tier)
@@ -508,7 +501,7 @@
     let chart = null;
     let selectedCats = new Set(CATEGORIES.map(x=>x.id));  // default: all categories shown
     let selectedMetric = "baki";                          // default: BAKI STOK
-    let selectedDatasetId = DATASETS.find(d=>d.gid)?.id || DATASETS[0].id;
+
 
     function split2Lines(label){
       if(!label) return label;
@@ -519,45 +512,6 @@
       return label;
     }
     const PAD_LABELS = ()=> [' ', ...AREAS.map(a=>split2Lines(a.label)), ' '];
-
-
-    // =========================================================
-    // 5) UI RENDERERS (Period + Filter)
-    // =========================================================
-    const periodDD = document.getElementById('lbiPeriodDD');
-    const periodBody = document.getElementById('lbiPeriodBody');
-
-    function renderPeriodMenu(){
-      periodBody.innerHTML = DATASETS.map(d=>{
-        const disabled = d.gid ? "" : "opacity:.45; pointer-events:none;";
-        const active = (d.id === selectedDatasetId) ? "background:#f1f5ff; border:1px solid #dbe7ff;" : "";
-        return `
-          <div class="opt" data-ds="${d.id}" style="${disabled} ${active}">
-            <input type="radio" name="lbiPeriod" ${d.id===selectedDatasetId?"checked":""} />
-            <span>${d.label}${d.gid ? "" : " (Belum ada link)"}</span>
-          </div>
-        `;
-      }).join('');
-      document.getElementById('lbiPeriodLabel').textContent =
-        (DATASETS.find(x=>x.id===selectedDatasetId)?.label) || "—";
-    }
-
-    periodBody.addEventListener('click', (e)=>{
-      const row = e.target.closest('.opt[data-ds]');
-      if(!row) return;
-      const id = row.dataset.ds;
-      const actualDs = DATASETS.find(x=>x.id===id);
-      if(!actualDs || !actualDs.gid) return;
-
-      selectedDatasetId = id;
-
-      loadAndDraw();
-      periodDD.classList.remove('open');
-    });
-
-    document.getElementById('lbiPeriodBtn').addEventListener('click', (e)=>{ e.stopPropagation(); periodDD.classList.toggle('open'); });
-    document.getElementById('lbiPeriodClose').addEventListener('click', ()=> periodDD.classList.remove('open'));
-    document.addEventListener('click', (e)=>{ if(!periodDD.contains(e.target)) periodDD.classList.remove('open'); });
 
     // Filter (two-tier)
     const filterDD = document.getElementById('lbiFilterDD');
@@ -770,12 +724,14 @@
     // =========================================================
     function syncTagsLegendAndVisibility(rebuildChart=false){
       const tags = document.getElementById('lbiTags');
-      const dsLabel = DATASETS.find(x=>x.id===selectedDatasetId)?.label || "—";
       const met = METRICS.find(x=>x.id===selectedMetric) || METRICS[0];
-
+      const dsLabel = (window.__getSelectionLabels?.().period) || "—";
       const catsTxt = selectedCats.size
         ? Array.from(selectedCats).map(id=> CATEGORIES.find(x=>x.id===id)?.label).filter(Boolean)
         : [];
+
+
+      
 
       tags.innerHTML = `
         <span class="tag">${dsLabel}</span>
@@ -805,7 +761,7 @@
     // 8) DATA LOAD
     // =========================================================
     function loadAndDraw(){
-      const ds = DATASETS.find(x=>x.id===selectedDatasetId) || DATASETS[0];
+
       const url = __pickURL('bekalan','b1');
 
       const err = document.getElementById('lbiErr');
