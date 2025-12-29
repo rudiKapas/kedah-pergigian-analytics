@@ -60,6 +60,98 @@
     .tile .chart{ height:440px; }
     .tile .chart canvas{ width:100% !important; height:100% !important; }
 
+    /* ===== Bekalan only: 2nd-row mini tiles strip ===== */
+    :root{
+      --bekalan-mini: 260px; /* JS will override to 50% of the first tile height */
+    }
+    
+    .bekalan-mini-row{
+      grid-column: 1 / -1;
+      margin-top: 14px;
+    }
+    
+    .bekalan-mini-wrap{
+      position: relative;
+    }
+    
+    .bekalan-mini-strip{
+      display:flex;
+      gap:16px;
+      overflow-x:auto;
+      padding: 2px 4px 8px;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .bekalan-mini-strip::-webkit-scrollbar{ display:none; }
+    
+    .bekalan-mini-tile{
+      flex: 0 0 auto;
+      height: var(--bekalan-mini);
+      aspect-ratio: 1 / 1;     /* square */
+      border-radius:16px;
+      border:1px solid #e5e7eb;
+      background:#fff;
+      box-shadow: 0 6px 18px rgba(15,27,45,.06);
+      position:relative;
+      overflow:hidden;
+      scroll-snap-align: start;
+      text-decoration:none;
+      color:inherit;
+    }
+    
+    .bekalan-mini-tile.is-image{
+      background: url("assets/images/inventoryTile.png") center/cover no-repeat;
+    }
+    
+    .bekalan-mini-tile:hover{
+      box-shadow: 0 10px 28px rgba(2,6,23,.14);
+      transform: translateY(-1px);
+      transition: .15s ease;
+    }
+    
+    .mini-badge{
+      position:absolute;
+      left:12px;
+      bottom:12px;
+      background: rgba(255,255,255,.92);
+      border:1px solid #e5e7eb;
+      border-radius:999px;
+      padding:6px 10px;
+      font-weight:800;
+      font-size:12px;
+      box-shadow:0 10px 22px rgba(15,23,42,.12);
+    }
+    
+    /* Desktop-only arrows */
+    .bekalan-mini-arrow{
+      position:absolute;
+      top:50%;
+      transform: translateY(-50%);
+      height:44px;
+      width:44px;
+      border-radius:14px;
+      border:1px solid #e5edf7;
+      background: rgba(255,255,255,.92);
+      box-shadow:0 14px 30px rgba(15,27,45,.18);
+      display:none;                 /* hidden by default */
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      z-index: 3;
+    }
+    
+    .bekalan-mini-arrow svg{ width:18px; height:18px; }
+    
+    @media (min-width: 901px){
+      .bekalan-mini-arrow{ display:flex; }
+      /* add inner padding so arrows don't cover tiles */
+      .bekalan-mini-strip{ padding-left: 60px; padding-right: 60px; }
+      .bekalan-mini-arrow.left{ left: 12px; }
+      .bekalan-mini-arrow.right{ right: 12px; }
+    }
+
+
     /* dropdown */
     .dd{ position:relative; }
     .dd .menu{
@@ -175,18 +267,7 @@
       /* ============================================================
         MOBILE: TILE HORIZONTAL SWIPE (CAROUSEL)
         ============================================================ */
-      main.grid{
-        padding: 10px 0 30px !important; /* Vertical space only */
-        display: flex !important;       /* Change grid to flex row */
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        overflow-x: auto !important;     /* Enable swiping right to see other tiles */
-        overflow-y: hidden !important;
-        scroll-snap-type: x mandatory;   /* Snap to tiles */
-        -webkit-overflow-scrolling: touch;
-        gap: 16px !important;
-        scrollbar-width: none;           /* Hide scroller bar for cleaner look */
-      }
+
       main.grid::-webkit-scrollbar { display: none; }
 
       .grid .tile{
@@ -488,25 +569,37 @@
     </section>
 
     <!-- ADDITIONAL TILES GO HERE (They will now swipe horizontally on mobile) -->
-    <!-- SECOND ROW: MINI SQUARE TILES (scrollable on desktop + mobile) -->
-    <div class="mini-tiles-row" id="bekalanMiniTiles">
-      <!-- Tile 1: background image -->
-      <a class="mini-tile mini-tile--img"
-         href="#"
-         style="background-image:url('assets/images/inventoryTile.png')"
-         aria-label="Inventory (placeholder)">
-        <span class="mini-tile__label">Inventori</span>
-      </a>
+    <!-- ROW 2: Mini tiles strip (Bekalan only) -->
+    <div class="bekalan-mini-row">
+      <div class="bekalan-mini-wrap">
+        <!-- Desktop arrows (hidden on mobile) -->
+        <button class="bekalan-mini-arrow left" type="button" aria-label="Skrol kiri" id="bekalanMiniLeft">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </button>
     
-      <!-- Tiles 2–9: placeholders (you will link data later) -->
-      <a class="mini-tile" href="#" aria-label="Tile 2 placeholder"><span class="mini-tile__label">Tile 2</span></a>
-      <a class="mini-tile" href="#" aria-label="Tile 3 placeholder"><span class="mini-tile__label">Tile 3</span></a>
-      <a class="mini-tile" href="#" aria-label="Tile 4 placeholder"><span class="mini-tile__label">Tile 4</span></a>
-      <a class="mini-tile" href="#" aria-label="Tile 5 placeholder"><span class="mini-tile__label">Tile 5</span></a>
-      <a class="mini-tile" href="#" aria-label="Tile 6 placeholder"><span class="mini-tile__label">Tile 6</span></a>
-      <a class="mini-tile" href="#" aria-label="Tile 7 placeholder"><span class="mini-tile__label">Tile 7</span></a>
-      <a class="mini-tile" href="#" aria-label="Tile 8 placeholder"><span class="mini-tile__label">Tile 8</span></a>
-      <a class="mini-tile" href="#" aria-label="Tile 9 placeholder"><span class="mini-tile__label">Tile 9</span></a>
+        <div class="bekalan-mini-strip" id="bekalanMiniStrip">
+          <a class="bekalan-mini-tile is-image" href="#" title="Inventori">
+            <span class="mini-badge">Inventori</span>
+          </a>
+    
+          <a class="bekalan-mini-tile" href="#" title="Tile 2"><span class="mini-badge">Tile 2</span></a>
+          <a class="bekalan-mini-tile" href="#" title="Tile 3"><span class="mini-badge">Tile 3</span></a>
+          <a class="bekalan-mini-tile" href="#" title="Tile 4"><span class="mini-badge">Tile 4</span></a>
+          <a class="bekalan-mini-tile" href="#" title="Tile 5"><span class="mini-badge">Tile 5</span></a>
+          <a class="bekalan-mini-tile" href="#" title="Tile 6"><span class="mini-badge">Tile 6</span></a>
+          <a class="bekalan-mini-tile" href="#" title="Tile 7"><span class="mini-badge">Tile 7</span></a>
+          <a class="bekalan-mini-tile" href="#" title="Tile 8"><span class="mini-badge">Tile 8</span></a>
+          <a class="bekalan-mini-tile" href="#" title="Tile 9"><span class="mini-badge">Tile 9</span></a>
+        </div>
+    
+        <button class="bekalan-mini-arrow right" type="button" aria-label="Skrol kanan" id="bekalanMiniRight">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </button>
+      </div>
     </div>
 
 
@@ -1079,6 +1172,46 @@
       });
     })();
   </script>
+
+  <script>
+  (function(){
+    function setMiniSize(){
+      const first = document.querySelector('#lbi-tile');
+      if(!first) return;
+  
+      const h = Math.round(first.getBoundingClientRect().height * 0.5);
+      const size = Math.max(220, Math.min(380, h)); // clamp for safety
+      document.documentElement.style.setProperty('--bekalan-mini', size + 'px');
+    }
+  
+    function bindMiniArrows(){
+      const strip = document.getElementById('bekalanMiniStrip');
+      const left = document.getElementById('bekalanMiniLeft');
+      const right = document.getElementById('bekalanMiniRight');
+      if(!strip || !left || !right) return;
+  
+      const step = () => Math.round(strip.clientWidth * 0.85);
+  
+      left.addEventListener('click', () => {
+        strip.scrollBy({ left: -step(), behavior: 'smooth' });
+      });
+  
+      right.addEventListener('click', () => {
+        strip.scrollBy({ left: step(), behavior: 'smooth' });
+      });
+    }
+  
+    window.addEventListener('load', () => {
+      setMiniSize();
+      bindMiniArrows();
+    });
+  
+    window.addEventListener('resize', () => {
+      setMiniSize();
+    });
+  })();
+  </script>
+
 
 
 
