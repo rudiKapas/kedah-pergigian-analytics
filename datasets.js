@@ -246,7 +246,15 @@
      const gid = overrideGid ?? fallbackGid;
      if (!gid) { console.warn("[datasets] Unknown page/tile:", pageKey, tileKey); return ""; }
    
-     const base = (perObj?.bases?.[pageKey]) || (perObj?.bases?.inventori) || perObj.base;
+     // Map pages that should use an alternate base group
+   const BASE_GROUP_BY_PAGE = { bekalan: "inventori" }; // add more later if needed
+   
+   const groupKey = BASE_GROUP_BY_PAGE[pageKey];
+   const base =
+     (perObj?.bases?.[pageKey]) ||
+     (groupKey ? perObj?.bases?.[groupKey] : null) ||
+     perObj.base;
+
      return buildCsvURL(base, gid);
 
    };
