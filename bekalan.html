@@ -511,7 +511,7 @@
       content:"";
       position:absolute;
       left:0; right:0; top:0;
-      height: 78px;
+      height: 58px;
       background: radial-gradient(120px 80px at 18% 40%, rgba(20,184,166,.20), rgba(20,184,166,0) 60%),
                   radial-gradient(140px 90px at 78% 35%, rgba(59,130,246,.12), rgba(59,130,246,0) 62%);
       border-bottom: 1px solid rgba(226,232,240,.9);
@@ -527,9 +527,9 @@
       align-items:flex-start;
       justify-content:flex-start;
       text-align:left;
-      padding: 18px 18px 120px;
-      padding-right: 220px; /* reserve space for the glass card */
+      padding: 16px 18px 128px; /* bottom space reserved for the small card */
     }
+
 
 
     /* Title matches Kedah (size+weight already aligned by you) */
@@ -539,7 +539,37 @@
       font-weight: 600;
       line-height: 1.1;
       margin-top: 0; /* visually sits in the header zone */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
     }
+
+    /* KPI row above the small card */
+    .mini-ksp .ksp-kpi{
+      margin-top: auto;                 /* pushes this row to the bottom of the center area */
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr auto;  /* label left, value right */
+      gap: 12px;
+      align-items: baseline;
+    }
+    
+    .mini-ksp .ksp-kpi-label{
+      font-size: 12px;
+      font-weight: 800;
+      color: #334155;
+    }
+    
+    .mini-ksp .ksp-kpi-value{
+      font-size: 44px;     /* same visual weight as your current main value style */
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: #0b1220;
+      line-height: 1;
+      text-align: right;
+    }
+
 
     /* Big number: clean and tight */
     .mini-ksp .ksp-value{
@@ -566,12 +596,13 @@
     /* Right-side "liquid glass" stats card (like Tile 1, but lighter) */
     .mini-ksp .ksp-left{
       position:absolute;
-      right: 14px;
+      left: 18px;
+      right: 18px;
       bottom: 14px;
       top: auto;
       transform: none;
-      width: 200px;
-      padding: 10px 10px;
+      width: auto;               /* fill available width */
+      padding: 10px 12px;
       border-radius: 16px;
       background: rgba(255,255,255,.66);
       border: 1px solid rgba(227,232,240,.92);
@@ -580,6 +611,7 @@
       display:grid;
       gap: 6px;
     }
+
 
 
     .mini-ksp .ksp-left > div{
@@ -746,8 +778,12 @@
           <div class="bekalan-mini-tile mini-ksp" role="group" aria-label="Kota Setar &amp; Pendang">
             <div class="ksp-center">
               <div class="ksp-title">Kota Setar &amp; Pendang</div>
-              <div class="ksp-value" id="kspCbnkMain">—</div>
-              <div class="ksp-sub">Consumable bukan konsesi</div>
+          
+              <!-- KPI row ABOVE the small card -->
+              <div class="ksp-kpi">
+                <div class="ksp-kpi-label">Consumable bukan konsesi</div>
+                <div class="ksp-kpi-value" id="kspCbnkMain">—</div>
+              </div>
             </div>
 
             <div class="ksp-left">
