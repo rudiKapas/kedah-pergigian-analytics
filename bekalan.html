@@ -168,6 +168,25 @@
       box-shadow:0 10px 22px rgba(15,23,42,.12);
     }
 
+    /* Mini tile title (top-left): non-pill, larger, bold */
+    .mini-title{
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      font-size: 18px;
+      font-weight: 900;
+      color: #0f172a;
+      line-height: 1.1;
+      text-shadow: 0 10px 22px rgba(15,23,42,.18);
+    }
+    
+    /* Allow the long bottom pill text to wrap cleanly */
+    .mini-badge{
+      max-width: 70%;
+      white-space: normal;
+    }
+
+
     /* Bekalan mini tile: top-left note + right liquid-glass stats */
     .mini-topnote{
       position:absolute;
@@ -580,8 +599,8 @@
         </button>
     
         <div class="bekalan-mini-strip" id="bekalanMiniStrip">
-          <a class="bekalan-mini-tile is-image" href="#" title="Kedah">
-            <span class="mini-topnote">Anggaran Stok Boleh bertahan (Bulan)</span>
+          <div class="bekalan-mini-tile is-image" role="group" aria-label="Kedah">
+            <div class="mini-title">Kedah</div>
           
             <div class="mini-glass" aria-label="Anggaran stok boleh bertahan (bulan)">
               <div class="mini-glass-row"><span>Consumable bukan konsesi</span><b id="invCbnk">—</b></div>
@@ -590,18 +609,21 @@
               <div class="mini-glass-row"><span>X-ray</span><b id="invXray">—</b></div>
             </div>
           
-            <span class="mini-badge">Kedah</span>
-          </a>
+            <span class="mini-badge">Anggaran Stok Boleh bertahan (Bulan)</span>
+          </div>
+
 
     
-          <a class="bekalan-mini-tile" href="#" title="Tile 2"><span class="mini-badge">Tile 2</span></a>
-          <a class="bekalan-mini-tile" href="#" title="Tile 3"><span class="mini-badge">Tile 3</span></a>
-          <a class="bekalan-mini-tile" href="#" title="Tile 4"><span class="mini-badge">Tile 4</span></a>
-          <a class="bekalan-mini-tile" href="#" title="Tile 5"><span class="mini-badge">Tile 5</span></a>
-          <a class="bekalan-mini-tile" href="#" title="Tile 6"><span class="mini-badge">Tile 6</span></a>
-          <a class="bekalan-mini-tile" href="#" title="Tile 7"><span class="mini-badge">Tile 7</span></a>
-          <a class="bekalan-mini-tile" href="#" title="Tile 8"><span class="mini-badge">Tile 8</span></a>
-          <a class="bekalan-mini-tile" href="#" title="Tile 9"><span class="mini-badge">Tile 9</span></a>
+
+          <div class="bekalan-mini-tile" role="group" aria-label="Tile 2"><span class="mini-badge">Tile 2</span></div>
+          <div class="bekalan-mini-tile" role="group" aria-label="Tile 3"><span class="mini-badge">Tile 3</span></div>
+          <div class="bekalan-mini-tile" role="group" aria-label="Tile 4"><span class="mini-badge">Tile 4</span></div>
+          <div class="bekalan-mini-tile" role="group" aria-label="Tile 5"><span class="mini-badge">Tile 5</span></div>
+          <div class="bekalan-mini-tile" role="group" aria-label="Tile 6"><span class="mini-badge">Tile 6</span></div>
+          <div class="bekalan-mini-tile" role="group" aria-label="Tile 7"><span class="mini-badge">Tile 7</span></div>
+          <div class="bekalan-mini-tile" role="group" aria-label="Tile 8"><span class="mini-badge">Tile 8</span></div>
+          <div class="bekalan-mini-tile" role="group" aria-label="Tile 9"><span class="mini-badge">Tile 9</span></div>
+
         </div>
     
         <button class="bekalan-mini-arrow right" type="button" aria-label="Skrol kanan" id="bekalanMiniRight">
