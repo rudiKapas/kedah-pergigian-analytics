@@ -525,9 +525,9 @@
       display:flex;
       flex-direction:column;
       align-items:flex-start;
-      justify-content:center;
+      justify-content:flex-start;
       text-align:left;
-      padding: 18px 18px 18px;
+      padding: 18px 18px 120px;
       padding-right: 220px; /* reserve space for the glass card */
     }
 
@@ -556,6 +556,11 @@
       font-weight: 800;
       color: #334155;
       opacity: .95;
+      display: inline-block;
+      max-width: calc(100% - 230px); /* avoids sitting under the bottom-right card */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* Right-side "liquid glass" stats card (like Tile 1, but lighter) */
@@ -615,6 +620,7 @@
     @media (max-width: 520px){
       .mini-ksp .ksp-center{ padding-right: 18px; padding-bottom: 110px; }
       .mini-ksp .ksp-left{ width: calc(100% - 28px); left: 14px; right: 14px; }
+      .mini-ksp .ksp-sub{ max-width: 100%; }
     }
 
 
