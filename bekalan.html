@@ -501,10 +501,23 @@
 
     /* ===== Mini tile #2 (Kota Setar & Pendang) — redesigned ===== */
     .mini-ksp{
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding: 16px 18px 14px;   /* these edges define the alignment */
+      gap: 10px;
       background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
       border: 1px solid #e6edf7;
       box-shadow: 0 10px 26px rgba(2,6,23,.10);
+      overflow: hidden;
     }
+
+    .mini-ksp > *{
+      position: relative;
+      z-index: 1;
+    }
+
+
 
     /* Subtle top header band */
     .mini-ksp::before{
@@ -520,16 +533,15 @@
 
     /* Center KPI block */
     .mini-ksp .ksp-center{
-      position:absolute;
-      inset: 0;
-      display:flex;
-      flex-direction:column;
-      align-items:flex-start;
-      justify-content:flex-start;
-      text-align:left;
-      padding: 16px 18px 128px; /* bottom space reserved for the small card */
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      text-align: left;
+      padding: 0;
     }
-
+    
 
 
     /* Title matches Kedah (size+weight already aligned by you) */
@@ -546,27 +558,26 @@
     }
 
     /* KPI row above the small card */
-    .mini-ksp .ksp-kpi{
-      margin-top: auto;
-      width: calc(100% - 0px);
-      display: grid;
-      grid-template-columns: 120px 1fr;  /* fixed label column so it wraps into ~3 lines */
-      gap: 14px;
+   .mini-ksp .ksp-kpi{
+      margin-top: auto;              /* pushes KPI to the bottom of the center area */
+      width: 100%;                   /* SAME width as the small tile below */
+      display: flex;
       align-items: center;
-      padding-left: 0;                  /* inherit left edge from ksp-center */
-      padding-right: 0;
+      justify-content: space-between; /* label left, value right */
+      gap: 14px;
     }
+    
 
     
     .mini-ksp .ksp-kpi-label{
+      width: 150px;          /* ensures a neat 3-line block */
       font-size: 12px;
       font-weight: 800;
       color: #334155;
       text-align: left;
-      line-height: 1.15;
-      max-width: 120px; /* matches the fixed column */
-      white-space: normal;
+      line-height: 1.12;
     }
+
 
     
     .mini-ksp .ksp-kpi-value{
@@ -577,6 +588,7 @@
       line-height: 1;
       text-align: right;
       justify-self: end;
+      margin-left: auto;
     }
 
 
@@ -604,22 +616,17 @@
 
     /* Right-side "liquid glass" stats card (like Tile 1, but lighter) */
     .mini-ksp .ksp-left{
-      position:absolute;
-      left: 18px;
-      right: 18px;
-      bottom: 14px;
-      top: auto;
-      transform: none;
-      width: auto;               /* fill available width */
+      width: 100%;                 /* SAME width as KPI row above */
       padding: 10px 12px;
       border-radius: 16px;
       background: rgba(255,255,255,.66);
       border: 1px solid rgba(227,232,240,.92);
       backdrop-filter: blur(10px);
       box-shadow: 0 10px 22px rgba(15,23,42,.12);
-      display:grid;
+      display: grid;
       gap: 6px;
     }
+    
 
 
 
@@ -645,23 +652,9 @@
     }
 
     /* On very small tiles (narrow screens), move stats card to bottom to avoid overlap */
-    @media (max-width: 420px){
-      .mini-ksp .ksp-left{
-        top: auto;
-        bottom: 12px;
-        transform: none;
-        right: 12px;
-        width: calc(100% - 24px);
-      }
-      .mini-ksp .ksp-center{
-        padding-bottom: 92px; /* make room for the bottom card */
-      }
-    }
-
     @media (max-width: 520px){
-      .mini-ksp .ksp-center{ padding-right: 18px; padding-bottom: 110px; }
-      .mini-ksp .ksp-left{ width: calc(100% - 28px); left: 14px; right: 14px; }
-      .mini-ksp .ksp-sub{ max-width: 100%; }
+      .mini-ksp{ padding: 14px 14px 12px; }
+      .mini-ksp .ksp-kpi-label{ width: 140px; }
     }
 
 
@@ -790,7 +783,7 @@
           
               <!-- KPI row ABOVE the small card -->
               <div class="ksp-kpi">
-                <div class="ksp-kpi-label">Consumable bukan konsesi</div>
+                <div class="ksp-kpi-label">Consumable<br>bukan<br>konsesi</div>
                 <div class="ksp-kpi-value" id="kspCbnkMain">—</div>
               </div>
             </div>
