@@ -499,6 +499,64 @@
       }
     }
 
+    /* ===== Mini tile #2 (Kota Setar & Pendang) ===== */
+    .mini-ksp{
+      background: #fff;
+    }
+
+    .mini-ksp .ksp-center{
+      position:absolute;
+      inset:0;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding: 18px 14px;
+    }
+
+    .mini-ksp .ksp-title{
+      color: #14b8a6;            /* green-turquoise */
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.1;
+    }
+
+    .mini-ksp .ksp-value{
+      font-size: 38px;           /* bigger value */
+      font-weight: 900;
+      color: #0f172a;
+      line-height: 1;
+      margin: 8px 0 6px;
+    }
+
+    .mini-ksp .ksp-sub{
+      font-size: 12px;
+      font-weight: 800;
+      color: #334155;
+    }
+
+    .mini-ksp .ksp-left{
+      position:absolute;
+      left: 12px;
+      bottom: 12px;
+      display: grid;
+      gap: 4px;
+      font-size: 11px;
+      color: #0f172a;
+    }
+
+    .mini-ksp .ksp-left > div{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items:center;
+    }
+
+    .mini-ksp .ksp-left b{
+      font-weight: 900;
+      white-space: nowrap;
+    }
 
 
   </style>
@@ -618,7 +676,21 @@
 
     
 
-          <div class="bekalan-mini-tile" role="group" aria-label="Tile 2"><span class="mini-badge">Tile 2</span></div>
+          <div class="bekalan-mini-tile mini-ksp" role="group" aria-label="Kota Setar &amp; Pendang">
+            <div class="ksp-center">
+              <div class="ksp-title">Kota Setar &amp; Pendang</div>
+              <div class="ksp-value" id="kspCbnkMain">—</div>
+              <div class="ksp-sub">Consumable bukan konsesi</div>
+            </div>
+
+            <div class="ksp-left">
+              <div><span>Consumable konsesi</span><b id="kspCk">—</b></div>
+              <div><span>Reagent</span><b id="kspReagent">—</b></div>
+              <div><span>X-ray</span><b id="kspXray">—</b></div>
+            </div>
+          </div>
+
+          
           <div class="bekalan-mini-tile" role="group" aria-label="Tile 3"><span class="mini-badge">Tile 3</span></div>
           <div class="bekalan-mini-tile" role="group" aria-label="Tile 4"><span class="mini-badge">Tile 4</span></div>
           <div class="bekalan-mini-tile" role="group" aria-label="Tile 5"><span class="mini-badge">Tile 5</span></div>
@@ -760,6 +832,13 @@
       set("invCk",   "Q45");    // Consumable konsesi
       set("invReagent", "Q38"); // Reagent
       set("invXray", "Q41");    // X-ray
+
+      // Mini Tile #2 (Kota Setar & Pendang)
+      set("kspCbnkMain", "Q282");  // main value (Consumable bukan konsesi)
+      set("kspCk",       "Q287");  // Consumable konsesi
+      set("kspReagent",  "Q280");  // Reagent
+      set("kspXray",     "Q283");  // X-ray
+
     }
 
     let chart = null;
