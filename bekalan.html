@@ -499,64 +499,115 @@
       }
     }
 
-    /* ===== Mini tile #2 (Kota Setar & Pendang) ===== */
+    /* ===== Mini tile #2 (Kota Setar & Pendang) — redesigned ===== */
     .mini-ksp{
-      background: #fff;
+      background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+      border: 1px solid #e6edf7;
+      box-shadow: 0 10px 26px rgba(2,6,23,.10);
     }
-
+    
+    /* Subtle top header band */
+    .mini-ksp::before{
+      content:"";
+      position:absolute;
+      left:0; right:0; top:0;
+      height: 78px;
+      background: radial-gradient(120px 80px at 18% 40%, rgba(20,184,166,.20), rgba(20,184,166,0) 60%),
+                  radial-gradient(140px 90px at 78% 35%, rgba(59,130,246,.12), rgba(59,130,246,0) 62%);
+      border-bottom: 1px solid rgba(226,232,240,.9);
+      pointer-events:none;
+    }
+    
+    /* Center KPI block */
     .mini-ksp .ksp-center{
       position:absolute;
-      inset:0;
+      inset: 0;
       display:flex;
       flex-direction:column;
       align-items:center;
       justify-content:center;
       text-align:center;
-      padding: 18px 14px;
+      padding: 18px 16px 18px;
     }
-
+    
+    /* Title matches Kedah (size+weight already aligned by you) */
     .mini-ksp .ksp-title{
-      color: #14b8a6;            /* green-turquoise */
+      color: #14b8a6;
       font-size: 22px;
       font-weight: 600;
       line-height: 1.1;
+      margin-top: 6px; /* visually sits in the header zone */
     }
-
+    
+    /* Big number: clean and tight */
     .mini-ksp .ksp-value{
-      font-size: 38px;           /* bigger value */
+      font-size: 44px;
       font-weight: 900;
-      color: #0f172a;
+      letter-spacing: -0.02em;
+      color: #0b1220;
       line-height: 1;
-      margin: 8px 0 6px;
+      margin: 10px 0 6px;
     }
-
+    
     .mini-ksp .ksp-sub{
       font-size: 12px;
       font-weight: 800;
       color: #334155;
+      opacity: .95;
     }
-
+    
+    /* Right-side "liquid glass" stats card (like Tile 1, but lighter) */
     .mini-ksp .ksp-left{
       position:absolute;
-      left: 12px;
-      bottom: 12px;
-      display: grid;
-      gap: 4px;
-      font-size: 11px;
-      color: #0f172a;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: min(190px, 58%);
+      padding: 10px 10px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.66);
+      border: 1px solid rgba(227,232,240,.92);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 22px rgba(15,23,42,.12);
+      display:grid;
+      gap: 6px;
     }
-
+    
     .mini-ksp .ksp-left > div{
       display:grid;
       grid-template-columns: 1fr auto;
-      gap: 8px;
+      gap: 10px;
       align-items:center;
+      font-size: 11px;
+      line-height: 1.2;
+      color: #0f172a;
     }
-
+    
+    .mini-ksp .ksp-left span{
+      color:#0f172a;
+      opacity:.88;
+    }
+    
     .mini-ksp .ksp-left b{
       font-weight: 900;
+      color:#0b1220;
       white-space: nowrap;
     }
+    
+    /* On very small tiles (narrow screens), move stats card to bottom to avoid overlap */
+    @media (max-width: 420px){
+      .mini-ksp .ksp-left{
+        top: auto;
+        bottom: 12px;
+        transform: none;
+        right: 12px;
+        width: calc(100% - 24px);
+      }
+      .mini-ksp .ksp-center{
+        padding-bottom: 92px; /* make room for the bottom card */
+      }
+    }
+
 
 
   </style>
