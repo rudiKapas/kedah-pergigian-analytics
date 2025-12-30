@@ -547,19 +547,27 @@
 
     /* KPI row above the small card */
     .mini-ksp .ksp-kpi{
-      margin-top: auto;                 /* pushes this row to the bottom of the center area */
-      width: 100%;
+      margin-top: auto;
+      width: calc(100% - 0px);
       display: grid;
-      grid-template-columns: 1fr auto;  /* label left, value right */
-      gap: 12px;
-      align-items: baseline;
+      grid-template-columns: 120px 1fr;  /* fixed label column so it wraps into ~3 lines */
+      gap: 14px;
+      align-items: center;
+      padding-left: 0;                  /* inherit left edge from ksp-center */
+      padding-right: 0;
     }
+
     
     .mini-ksp .ksp-kpi-label{
       font-size: 12px;
       font-weight: 800;
       color: #334155;
+      text-align: left;
+      line-height: 1.15;
+      max-width: 120px; /* matches the fixed column */
+      white-space: normal;
     }
+
     
     .mini-ksp .ksp-kpi-value{
       font-size: 44px;     /* same visual weight as your current main value style */
@@ -568,6 +576,7 @@
       color: #0b1220;
       line-height: 1;
       text-align: right;
+      justify-self: end;
     }
 
 
