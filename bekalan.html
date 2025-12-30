@@ -505,7 +505,7 @@
       border: 1px solid #e6edf7;
       box-shadow: 0 10px 26px rgba(2,6,23,.10);
     }
-    
+
     /* Subtle top header band */
     .mini-ksp::before{
       content:"";
@@ -517,28 +517,30 @@
       border-bottom: 1px solid rgba(226,232,240,.9);
       pointer-events:none;
     }
-    
+
     /* Center KPI block */
     .mini-ksp .ksp-center{
       position:absolute;
       inset: 0;
       display:flex;
       flex-direction:column;
-      align-items:center;
+      align-items:flex-start;
       justify-content:center;
-      text-align:center;
-      padding: 18px 16px 18px;
+      text-align:left;
+      padding: 18px 18px 18px;
+      padding-right: 220px; /* reserve space for the glass card */
     }
-    
+
+
     /* Title matches Kedah (size+weight already aligned by you) */
     .mini-ksp .ksp-title{
       color: #14b8a6;
       font-size: 22px;
       font-weight: 600;
       line-height: 1.1;
-      margin-top: 6px; /* visually sits in the header zone */
+      margin-top: 0; /* visually sits in the header zone */
     }
-    
+
     /* Big number: clean and tight */
     .mini-ksp .ksp-value{
       font-size: 44px;
@@ -548,21 +550,22 @@
       line-height: 1;
       margin: 10px 0 6px;
     }
-    
+
     .mini-ksp .ksp-sub{
       font-size: 12px;
       font-weight: 800;
       color: #334155;
       opacity: .95;
     }
-    
+
     /* Right-side "liquid glass" stats card (like Tile 1, but lighter) */
     .mini-ksp .ksp-left{
       position:absolute;
       right: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: min(190px, 58%);
+      bottom: 14px;
+      top: auto;
+      transform: none;
+      width: 200px;
       padding: 10px 10px;
       border-radius: 16px;
       background: rgba(255,255,255,.66);
@@ -572,7 +575,8 @@
       display:grid;
       gap: 6px;
     }
-    
+
+
     .mini-ksp .ksp-left > div{
       display:grid;
       grid-template-columns: 1fr auto;
@@ -582,18 +586,18 @@
       line-height: 1.2;
       color: #0f172a;
     }
-    
+
     .mini-ksp .ksp-left span{
       color:#0f172a;
       opacity:.88;
     }
-    
+
     .mini-ksp .ksp-left b{
       font-weight: 900;
       color:#0b1220;
       white-space: nowrap;
     }
-    
+
     /* On very small tiles (narrow screens), move stats card to bottom to avoid overlap */
     @media (max-width: 420px){
       .mini-ksp .ksp-left{
@@ -607,6 +611,12 @@
         padding-bottom: 92px; /* make room for the bottom card */
       }
     }
+
+    @media (max-width: 520px){
+      .mini-ksp .ksp-center{ padding-right: 18px; padding-bottom: 110px; }
+      .mini-ksp .ksp-left{ width: calc(100% - 28px); left: 14px; right: 14px; }
+    }
+
 
 
 
