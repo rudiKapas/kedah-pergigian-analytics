@@ -148,6 +148,11 @@
     .bekalan-mini-tile.is-image{
       background: url("assets/images/inventoryTile.png") center/cover no-repeat;
     }
+
+    .bekalan-mini-tile.is-peruntukan{
+      background: url("assets/images/peruntukanTile.png") center/cover no-repeat;
+    }
+
     
     .bekalan-mini-tile:hover{
       box-shadow: 0 10px 28px rgba(2,6,23,.14);
@@ -1113,6 +1118,168 @@
       </div>
     </section>
 
+    <!-- ROW 4: Mini tiles strip (Baki Peruntukan Bekalan - LBPP) -->
+    <div class="bekalan-mini-row">
+      <div class="bekalan-mini-wrap">
+        <!-- Desktop arrows (hidden on mobile) -->
+        <button class="bekalan-mini-arrow left" type="button" aria-label="Skrol kiri" id="bekalanMiniLeft2">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </button>
+    
+        <div class="bekalan-mini-strip" id="bekalanMiniStrip2">
+    
+          <!-- Tile 1: Kedah -->
+          <div class="bekalan-mini-tile is-peruntukan mini-kedah" role="group" aria-label="Kedah (Baki Peruntukan)">
+            <div class="mini-title">Kedah</div>
+            <div class="mini-subtitle">Baki Peruntukan Bekalan (RM)</div>
+    
+            <div class="mini-glass" aria-label="Baki peruntukan bekalan (RM)">
+              <div class="mini-glass-row"><span>Consumable bukan konsesi</span><b id="perCbnk">—</b></div>
+              <div class="mini-glass-row"><span>Consumable konsesi</span><b id="perCk">—</b></div>
+              <div class="mini-glass-row"><span>Reagent</span><b id="perReagent">—</b></div>
+              <div class="mini-glass-row"><span>X-ray</span><b id="perXray">—</b></div>
+            </div>
+          </div>
+    
+          <!-- Tile 2: Kota Setar & Pendang -->
+          <div class="bekalan-mini-tile mini-ksp" role="group" aria-label="Kota Setar &amp; Pendang (Baki Peruntukan)">
+            <div class="ksp-center">
+              <div class="ksp-title">Kota Setar &amp; Pendang</div>
+              <div class="ksp-kpi">
+                <div class="ksp-kpi-label">Consumable bukan konsesi</div>
+                <div class="ksp-kpi-value" id="perKspCbnkMain">—</div>
+              </div>
+            </div>
+            <div class="ksp-left">
+              <div><span>Consumable konsesi</span><b id="perKspCk">—</b></div>
+              <div><span>Reagent</span><b id="perKspReagent">—</b></div>
+              <div><span>X-ray</span><b id="perKspXray">—</b></div>
+            </div>
+          </div>
+    
+          <!-- Tile 3: Kuala Muda & Sik -->
+          <div class="bekalan-mini-tile mini-ksp" role="group" aria-label="Kuala Muda &amp; Sik (Baki Peruntukan)">
+            <div class="ksp-center">
+              <div class="ksp-title">Kuala Muda &amp; Sik</div>
+              <div class="ksp-kpi">
+                <div class="ksp-kpi-label">Consumable bukan konsesi</div>
+                <div class="ksp-kpi-value" id="perKmsCbnkMain">—</div>
+              </div>
+            </div>
+            <div class="ksp-left">
+              <div><span>Consumable konsesi</span><b id="perKmsCk">—</b></div>
+              <div><span>Reagent</span><b id="perKmsReagent">—</b></div>
+              <div><span>X-ray</span><b id="perKmsXray">—</b></div>
+            </div>
+          </div>
+    
+          <!-- Tile 4: Kulim & Bandar Baru -->
+          <div class="bekalan-mini-tile mini-ksp" role="group" aria-label="Kulim &amp; Bandar Baru (Baki Peruntukan)">
+            <div class="ksp-center">
+              <div class="ksp-title">Kulim &amp; Bandar Baru</div>
+              <div class="ksp-kpi">
+                <div class="ksp-kpi-label">Consumable bukan konsesi</div>
+                <div class="ksp-kpi-value" id="perKbbCbnkMain">—</div>
+              </div>
+            </div>
+            <div class="ksp-left">
+              <div><span>Consumable konsesi</span><b id="perKbbCk">—</b></div>
+              <div><span>Reagent</span><b id="perKbbReagent">—</b></div>
+              <div><span>X-ray</span><b id="perKbbXray">—</b></div>
+            </div>
+          </div>
+    
+          <!-- Tile 5: Kubang Pasu -->
+          <div class="bekalan-mini-tile mini-ksp" role="group" aria-label="Kubang Pasu (Baki Peruntukan)">
+            <div class="ksp-center">
+              <div class="ksp-title">Kubang Pasu</div>
+              <div class="ksp-kpi">
+                <div class="ksp-kpi-label">Consumable bukan konsesi</div>
+                <div class="ksp-kpi-value" id="perKpCbnkMain">—</div>
+              </div>
+            </div>
+            <div class="ksp-left">
+              <div><span>Consumable konsesi</span><b id="perKpCk">—</b></div>
+              <div><span>Reagent</span><b id="perKpReagent">—</b></div>
+              <div><span>X-ray</span><b id="perKpXray">—</b></div>
+            </div>
+          </div>
+    
+          <!-- Tile 6: Padang Terap -->
+          <div class="bekalan-mini-tile mini-ksp" role="group" aria-label="Padang Terap (Baki Peruntukan)">
+            <div class="ksp-center">
+              <div class="ksp-title">Padang Terap</div>
+              <div class="ksp-kpi">
+                <div class="ksp-kpi-label">Consumable bukan konsesi</div>
+                <div class="ksp-kpi-value" id="perPtCbnkMain">—</div>
+              </div>
+            </div>
+            <div class="ksp-left">
+              <div><span>Consumable konsesi</span><b id="perPtCk">—</b></div>
+              <div><span>Reagent</span><b id="perPtReagent">—</b></div>
+              <div><span>X-ray</span><b id="perPtXray">—</b></div>
+            </div>
+          </div>
+    
+          <!-- Tile 7: Baling -->
+          <div class="bekalan-mini-tile mini-ksp" role="group" aria-label="Baling (Baki Peruntukan)">
+            <div class="ksp-center">
+              <div class="ksp-title">Baling</div>
+              <div class="ksp-kpi">
+                <div class="ksp-kpi-label">Consumable bukan konsesi</div>
+                <div class="ksp-kpi-value" id="perBlgCbnkMain">—</div>
+              </div>
+            </div>
+            <div class="ksp-left">
+              <div><span>Consumable konsesi</span><b id="perBlgCk">—</b></div>
+              <div><span>Reagent</span><b id="perBlgReagent">—</b></div>
+              <div><span>X-ray</span><b id="perBlgXray">—</b></div>
+            </div>
+          </div>
+    
+          <!-- Tile 8: Yan -->
+          <div class="bekalan-mini-tile mini-ksp" role="group" aria-label="Yan (Baki Peruntukan)">
+            <div class="ksp-center">
+              <div class="ksp-title">Yan</div>
+              <div class="ksp-kpi">
+                <div class="ksp-kpi-label">Consumable bukan konsesi</div>
+                <div class="ksp-kpi-value" id="perYanCbnkMain">—</div>
+              </div>
+            </div>
+            <div class="ksp-left">
+              <div><span>Consumable konsesi</span><b id="perYanCk">—</b></div>
+              <div><span>Reagent</span><b id="perYanReagent">—</b></div>
+              <div><span>X-ray</span><b id="perYanXray">—</b></div>
+            </div>
+          </div>
+    
+          <!-- Tile 9: Langkawi -->
+          <div class="bekalan-mini-tile mini-ksp" role="group" aria-label="Langkawi (Baki Peruntukan)">
+            <div class="ksp-center">
+              <div class="ksp-title">Langkawi</div>
+              <div class="ksp-kpi">
+                <div class="ksp-kpi-label">Consumable bukan konsesi</div>
+                <div class="ksp-kpi-value" id="perLkwCbnkMain">—</div>
+              </div>
+            </div>
+            <div class="ksp-left">
+              <div><span>Consumable konsesi</span><b id="perLkwCk">—</b></div>
+              <div><span>Reagent</span><b id="perLkwReagent">—</b></div>
+              <div><span>X-ray</span><b id="perLkwXray">—</b></div>
+            </div>
+          </div>
+    
+        </div>
+    
+        <button class="bekalan-mini-arrow right" type="button" aria-label="Skrol kanan" id="bekalanMiniRight2">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
 
 
   </main>
@@ -1289,6 +1456,70 @@
 
 
     }
+
+    function updateMiniTilePeruntukan(table){
+      const set = (id, ref) => {
+        const el = document.getElementById(id);
+        if(!el) return;
+        const v = __getCell(table, ref);
+        el.textContent = (v == null) ? "—" : v;
+      };
+    
+      // Tile 1: Kedah
+      set("perCbnk",    "P136");
+      set("perCk",      "P137");
+      set("perReagent", "P124");
+      set("perXray",    "P142");
+    
+      // Tile 2: Kota Setar & Pendang
+      set("perKspCbnkMain", "P928");
+      set("perKspCk",       "P929");
+      set("perKspReagent",  "P916");
+      set("perKspXray",     "P934");
+    
+      // Tile 3: Kuala Muda & Sik
+      set("perKmsCbnkMain", "P1036");
+      set("perKmsCk",       "P1037");
+      set("perKmsReagent",  "P1024");
+      set("perKmsXray",     "P1042");
+    
+      // Tile 4: Kulim & Bandar Baru
+      set("perKbbCbnkMain", "P1000");
+      set("perKbbCk",       "P1001");
+      set("perKbbReagent",  "P988");
+      set("perKbbXray",     "P1006");
+    
+      // Tile 5: Kubang Pasu
+      set("perKpCbnkMain", "P964");
+      set("perKpCk",       "P965");
+      set("perKpReagent",  "P952");
+      set("perKpXray",     "P970");
+    
+      // Tile 6: Padang Terap
+      set("perPtCbnkMain", "P1144");
+      set("perPtCk",       "P1145");
+      set("perPtReagent",  "P1132");
+      set("perPtXray",     "P1150");
+    
+      // Tile 7: Baling
+      set("perBlgCbnkMain", "P1072");
+      set("perBlgCk",       "P1073");
+      set("perBlgReagent",  "P1060");
+      set("perBlgXray",     "P1078");
+    
+      // Tile 8: Yan
+      set("perYanCbnkMain", "P1180");
+      set("perYanCk",       "P1181");
+      set("perYanReagent",  "P1168");
+      set("perYanXray",     "P1186");
+    
+      // Tile 9: Langkawi
+      set("perLkwCbnkMain", "P1108");
+      set("perLkwCk",       "P1109");
+      set("perLkwReagent",  "P1096");
+      set("perLkwXray",     "P1114");
+    }
+
 
     let chart = null;
     let selectedCats = new Set(CATEGORIES.map(x=>x.id));  // default: all categories shown
@@ -1569,6 +1800,17 @@
         complete: (res)=>{
           TABLE = res.data;
           updateMiniTileInventory(TABLE);
+
+          // Load LBPP (same CSV as your 3rd row tile) and update Row 4 mini tiles
+          const url2 = __pickURL('bekalan','b2');
+          if(url2){
+            Papa.parse(url2, {
+              download: true,
+              skipEmptyLines: true,
+              complete: (r2)=> updateMiniTilePeruntukan(r2.data),
+            });
+          }
+
           renderFilterMenu();
           syncTagsLegendAndVisibility(true);
 
@@ -2161,22 +2403,29 @@
     }
   
     function bindMiniArrows(){
-      const strip = document.getElementById('bekalanMiniStrip');
-      const left = document.getElementById('bekalanMiniLeft');
-      const right = document.getElementById('bekalanMiniRight');
-      if(!strip || !left || !right) return;
-  
-      const step = () => Math.round(strip.clientWidth * 0.85);
-  
-      left.addEventListener('click', () => {
-        strip.scrollBy({ left: -step(), behavior: 'smooth' });
-      });
-  
-      right.addEventListener('click', () => {
-        strip.scrollBy({ left: step(), behavior: 'smooth' });
-      });
+      function bind(stripId, leftId, rightId){
+        const strip = document.getElementById(stripId);
+        const left  = document.getElementById(leftId);
+        const right = document.getElementById(rightId);
+        if(!strip || !left || !right) return;
+    
+        const step = () => Math.round(strip.clientWidth * 0.85);
+    
+        left.addEventListener('click', () => {
+          strip.scrollBy({ left: -step(), behavior: 'smooth' });
+        });
+    
+        right.addEventListener('click', () => {
+          strip.scrollBy({ left: step(), behavior: 'smooth' });
+        });
+      }
+    
+      bind('bekalanMiniStrip',  'bekalanMiniLeft',  'bekalanMiniRight');   // Row 2
+      bind('bekalanMiniStrip2', 'bekalanMiniLeft2', 'bekalanMiniRight2');  // Row 4
     }
-  
+
+    
+      
     window.addEventListener('load', () => {
       setMiniSize();
       bindMiniArrows();
