@@ -137,11 +137,12 @@
                label: "Jan–Mac 2025",
                base: "https://docs.google.com/spreadsheets/u/2/d/e/2PACX-1vSmv-uyuolofm_RuuTtXCSApabklB8VYYTs85oqZesufEsrFzCIgqADjOQ7XZtoq0EErPIoJizKyLUG/pub",
                bases: {
-                 inventori: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5BDbjWy7dS7jk9yD3yRerVSl2U8e0klgsMG4zwfu5k70v4IxnIJWvCQJ5uaE58Q/pub"
+                 inventori: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5BDbjWy7dS7jk9yD3yRerVSl2U8e0klgsMG4zwfu5k70v4IxnIJWvCQJ5uaE58Q/pub",
+                 lbpp: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRGw9irpwzva203tXQAEp4r3XZXvvWoYQRNGKtLvFLKUzQ5_EdfxmD3fyxT4Q0qyg/pub"
                },
                gids: {
                  // NOTE: Only bekalan is defined for Jan–Mac right now
-                 bekalan: { b1: 1604801621 }
+                 bekalan: { b1: 1604801621, b2: 274562157 }
                }
              },
          
@@ -149,7 +150,8 @@
                label: "Jan–Jun 2025",
                base: "https://docs.google.com/spreadsheets/u/2/d/e/2PACX-1vSmv-uyuolofm_RuuTtXCSApabklB8VYYTs85oqZesufEsrFzCIgqADjOQ7XZtoq0EErPIoJizKyLUG/pub",
                bases: {
-                 inventori: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5BDbjWy7dS7jk9yD3yRerVSl2U8e0klgsMG4zwfu5k70v4IxnIJWvCQJ5uaE58Q/pub"
+                 inventori: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5BDbjWy7dS7jk9yD3yRerVSl2U8e0klgsMG4zwfu5k70v4IxnIJWvCQJ5uaE58Q/pub",
+                 lbpp: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRGw9irpwzva203tXQAEp4r3XZXvvWoYQRNGKtLvFLKUzQ5_EdfxmD3fyxT4Q0qyg/pub"
                },
                gids: {
                  index:      { i1: 1827987097, i2: 580313871,  i3: 1862452815, i4: 367803577 },
@@ -158,7 +160,7 @@
                  kpi:        { k1: 644789028,  k2: 1996563275, k3: 1049078623 },
                  workforce:  { t1: 1685402195, t2: 1636304038, t3: 1636304038 },
                  prevention: { p1: 2118307164, p2: 153273302,  p3: 1648630853 },
-                 bekalan:    { b1: 1609047015 }
+                 bekalan:    { b1: 1609047015, b2: 1093493970 }
                }
              },
          
@@ -166,7 +168,8 @@
                label: "Jan–Sep 2025",
                base: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSS9NxgDwQDoJrQZJS4apFq-p5oyK3B0WAnFTlCY2WGcvsMzNBGIZjilIez1AXWvAIZgKltIxLEPTFT/pub",
                bases: {
-                 inventori: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5BDbjWy7dS7jk9yD3yRerVSl2U8e0klgsMG4zwfu5k70v4IxnIJWvCQJ5uaE58Q/pub"
+                 inventori: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5BDbjWy7dS7jk9yD3yRerVSl2U8e0klgsMG4zwfu5k70v4IxnIJWvCQJ5uaE58Q/pub",
+                 lbpp: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRGw9irpwzva203tXQAEp4r3XZXvvWoYQRNGKtLvFLKUzQ5_EdfxmD3fyxT4Q0qyg/pub"
                },
                gids: {
                  index:      { i1: 1057141723, i2: 1851801564, i3: 205423549,  i4: 480846724 },
@@ -175,7 +178,7 @@
                  kpi:        { k1: 898117748,  k2: 64245750,   k3: 455214076 },
                  workforce:  { t1: 68768251,   t2: 1636304038, t3: 1636304038 },
                  prevention: { p1: 1006276802, p2: 3425549,    p3: 529560061 },
-                 bekalan:    { b1: 930472244 }
+                 bekalan:    { b1: 930472244, b2: 888797987 }
                }
              },
          
@@ -183,7 +186,8 @@
                label: "Jan–Dis 2025 (Belum ada link)",
                base: "https://docs.google.com/spreadsheets/u/2/d/e/2PACX-1vSmv-uyuolofm_RuuTtXCSApabklB8VYYTs85oqZesufEsrFzCIgqADjOQ7XZtoq0EErPIoJizKyLUG/pub",
                bases: {
-                 inventori: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5BDbjWy7dS7jk9yD3yRerVSl2U8e0klgsMG4zwfu5k70v4IxnIJWvCQJ5uaE58Q/pub"
+                 inventori: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5BDbjWy7dS7jk9yD3yRerVSl2U8e0klgsMG4zwfu5k70v4IxnIJWvCQJ5uaE58Q/pub",
+                 lbpp: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRGw9irpwzva203tXQAEp4r3XZXvvWoYQRNGKtLvFLKUzQ5_EdfxmD3fyxT4Q0qyg/pub"
                },
                gids: {
                  bekalan: { b1: null }
@@ -246,14 +250,22 @@
      const gid = overrideGid ?? fallbackGid;
      if (!gid) { console.warn("[datasets] Unknown page/tile:", pageKey, tileKey); return ""; }
    
-     // Map pages that should use an alternate base group
-   const BASE_GROUP_BY_PAGE = { bekalan: "inventori" }; // add more later if needed
-   
-   const groupKey = BASE_GROUP_BY_PAGE[pageKey];
-   const base =
-     (perObj?.bases?.[pageKey]) ||
-     (groupKey ? perObj?.bases?.[groupKey] : null) ||
-     perObj.base;
+     // Map pages/tiles that should use an alternate base group
+      const BASE_GROUP_BY_PAGE = { bekalan: "inventori" };
+      
+      // Tile-level override (so bekalan can have >1 spreadsheet source)
+      const BASE_GROUP_BY_TILE = {
+        "bekalan.b2": "lbpp" // LBPP tile uses the LBPP spreadsheet
+      };
+      
+      const tileKeyFull = `${pageKey}.${tileKey}`;
+      const groupKey = BASE_GROUP_BY_TILE[tileKeyFull] || BASE_GROUP_BY_PAGE[pageKey];
+      
+      const base =
+        (perObj?.bases?.[pageKey]) ||
+        (groupKey ? perObj?.bases?.[groupKey] : null) ||
+        perObj.base;
+
 
      return buildCsvURL(base, gid);
 
