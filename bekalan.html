@@ -675,20 +675,29 @@
         gap: 10px !important;
       }
       
+      /* Align Lokasi/Tempoh text perfectly */
       #floatingFilter label{
-        display: grid !important;
-        grid-template-columns: 78px minmax(0, 1fr) !important; /* fixed label column */
+        display: flex !important;
         align-items: center !important;
-        column-gap: 10px !important;
+        gap: 10px !important;
         margin: 0 !important;
+        width: 100% !important;
       }
       
-      #floatingFilter label span{
-        text-align: right !important;
-        line-height: 1 !important;
+      #floatingFilter label > span{
+        width: 70px !important;          /* fixed label column */
+        text-align: left !important;     /* keep consistent with UI */
+        line-height: 1.1 !important;
         white-space: nowrap !important;
+        flex: 0 0 70px !important;
       }
       
+      #floatingFilter label > select{
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        width: auto !important;
+      }
+
       #floatingFilter select{
         width: 100% !important;
         min-width: 0 !important;
@@ -716,6 +725,17 @@
           min-width: 0 !important;
         }
       }
+
+      /* Put floating filter above the hero/title area */
+      #floatingFilter{
+        top: 8px !important;
+      }
+      
+      /* Reserve space so title is fully visible on first view */
+      main{
+        padding-top: 86px !important; /* adjust if your filter height differs */
+      }
+      
 
       
 
