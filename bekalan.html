@@ -653,6 +653,48 @@
 
     html, body{ overflow-x: hidden; }
 
+      /* MOBILE: floating filter should not block title; 80% transparent, full on touch */
+      #floatingFilter,
+      #floatingFab{
+        opacity: .8;
+        transition: opacity .18s ease;
+      }
+      
+      /* Fully visible when user interacts */
+      #floatingFilter:active,
+      #floatingFilter:focus-within,
+      #floatingFab:active,
+      #floatingFab:focus,
+      #floatingFab:focus-visible{
+        opacity: 1;
+      }
+      
+      /* MOBILE: improve label alignment ("Lokasi", "Tempoh") */
+      #floatingFilter{
+        align-items: center !important;
+        gap: 10px !important;
+      }
+      
+      #floatingFilter label{
+        display: grid !important;
+        grid-template-columns: 78px minmax(0, 1fr) !important; /* fixed label column */
+        align-items: center !important;
+        column-gap: 10px !important;
+        margin: 0 !important;
+      }
+      
+      #floatingFilter label span{
+        text-align: right !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
+      }
+      
+      #floatingFilter select{
+        width: 100% !important;
+        min-width: 0 !important;
+      }
+
+
       /* MOBILE FIX: floating filter must not be cut on the left */
       @media (max-width: 520px){
         #floatingFilter{
@@ -674,6 +716,8 @@
           min-width: 0 !important;
         }
       }
+
+      
 
 
     }
