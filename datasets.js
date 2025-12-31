@@ -477,6 +477,28 @@
 
     document.body.appendChild(wrap);
 
+     // MOBILE: prevent the fixed filter from covering the page title
+      const updateFloatOverlap = () => {
+        try{
+          if (!window.matchMedia || !window.matchMedia("(max-width: 900px)").matches){
+            document.documentElement.style.removeProperty("--float-overlap");
+            return;
+          }
+          const h1 = document.querySelector("header.ph h1");
+          if (!h1) return;
+      
+          const overlap = Math.ceil(
+            wrap.getBoundingClientRect().bottom - h1.getBoundingClientRect().top + 10
+          );
+      
+          document.documentElement.style.setProperty("--float-overlap", Math.max(0, overlap) + "px");
+        } catch(e){}
+      };
+      
+      requestAnimationFrame(updateFloatOverlap);
+      window.addEventListener("resize", () => requestAnimationFrame(updateFloatOverlap), { passive: true });
+
+
      /* === Floating radial nav (under the filter bar) === */
       (function(){
         // Place under the filter bar and align the right edge with the grid/header
