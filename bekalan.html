@@ -628,22 +628,30 @@
     
         
       
-      /* Disable the body global horizontal overflow to keep swipe smooth */
-      html, body{
-        overflow-x: hidden;
-      }
-
-      /* MOBILE: let the strip scroll freely (no snap lock) */
+      /* MOBILE: match Row 1 swipe behaviour (snap + proper end padding) */
       .bekalan-mini-strip{
-        overflow-x: scroll;     /* force horizontal scroll container */
-        scroll-snap-type: none; /* disable snap on mobile */
-        padding-left: 20px;
-        padding-right: 20px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+      
+        /* IMPORTANT: snap like Row 1 */
+        scroll-snap-type: x mandatory;
+      
+        /* Ensure first/last tile can reach center (prevents “stuck” at last reachable tile) */
+        padding-left: calc((100vw - var(--bekalan-mini)) / 2);
+        padding-right: calc((100vw - var(--bekalan-mini)) / 2);
+        scroll-padding-left: calc((100vw - var(--bekalan-mini)) / 2);
+        scroll-padding-right: calc((100vw - var(--bekalan-mini)) / 2);
+      
+        /* Don’t block native scrolling on touch */
+        touch-action: auto;
+        overscroll-behavior-x: auto;
       }
       
       .bekalan-mini-tile{
-        scroll-snap-align: none;
+        scroll-snap-align: center;
       }
+
 
 
     }
@@ -2498,7 +2506,6 @@
     window.addEventListener('load', () => {
       setMiniSize();
       bindMiniArrows();
-      bindMiniTouchScroll();  // <-- add this line
     });
 
   
