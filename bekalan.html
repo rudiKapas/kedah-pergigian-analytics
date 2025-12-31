@@ -61,32 +61,9 @@
     .tile-strip{ display: contents; } /* desktop: children participate in the grid */
     
     @media (max-width: 900px){
-      .tile-strip{
-        display: flex;
-        gap: 20px;
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        scroll-snap-type: x mandatory;
-        scrollbar-width: none;
-        padding: 2px 0 10px;
-      }
-      .tile-strip::-webkit-scrollbar{ display:none; }
-    
-      .tile-strip .tile{
-        flex: 0 0 calc(100vw - 40px);
-        width: calc(100vw - 40px);
-        margin-left: 20px;
-        scroll-snap-align: center;
-        box-sizing: border-box;
-      }
-      .tile-strip .tile:last-child{ margin-right: 20px; }
-    
-      /* wide tile should behave like a normal card in the strip */
-      .tile-strip .tile.wide{
-        grid-column: auto !important;
-      }
+      .tile-strip{ display: contents; } /* keep normal vertical stacking on mobile */
     }
+    
 
 
     .tile .chart{ height:440px; }
@@ -626,7 +603,22 @@
           #lbpp-tile #lbppPeriodBtn .mini{ display: none; }
           
     
-        
+      /* MOBILE: LBPP chart scroll exactly like LBI */
+      #lbpp-tile .chart-scroll{
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        margin-bottom: 10px;
+        display: block;
+      }
+      
+      #lbpp-tile .chart-scroll .chart{
+        display: block;
+        width: 1000px !important;
+        min-width: 1000px !important;
+      }
+
       
       /* MOBILE: match Row 1 swipe behaviour (snap + proper end padding) */
       .bekalan-mini-strip{
@@ -654,6 +646,21 @@
       .bekalan-mini-tile{
         scroll-snap-align: center;
       }
+
+    /* MOBILE: Row 2 & Row 4 mini strips — no blank lead, can reach all tiles */
+    .bekalan-mini-strip{
+      scroll-snap-type: x proximity;   /* prevents “stuck” snap on mobile */
+      padding-left: 0 !important;      /* removes blank before first tile */
+      scroll-padding-left: 0 !important;
+    
+      padding-right: 20px !important;  /* ensures last tile can fully appear */
+      scroll-padding-right: 20px !important;
+    }
+    
+    .bekalan-mini-tile{
+      scroll-snap-align: start;        /* keep consistent */
+    }
+
 
     html, body{ overflow-x: hidden; }
 
