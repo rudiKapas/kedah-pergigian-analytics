@@ -436,8 +436,8 @@
       "font:500 12px/1.2 Inter,system-ui","display:flex","gap:8px","align-items:center"
     ].join(";");
 
-    const locLbl = document.createElement("span"); locLbl.textContent = "Lokasi:"; locLbl.style.marginRight="4px";
-    const perLbl = document.createElement("span"); perLbl.textContent = "Tempoh:"; perLbl.style.margin = "0 4px 0 8px";
+    const locLbl = document.createElement("span"); locLbl.textContent = "Lokasi:";
+    const perLbl = document.createElement("span"); perLbl.textContent = "Tempoh:";
 
     const locSel = document.createElement("select");
     locSel.style.cssText = "font-size:12px;padding:4px 8px;border-radius:8px";
@@ -477,23 +477,32 @@
 
     document.body.appendChild(wrap);
 
-     // MOBILE: prevent the fixed filter from covering the page title
+     // MOBILE: reserve space so the fixed filter never covers page content
       const updateFloatOverlap = () => {
         try{
-          if (!window.matchMedia || !window.matchMedia("(max-width: 900px)").matches){
+          const isMobile = !!window.matchMedia && window.matchMedia("(max-width: 900px)").matches;
+      
+          if(!isMobile){
             document.documentElement.style.removeProperty("--float-overlap");
+            document.documentElement.style.removeProperty("--float-clear");
             return;
           }
+      
+          const r = wrap.getBoundingClientRect();
+      
+          // New: a simple “content starts after this Y” value (works even if notch / safe-area changes)
+          const clear = Math.ceil(r.bottom + 12); // 12px breathing room below the filter
+          document.documentElement.style.setProperty("--float-clear", clear + "px");
+      
+          // Old: keep existing variable in case other pages still rely on it
           const h1 = document.querySelector("header.ph h1");
-          if (!h1) return;
-      
-          const overlap = Math.ceil(
-            wrap.getBoundingClientRect().bottom - h1.getBoundingClientRect().top + 10
-          );
-      
-          document.documentElement.style.setProperty("--float-overlap", Math.max(0, overlap) + "px");
+          if(h1){
+            const overlap = Math.ceil(r.bottom - h1.getBoundingClientRect().top + 10);
+            document.documentElement.style.setProperty("--float-overlap", Math.max(0, overlap) + "px");
+          }
         } catch(e){}
       };
+
       
       requestAnimationFrame(updateFloatOverlap);
       window.addEventListener("resize", () => requestAnimationFrame(updateFloatOverlap), { passive: true });
