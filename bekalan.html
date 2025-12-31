@@ -634,25 +634,28 @@
         overflow-y: hidden;
         -webkit-overflow-scrolling: touch;
       
-        /* IMPORTANT: snap like Row 1 */
         scroll-snap-type: x mandatory;
       
-        /* Ensure first/last tile can reach center (prevents “stuck” at last reachable tile) */
-        padding-left: calc((100vw - var(--bekalan-mini)) / 2);
-        padding-right: calc((100vw - var(--bekalan-mini)) / 2);
-        scroll-padding-left: calc((100vw - var(--bekalan-mini)) / 2);
-        scroll-padding-right: calc((100vw - var(--bekalan-mini)) / 2);
+        /* CRITICAL: prevent padding from making the element wider than the page */
+        box-sizing: border-box;
       
-        /* Don’t block native scrolling on touch */
-        touch-action: auto;
-        overscroll-behavior-x: auto;
+        /* Use container width (100%) instead of viewport width (100vw) */
+        padding-left: calc((100% - var(--bekalan-mini)) / 2);
+        padding-right: calc((100% - var(--bekalan-mini)) / 2);
+        scroll-padding-left: calc((100% - var(--bekalan-mini)) / 2);
+        scroll-padding-right: calc((100% - var(--bekalan-mini)) / 2);
+      
+        /* Keep horizontal gesture on the strip (not the page) */
+        touch-action: pan-x;
+        overscroll-behavior-x: contain;
       }
+      
       
       .bekalan-mini-tile{
         scroll-snap-align: center;
       }
 
-
+    html, body{ overflow-x: hidden; }
 
     }
 
