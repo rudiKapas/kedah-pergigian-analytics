@@ -501,11 +501,6 @@
       #lbi-tile #lbiPeriodBtn{ width: auto; min-width: 120px; }
       #lbi-tile #lbiPeriodBtn .mini{ display: none; }
 
-      /* MOBILE: allow swipe to scroll chart containers (Row 1 & Row 3) */
-      #lbiChart,
-      #lbppChart{
-        pointer-events: none;
-      }
 
       
 
@@ -557,7 +552,23 @@
             min-width: 1000px !important;
           }
 
-          #lbpp-tile .chart-scroll{ touch-action: pan-x; }
+          #lbpp-tile .chart-scroll{
+            touch-action: pan-x;
+            overscroll-behavior-x: contain;
+          }
+          
+
+          /* MOBILE: prevent grid items from expanding wider than viewport (stops page horizontal pan) */
+          .grid,
+          .tile,
+          .tile.wide,
+          .tile .tb,
+          #lbi-tile .chart-scroll,
+          #lbpp-tile .chart-scroll{
+            min-width: 0 !important;
+            max-width: 100% !important;
+          }
+          
     
     
           /* Mobile fix: dropdown menus must not be clipped by the horizontal tile scroller */
@@ -629,31 +640,18 @@
         min-width: 1000px !important;
       }
 
-    /* MOBILE: Row 2 + Row 4 — snap ON + enough end padding to reveal Yan & Langkawi */
-    #bekalanMiniStrip,
-    #bekalanMiniStrip2{
-      overflow-x: auto !important;
-      overflow-y: hidden !important;
-      -webkit-overflow-scrolling: touch;
-      touch-action: pan-x;
-      overscroll-behavior-x: contain;
-    
-      scroll-snap-type: x mandatory !important;
-    
-      /* key fix: allow last tiles to come fully into view */
-      padding: 2px 4px 8px !important;
-      padding-right: 72px !important;
-      scroll-padding-left: 4px;
-      scroll-padding-right: 72px;
-    }
-    
-    #bekalanMiniStrip .bekalan-mini-tile,
-    #bekalanMiniStrip2 .bekalan-mini-tile{
-      scroll-snap-align: start !important;
+    /* MOBILE: add a trailing spacer so last tiles (Yan, Langkawi) can reach a snap point */
+    #bekalanMiniStrip::after,
+    #bekalanMiniStrip2::after{
+      content: "";
+      flex: 0 0 calc(100% - var(--bekalan-mini));
     }
 
 
-    body{ overflow-x: hidden; }
+    
+
+
+    html, body{ overflow-x: hidden; }
 
     }
 
