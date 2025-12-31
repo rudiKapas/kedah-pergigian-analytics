@@ -569,6 +569,8 @@
             width: 1000px !important;      /* Graph stays wide so districts aren't squashed */
             min-width: 1000px !important;
           }
+
+          #lbpp-tile .chart-scroll{ touch-action: pan-x; }
     
     
           /* Mobile fix: dropdown menus must not be clipped by the horizontal tile scroller */
@@ -630,6 +632,20 @@
       html, body{
         overflow-x: hidden;
       }
+
+      /* MOBILE: mini strips should scroll freely (avoid “stuck” snap) */
+      .bekalan-mini-strip{
+        scroll-snap-type: x proximity;     /* was mandatory */
+        padding-left: 20px;
+        padding-right: 20px;              /* ensures last tiles are reachable */
+        scroll-padding-left: 20px;
+        scroll-padding-right: 20px;
+      }
+      
+      .bekalan-mini-tile{
+        scroll-snap-align: center;        /* center snap behaves better than start */
+      }
+
     }
 
     /* ===== Mini tile #2 (Kota Setar & Pendang) — redesigned ===== */
@@ -2126,6 +2142,7 @@
   
       const labels = PAD_LABELS();
       const met = METRICS.find(x=>x.id===selectedMetric) || METRICS[0];
+      const isMobile = window.matchMedia('(max-width: 900px)').matches;
   
       chart = new Chart(ctx, {
         type: "line",
@@ -2133,6 +2150,7 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          events: isMobile ? ['click'] : undefined,
           plugins: {
             legend: { display:false },
             tooltip: {
@@ -2406,7 +2424,8 @@
       if(!first) return;
   
       const h = Math.round(first.getBoundingClientRect().height * 0.5);
-      const size = Math.max(220, Math.min(380, h)); // clamp for safety
+      const maxByViewport = Math.floor(window.innerWidth - 60); // keep gutters; avoid > viewport
+      const size = Math.max(220, Math.min(380, h, maxByViewport));
       document.documentElement.style.setProperty('--bekalan-mini', size + 'px');
     }
   
