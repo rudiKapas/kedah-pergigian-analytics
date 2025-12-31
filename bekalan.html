@@ -499,6 +499,12 @@
       #lbi-tile #lbiPeriodBtn{ width: auto; min-width: 120px; }
       #lbi-tile #lbiPeriodBtn .mini{ display: none; }
 
+      /* MOBILE: allow swipe to scroll the LBPP chart container */
+      #lbppChart{
+        pointer-events: none;
+      }
+      
+
             /* ============================================================
             MOBILE: INTERNAL TILE SCROLLING (TAGS & LEGEND) LBPP
             ============================================================ */
@@ -619,48 +625,26 @@
         min-width: 1000px !important;
       }
 
-      
-      /* MOBILE: match Row 1 swipe behaviour (snap + proper end padding) */
-      .bekalan-mini-strip{
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-      
-        scroll-snap-type: x mandatory;
-      
-        /* CRITICAL: prevent padding from making the element wider than the page */
-        box-sizing: border-box;
-      
-        /* Use container width (100%) instead of viewport width (100vw) */
-        padding-left: calc((100% - var(--bekalan-mini)) / 2);
-        padding-right: calc((100% - var(--bekalan-mini)) / 2);
-        scroll-padding-left: calc((100% - var(--bekalan-mini)) / 2);
-        scroll-padding-right: calc((100% - var(--bekalan-mini)) / 2);
-      
-        /* Keep horizontal gesture on the strip (not the page) */
-        touch-action: pan-x;
-        overscroll-behavior-x: contain;
-      }
-      
-      
-      .bekalan-mini-tile{
-        scroll-snap-align: center;
-      }
-
-    /* MOBILE: Row 2 & Row 4 mini strips — no blank lead, can reach all tiles */
-    .bekalan-mini-strip{
-      scroll-snap-type: x proximity;   /* prevents “stuck” snap on mobile */
-      padding-left: 0 !important;      /* removes blank before first tile */
-      scroll-padding-left: 0 !important;
+    /* MOBILE: Row 2 + Row 4 scroll horizontally (row only, no snap/blank, all tiles reachable) */
+    #bekalanMiniStrip,
+    #bekalanMiniStrip2{
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x;
+      overscroll-behavior-x: contain;
     
-      padding-right: 20px !important;  /* ensures last tile can fully appear */
-      scroll-padding-right: 20px !important;
+      /* snap is what causes the “stuck/blank” behavior on mobile */
+      scroll-snap-type: none !important;
+    
+      /* keep your original look */
+      padding: 2px 4px 8px !important;
     }
     
-    .bekalan-mini-tile{
-      scroll-snap-align: start;        /* keep consistent */
+    #bekalanMiniStrip .bekalan-mini-tile,
+    #bekalanMiniStrip2 .bekalan-mini-tile{
+      scroll-snap-align: none !important;
     }
-
 
     html, body{ overflow-x: hidden; }
 
@@ -2516,6 +2500,7 @@
     window.addEventListener('load', () => {
       setMiniSize();
       bindMiniArrows();
+      bindMiniTouchScroll();   
     });
 
   
