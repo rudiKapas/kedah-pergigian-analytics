@@ -633,18 +633,18 @@
         overflow-x: hidden;
       }
 
-      /* MOBILE: mini strips should scroll freely (avoid “stuck” snap) */
+      /* MOBILE: let the strip scroll freely (no snap lock) */
       .bekalan-mini-strip{
-        scroll-snap-type: x proximity;     /* was mandatory */
+        overflow-x: scroll;     /* force horizontal scroll container */
+        scroll-snap-type: none; /* disable snap on mobile */
         padding-left: 20px;
-        padding-right: 20px;              /* ensures last tiles are reachable */
-        scroll-padding-left: 20px;
-        scroll-padding-right: 20px;
+        padding-right: 20px;
       }
       
       .bekalan-mini-tile{
-        scroll-snap-align: center;        /* center snap behaves better than start */
+        scroll-snap-align: none;
       }
+
 
     }
 
@@ -2451,12 +2451,56 @@
       bind('bekalanMiniStrip2', 'bekalanMiniLeft2', 'bekalanMiniRight2');  // Row 4
     }
 
+    function bindMiniTouchScroll(){
+      const isMobile = window.matchMedia('(max-width: 900px)').matches;
+      if(!isMobile) return;
     
+      ['bekalanMiniStrip','bekalanMiniStrip2'].forEach((id)=>{
+        const el = document.getElementById(id);
+        if(!el) return;
+    
+        let startX = 0, startY = 0, startLeft = 0;
+        let locked = false;
+    
+        el.addEventListener('touchstart', (e)=>{
+          if(!e.touches || !e.touches.length) return;
+          locked = false;
+          startX = e.touches[0].clientX;
+          startY = e.touches[0].clientY;
+          startLeft = el.scrollLeft;
+        }, { passive: true });
+    
+        el.addEventListener('touchmove', (e)=>{
+          if(!e.touches || !e.touches.length) return;
+    
+          const x = e.touches[0].clientX;
+          const y = e.touches[0].clientY;
+          const dx = x - startX;
+          const dy = y - startY;
+    
+          // Lock only when the gesture is clearly horizontal
+          if(!locked){
+            if(Math.abs(dx) > 6 && Math.abs(dx) > Math.abs(dy)){
+              locked = true;
+            } else {
+              return; // allow normal vertical page scrolling
+            }
+          }
+    
+          // Horizontal drag scroll
+          e.preventDefault();
+          el.scrollLeft = startLeft - dx;
+        }, { passive: false });
+      });
+    }
+
       
     window.addEventListener('load', () => {
       setMiniSize();
       bindMiniArrows();
+      bindMiniTouchScroll();  // <-- add this line
     });
+
   
     window.addEventListener('resize', () => {
       setMiniSize();
