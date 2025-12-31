@@ -577,6 +577,36 @@
         fab.addEventListener('focusout', (e) => {
           if (!fab.contains(e.relatedTarget)) close();
         });
+
+        // MOBILE: tap the main nav button to open (do not navigate/refresh on first tap)
+         const mqMobile = window.matchMedia('(max-width: 900px)');
+         
+         fab.addEventListener('click', (e) => {
+           if (!mqMobile.matches) return;
+         
+           const mainBtn = e.target.closest('.fab-main');
+           if (!mainBtn) return; // allow child links to navigate normally
+         
+           // First tap: open menu, prevent navigation/refresh
+           if (!fab.classList.contains('open')) {
+             e.preventDefault();
+             e.stopPropagation();
+             fab.classList.add('open');
+             return;
+           }
+         
+           // If already open: allow default (optional behaviour)
+           // If you prefer second tap to CLOSE instead of navigating, uncomment below and return:
+           // e.preventDefault();
+           // e.stopPropagation();
+           // fab.classList.remove('open');
+         });
+         
+         document.addEventListener('click', (e) => {
+           if (!mqMobile.matches) return;
+           if (!fab.contains(e.target)) fab.classList.remove('open');
+         }, { passive: true });
+
       
         // also open when the main gets hover (snappier)
         main.addEventListener('mouseenter', open);
