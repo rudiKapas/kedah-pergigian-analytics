@@ -516,6 +516,110 @@
 
       #lbi-tile #lbiPeriodBtn{ width: auto; min-width: 120px; }
       #lbi-tile #lbiPeriodBtn .mini{ display: none; }
+
+            /* ============================================================
+            MOBILE: INTERNAL TILE SCROLLING (TAGS & LEGEND) LBPP
+            ============================================================ */
+          
+          /* Make Tags horizontally scrollable */
+          #lbpp-tile .tags {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+            gap: 8px;
+            padding-bottom: 6px;
+            margin: 2px 0 10px;
+            scrollbar-width: none;
+          }
+          #lbpp-tile .tags::-webkit-scrollbar { display: none; }
+          #lbpp-tile .tag { flex: 0 0 auto; white-space: nowrap; }
+    
+          /* Make Legend horizontally scrollable */
+          #lbpp-tile .legend {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+            gap: 12px;
+            padding-bottom: 6px;
+            margin-top: 10px;
+            scrollbar-width: none;
+          }
+          #lbpp-tile .legend::-webkit-scrollbar { display: none; }
+          #lbpp-tile .legend .lg { flex: 0 0 auto; white-space: nowrap; }
+    
+          /* Inner chart scroller (Data inside the tile) */
+          #lbpp-tile .chart-scroll{
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 10px;
+            display: block;
+          }
+    
+          #lbpp-tile .chart-scroll .chart{
+            display: block;
+            width: 1000px !important;      /* Graph stays wide so districts aren't squashed */
+            min-width: 1000px !important;
+          }
+    
+    
+          /* Mobile fix: dropdown menus must not be clipped by the horizontal tile scroller */
+          #lbpp-tile .dd .menu{
+            position: fixed !important;
+            left: 14px !important;
+            right: 14px !important;
+            bottom: 14px !important;
+            top: auto !important;
+    
+            width: auto !important;
+            max-height: 70vh;
+            z-index: 10000;
+          }
+    
+          #lbpp-tile .dd .menu .menu-body{
+            max-height: calc(70vh - 56px);
+          }
+    
+    
+          /* MOBILE: lbpp tile header restructure */
+          #lbpp-tile .th{
+            height: auto !important;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 6px;
+          }
+    
+          #lbpp-tile .ttl{
+            font-size: 14px;
+            white-space: normal;
+            line-height: 1.3;
+          }
+    
+          /* Header actions horizontally scrollable */
+          #lbpp-tile .act{
+            width: 100%;
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            gap: 8px;
+            margin-top: 6px;
+            padding-bottom: 4px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+          }
+          #lbpp-tile .act::-webkit-scrollbar { display: none; }
+          #lbpp-tile .act > * { flex: 0 0 auto; }
+    
+          #lbpp-tile #lbppPeriodBtn{ width: auto; min-width: 120px; }
+          #lbpp-tile #lbppPeriodBtn .mini{ display: none; }
+          
+    
+        
       
       /* Disable the body global horizontal overflow to keep swipe smooth */
       html, body{
@@ -965,6 +1069,50 @@
         </button>
       </div>
     </div>
+
+    <!-- ROW 3: LBPP (Wide) -->
+    <section class="tile wide" id="lbpp-tile">
+      <div class="th">
+        <div>
+          <h2 class="ttl">LAPORAN BULANAN PERUNTUKAN DAN PERBELANJAAN (LBPP) UBAT DAN BUKAN UBAT</h2>
+          <div class="sub"><svg class="ico"><use href="#i-time"/></svg><span id="lbppTime">—</span></div>
+        </div>
+    
+        <div class="act">
+          <!-- FILTER (2-tier) -->
+          <div class="dd" id="lbppFilterDD">
+            <button class="btn dd-trigger" id="lbppFilterBtn" title="Tapis"><svg class="ico"><use href="#i-filter"/></svg></button>
+            <div class="menu" id="lbppFilterMenu">
+              <div class="menu-body" id="lbppFilterBody"></div>
+              <div class="mfoot">
+                <button class="icbtn" id="lbppAllCat" title="Pilih semua kategori" aria-label="Pilih semua kategori">
+                  <img class="ico" src="assets/icons/selectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="lbppNoneCat" title="Kosongkan kategori" aria-label="Kosongkan kategori">
+                  <img class="ico" src="assets/icons/unselectAll.svg" alt="">
+                </button>
+                <button class="icbtn" id="lbppCloseFilter" title="Tutup" aria-label="Tutup">
+                  <svg class="ico"><use href="#i-x"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+    
+          <button id="lbppRefresh" class="btn" title="Kemas Kini"><svg class="ico"><use href="#i-refresh"/></svg></button>
+          <button id="lbppExpand"  class="btn" title="Perbesar"><svg class="ico"><use href="#i-expand"/></svg></button>
+        </div>
+      </div>
+    
+      <div class="tb">
+        <div class="tags" id="lbppTags"></div>
+        <div class="chart-scroll">
+          <div class="chart"><canvas id="lbppChart"></canvas></div>
+        </div>
+        <div class="legend" id="lbppLegend"></div>
+        <div class="err" id="lbppErr"></div>
+      </div>
+    </section>
+
 
 
   </main>
@@ -1501,6 +1649,374 @@
   })();
   </script>
 
+  <!-- TILE 2 LOGIC (LBPP) -->
+  <script>
+  (function(){
+    // -------------------------------
+    // 1) FILTER CONFIG (2-tier)
+    // -------------------------------
+    const CATEGORIES = [
+      { id:"reagent",  label:"Reagent",                 color:"#0ea5e9" },
+      { id:"konsesi",  label:"Consumable konsesi",      color:"#22c55e" },
+      { id:"bukan",    label:"Consumable bukan konsesi",color:"#a78bfa" },
+      { id:"xray",     label:"X-ray",                   color:"#f59e0b" }
+    ];
+  
+    const METRICS = [
+      { id:"tanggungan",  label:"TANGGUNGAN (RM)",            col:"K", unit:"rm" },
+      { id:"bersih",      label:"PERBELANJAAN BERSIH (RM)",   col:"L", unit:"rm" },
+      { id:"kemas_kini",  label:"PERUNTUKAN KEMAS KINI (RM)", col:"M", unit:"rm" },
+      { id:"baki",        label:"BAKI PERUNTUKAN (RM)",       col:"P", unit:"rm" }
+    ];
+  
+    // Rows from your prompt (LBPP sheet)
+    const AREAS = [
+      { id:"ks_pendang", label:"Kota Setar & Pendang", rows:{ reagent:916,  konsesi:929,  bukan:928,  xray:934 } },
+      { id:"km_sik",     label:"Kuala Muda & Sik",     rows:{ reagent:1024, konsesi:1037, bukan:1036, xray:1042 } },
+      { id:"kulim_bb",   label:"Kulim & Bandar Baru",  rows:{ reagent:988,  konsesi:1001, bukan:1000, xray:1006 } },
+      { id:"kp",         label:"Kubang Pasu",          rows:{ reagent:952,  konsesi:965,  bukan:964,  xray:970 } },
+      { id:"pdg_terap",  label:"Padang Terap",         rows:{ reagent:1132, konsesi:1145, bukan:1144, xray:1150 } },
+      { id:"baling",     label:"Baling",               rows:{ reagent:1060, konsesi:1073, bukan:1072, xray:1078 } },
+      { id:"yan",        label:"Yan",                  rows:{ reagent:1168, konsesi:1181, bukan:1180, xray:1186 } },
+      { id:"langkawi",   label:"Langkawi",             rows:{ reagent:1096, konsesi:1109, bukan:1108, xray:1114 } },
+      { id:"kedah",      label:"Kedah",                rows:{ reagent:124,  konsesi:137,  bukan:136,  xray:142 } }
+    ];
+  
+    // -------------------------------
+    // 2) Cell helpers
+    // -------------------------------
+    function colToIndex(colLetters){
+      let n = 0;
+      for(const ch of colLetters.toUpperCase()){
+        n = n * 26 + (ch.charCodeAt(0) - 64);
+      }
+      return n - 1;
+    }
+  
+    function getCell(table, A1){
+      const m = /^([A-Z]+)(\d+)$/i.exec(String(A1).trim());
+      if(!m) return null;
+      const c = colToIndex(m[1]);
+      const r = parseInt(m[2], 10) - 1;
+      if(!table || !table[r] || typeof table[r][c] === "undefined") return null;
+      const v = String(table[r][c]).trim();
+      return v === "" ? null : v;
+    }
+  
+    const toNum = (v) => {
+      const s = String(v ?? "")
+        .replace(/\u00A0/g,"")
+        .replace(/[,\s]/g,"")
+        .replace(/RM/gi,"")
+        .trim();
+      const num = Number(s);
+      return Number.isFinite(num) ? num : 0;
+    };
+  
+    // -------------------------------
+    // 3) State
+    // -------------------------------
+    let TABLE = null;
+    let chart = null;
+  
+    let selectedCats = new Set(CATEGORIES.map(x=>x.id)); // default: all
+    let selectedMetric = "baki";                         // default: baki
+  
+    const PAD_LABELS = () => [' ', ...AREAS.map(a=>a.label), ' '];
+  
+    // -------------------------------
+    // 4) Filter UI
+    // -------------------------------
+    const filterDD   = document.getElementById('lbppFilterDD');
+    const filterBody = document.getElementById('lbppFilterBody');
+  
+    function renderFilterMenu(){
+      const catHTML = CATEGORIES.map(c=>{
+        const checked = selectedCats.has(c.id) ? "checked" : "";
+        return `<div class="opt" data-cat="${c.id}">
+          <input type="checkbox" data-cat="${c.id}" ${checked}/>
+          <span>${c.label}</span>
+        </div>`;
+      }).join('');
+  
+      const metHTML = METRICS.map(m=>{
+        const checked = (m.id === selectedMetric) ? "checked" : "";
+        return `<div class="opt" data-met="${m.id}">
+          <input type="radio" name="lbppMetric" data-met="${m.id}" ${checked}/>
+          <span>${m.label}</span>
+        </div>`;
+      }).join('');
+  
+      filterBody.innerHTML = `
+        <div class="sec-title">Tier 1 — Kategori</div>
+        <div class="sec-sub">Tunjuk/Sembunyi garisan mengikut kategori.</div>
+        ${catHTML}
+        <div class="sec-title" style="margin-top:14px;">Tier 2 — Metrik</div>
+        <div class="sec-sub">Pilih metrik (paksi-Y) untuk diplot.</div>
+        ${metHTML}
+      `;
+    }
+  
+    filterBody.addEventListener('change', (e)=>{
+      const cb = e.target.closest('input[type="checkbox"][data-cat]');
+      const rb = e.target.closest('input[type="radio"][data-met]');
+      if(cb){
+        if(cb.checked) selectedCats.add(cb.dataset.cat);
+        else selectedCats.delete(cb.dataset.cat);
+        syncTagsLegendAndVisibility();
+      }
+      if(rb){
+        selectedMetric = rb.dataset.met;
+        syncTagsLegendAndVisibility(true);
+      }
+    });
+  
+    filterBody.addEventListener('click', (e)=>{
+      const rowCat = e.target.closest('.opt[data-cat]');
+      if(rowCat){
+        const input = rowCat.querySelector('input[type="checkbox"]');
+        if(input && e.target !== input){
+          input.checked = !input.checked;
+          input.dispatchEvent(new Event('change',{bubbles:true}));
+        }
+      }
+      const rowMet = e.target.closest('.opt[data-met]');
+      if(rowMet){
+        const input = rowMet.querySelector('input[type="radio"]');
+        if(input && e.target !== input){
+          input.checked = true;
+          input.dispatchEvent(new Event('change',{bubbles:true}));
+        }
+      }
+    });
+  
+    document.getElementById('lbppFilterBtn').addEventListener('click', (e)=>{ e.stopPropagation(); filterDD.classList.toggle('open'); });
+    document.getElementById('lbppCloseFilter').addEventListener('click', ()=> filterDD.classList.remove('open'));
+    document.addEventListener('click', (e)=>{ if(!filterDD.contains(e.target)) filterDD.classList.remove('open'); });
+  
+    document.getElementById('lbppAllCat').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      selectedCats = new Set(CATEGORIES.map(x=>x.id));
+      renderFilterMenu();
+      syncTagsLegendAndVisibility();
+    });
+  
+    document.getElementById('lbppNoneCat').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      selectedCats = new Set();
+      renderFilterMenu();
+      syncTagsLegendAndVisibility();
+    });
+  
+    // -------------------------------
+    // 5) Chart
+    // -------------------------------
+    function gradientFill(ctx, hex){
+      const g = ctx.createLinearGradient(0,0,0,360);
+      const c = parseInt(hex.slice(1),16);
+      const r=(c>>16)&255, gg=(c>>8)&255, b=c&255;
+      const rgba = a=>`rgba(${r},${gg},${b},${a})`;
+      g.addColorStop(0, rgba(.32));
+      g.addColorStop(1, rgba(.03));
+      return g;
+    }
+  
+    function buildDatasets(ctx){
+      const labels = PAD_LABELS();
+      const met = METRICS.find(x=>x.id===selectedMetric) || METRICS[0];
+      const last = labels.length - 1;
+      const pointR = x => (x.dataIndex===0 || x.dataIndex===last ? 0 : 3);
+  
+      return CATEGORIES.map(cat=>{
+        const show = selectedCats.has(cat.id);
+        const values = AREAS.map(a=>{
+          const row = a.rows[cat.id];
+          const A1  = met.col + String(row);
+          return toNum(getCell(TABLE, A1));
+        });
+  
+        return {
+          _cat: cat.id,
+          type: "line",
+          label: cat.label,
+          data: [0, ...values, 0],
+          borderColor: cat.color,
+          backgroundColor: gradientFill(ctx, cat.color),
+          borderWidth: 3,
+          tension: .45,
+          fill: true,
+          pointRadius: pointR,
+          pointHoverRadius: 3,
+          hidden: !show
+        };
+      });
+    }
+  
+    function draw(){
+      const err = document.getElementById('lbppErr');
+      if(!TABLE){
+        err.textContent = "Tiada data untuk diplot (TABLE kosong).";
+        err.style.display = "block";
+        return;
+      }
+      err.textContent = ""; err.style.display = "none";
+  
+      const ctx = document.getElementById('lbppChart').getContext('2d');
+      if(chart) chart.destroy();
+  
+      const labels = PAD_LABELS();
+      const met = METRICS.find(x=>x.id===selectedMetric) || METRICS[0];
+  
+      chart = new Chart(ctx, {
+        type: "line",
+        data: { labels, datasets: buildDatasets(ctx) },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display:false },
+            tooltip: {
+              mode: "index",
+              intersect: false,
+              callbacks: {
+                label: (c)=>{
+                  const v = c.parsed.y;
+                  return `${c.dataset.label}: RM ${Number(v).toLocaleString()}`;
+                }
+              },
+              filter: (i)=> !(i.dataIndex===0 || i.dataIndex===labels.length-1)
+            }
+          },
+          scales: {
+            x: { ticks:{ autoSkip:false, maxRotation:90, minRotation:90 } },
+            y: {
+              beginAtZero: true,
+              ticks: { callback: (v)=> `RM ${Number(v).toLocaleString()}` }
+            }
+          }
+        }
+      });
+  
+      document.getElementById('lbppTime').textContent = new Date().toLocaleString();
+    }
+  
+    function syncTagsLegendAndVisibility(rebuildChart=false){
+      const tags = document.getElementById('lbppTags');
+      const met  = METRICS.find(x=>x.id===selectedMetric) || METRICS[0];
+      const dsLabel = (window.__getSelectionLabels?.().period) || "—";
+  
+      const catsTxt = selectedCats.size
+        ? Array.from(selectedCats).map(id=> CATEGORIES.find(x=>x.id===id)?.label).filter(Boolean)
+        : [];
+  
+      tags.innerHTML = `
+        <span class="tag">${dsLabel}</span>
+        <span class="tag">${met.label}</span>
+        ${catsTxt.length ? catsTxt.map(t=>`<span class="tag">${t}</span>`).join("") : `<span class="tag">Tiada kategori dipilih</span>`}
+      `;
+  
+      const leg = document.getElementById('lbppLegend');
+      leg.innerHTML = CATEGORIES
+        .filter(c=> selectedCats.has(c.id))
+        .map(c=>`<span class="lg"><span class="dot" style="background:${c.color}"></span>${c.label}</span>`)
+        .join("");
+  
+      if(!chart || rebuildChart){
+        draw();
+        return;
+      }
+      chart.data.datasets.forEach(d=> d.hidden = !selectedCats.has(d._cat));
+      chart.update();
+    }
+  
+    // -------------------------------
+    // 6) Load
+    // -------------------------------
+    function loadAndDraw(){
+      const url = __pickURL('bekalan','b2');
+      const err = document.getElementById('lbppErr');
+  
+      if(!url){
+        err.textContent = "Link CSV LBPP belum tersedia untuk tempoh ini.";
+        err.style.display = "block";
+        return;
+      }
+  
+      Papa.parse(url, {
+        download: true,
+        skipEmptyLines: true,
+        complete: (res)=>{
+          TABLE = res.data;
+          renderFilterMenu();
+          syncTagsLegendAndVisibility(true);
+  
+          // Register smart search once
+          window.__bSearch = window.__bSearch || { suggestions: [] };
+          if(!window.__bSearch._lbppAdded){
+            window.__bSearch.suggestions.push({type:"tile", tile:"lbpp-tile", label:"LAPORAN BULANAN PERUNTUKAN DAN PERBELANJAAN (LBPP) UBAT DAN BUKAN UBAT"});
+            CATEGORIES.forEach(c=> window.__bSearch.suggestions.push({type:"filter", tile:"lbpp", key:c.id, label:c.label}));
+            METRICS.forEach(m=> window.__bSearch.suggestions.push({type:"filter", tile:"lbpp", key:m.id, label:m.label}));
+            window.__bSearch._lbppAdded = true;
+          }
+        },
+        error: ()=>{
+          err.textContent = "Gagal memuatkan CSV (Tile LBPP).";
+          err.style.display = "block";
+        }
+      });
+    }
+  
+    // Smart-search apply hook
+    window.__applyLBPP = function(key){
+      if(CATEGORIES.some(c=>c.id===key)){
+        selectedCats = new Set([key]);
+        renderFilterMenu();
+        syncTagsLegendAndVisibility();
+        document.getElementById('lbpp-tile').scrollIntoView({behavior:'smooth', block:'start'});
+        filterDD.classList.add('open');
+        return;
+      }
+      if(METRICS.some(m=>m.id===key)){
+        selectedMetric = key;
+        renderFilterMenu();
+        syncTagsLegendAndVisibility(true);
+        document.getElementById('lbpp-tile').scrollIntoView({behavior:'smooth', block:'start'});
+        filterDD.classList.add('open');
+        return;
+      }
+    };
+  
+    document.getElementById('lbppRefresh').addEventListener('click', loadAndDraw);
+  
+    document.getElementById('lbppExpand').addEventListener('click', ()=>{
+      document.getElementById('mtitle').textContent = "LBPP Ubat dan Bukan Ubat";
+      const modal = document.getElementById('modal');
+      modal.classList.add('open');
+  
+      const mctx = document.getElementById('mcanvas').getContext('2d');
+      window.__mchart?.destroy();
+      window.__mchart = new Chart(mctx, {
+        type:"line",
+        data:{ labels: PAD_LABELS(), datasets: buildDatasets(mctx) },
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{ legend:{ display:false } },
+          scales:{
+            x:{ ticks:{ autoSkip:false, maxRotation:90, minRotation:90 } },
+            y:{ beginAtZero:true }
+          }
+        }
+      });
+    });
+  
+    // init
+    renderFilterMenu();
+    loadAndDraw();
+  })();
+  </script>
+
+
 
 
   <!-- SMART SEARCH (tiles + filters) -->
@@ -1565,9 +2081,10 @@
           return;
         }
         if(item.type === 'filter'){
-          // route filters to Tile 1 handler
-          if(item.tile === 'lbi' && window.__applyLBI) window.__applyLBI(item.key);
+          if(item.tile === 'lbi'  && window.__applyLBI)  window.__applyLBI(item.key);
+          if(item.tile === 'lbpp' && window.__applyLBPP) window.__applyLBPP(item.key);
         }
+
       }
 
       let activeIdx = -1;
