@@ -344,10 +344,7 @@
 
     @media (max-width: 900px){
 
-      /* ---------- Header (match exact padding with grid) ---------- */
-      header.ph{
-        padding: calc(16px + var(--float-overlap, 0px)) 14px 0 !important;
-      }
+
 
       header.ph h1{
         font-size: 20px;
@@ -360,10 +357,21 @@
         margin: 0 0 12px;
       }
 
-      /* Fixed spacing */
+      /* Mobile: reserve space for the fixed floating filter (set by datasets.js) */
       body{
-        padding-top: 56px;
+        padding-top: var(--float-clear, 96px) !important; /* fallback protects first paint */
       }
+      
+      /* Header spacing stays normal; body padding already prevents overlap */
+      header.ph{
+        padding: 16px 14px 0 !important;
+      }
+      
+      /* Reduce perceived “gap” between search and first tile */
+      .grid{
+        margin-top: 12px !important;
+      }
+
 
       /* ---------- Search row: fill the same width as grid ---------- */
       .ph .searchwrap{ width: 100%; }
