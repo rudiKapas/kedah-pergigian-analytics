@@ -429,6 +429,8 @@
         -webkit-overflow-scrolling: touch;
         margin-bottom: 10px;
         display: block;
+        touch-action: pan-x;
+        overscroll-behavior-x: contain;
       }
 
       #lbi-tile .chart-scroll .chart{
@@ -499,10 +501,12 @@
       #lbi-tile #lbiPeriodBtn{ width: auto; min-width: 120px; }
       #lbi-tile #lbiPeriodBtn .mini{ display: none; }
 
-      /* MOBILE: allow swipe to scroll the LBPP chart container */
+      /* MOBILE: allow swipe to scroll chart containers (Row 1 & Row 3) */
+      #lbiChart,
       #lbppChart{
         pointer-events: none;
       }
+
       
 
             /* ============================================================
@@ -625,7 +629,7 @@
         min-width: 1000px !important;
       }
 
-    /* MOBILE: Row 2 + Row 4 scroll horizontally (row only, no snap/blank, all tiles reachable) */
+    /* MOBILE: Row 2 + Row 4 — snap ON + enough end padding to reveal Yan & Langkawi */
     #bekalanMiniStrip,
     #bekalanMiniStrip2{
       overflow-x: auto !important;
@@ -634,19 +638,22 @@
       touch-action: pan-x;
       overscroll-behavior-x: contain;
     
-      /* snap is what causes the “stuck/blank” behavior on mobile */
-      scroll-snap-type: none !important;
+      scroll-snap-type: x mandatory !important;
     
-      /* keep your original look */
+      /* key fix: allow last tiles to come fully into view */
       padding: 2px 4px 8px !important;
+      padding-right: 72px !important;
+      scroll-padding-left: 4px;
+      scroll-padding-right: 72px;
     }
     
     #bekalanMiniStrip .bekalan-mini-tile,
     #bekalanMiniStrip2 .bekalan-mini-tile{
-      scroll-snap-align: none !important;
+      scroll-snap-align: start !important;
     }
 
-    html, body{ overflow-x: hidden; }
+
+    body{ overflow-x: hidden; }
 
     }
 
@@ -2499,8 +2506,7 @@
       
     window.addEventListener('load', () => {
       setMiniSize();
-      bindMiniArrows();
-      bindMiniTouchScroll();   
+      bindMiniArrows();  
     });
 
   
