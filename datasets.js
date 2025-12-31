@@ -589,6 +589,21 @@
 
         // MOBILE: tap the main nav button to open (do not navigate/refresh on first tap)
          const mqMobile = window.matchMedia('(max-width: 900px)');
+
+         // Stronger mobile intercept: prevent navigation on FIRST tap (some browsers navigate early)
+         const openOnFirstTap = (e) => {
+           if(!mqMobile.matches) return;
+           if(fab.classList.contains('open')) return; // already open -> allow normal behavior
+           e.preventDefault();
+           e.stopPropagation();
+           fab.classList.add('open');
+         };
+         
+         // Capture earlier than 'click'
+         main.addEventListener('pointerdown', openOnFirstTap, { passive: false });
+         main.addEventListener('touchstart', openOnFirstTap, { passive: false });
+         main.addEventListener('click', openOnFirstTap);
+
          
          fab.addEventListener('click', (e) => {
            if (!mqMobile.matches) return;
