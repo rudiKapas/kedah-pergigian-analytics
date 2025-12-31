@@ -1722,7 +1722,17 @@
     let selectedCats = new Set(CATEGORIES.map(x=>x.id)); // default: all
     let selectedMetric = "baki";                         // default: baki
   
-    const PAD_LABELS = () => [' ', ...AREAS.map(a=>a.label), ' '];
+    function split2Lines(label){
+      if(!label) return label;
+      if(label.includes(" & ")){
+        const [a,b] = label.split(" & ");
+        return [a.trim(), "& " + b.trim()];
+      }
+      return label;
+    }
+    
+    const PAD_LABELS = ()=> [' ', ...AREAS.map(a=>split2Lines(a.label)), ' '];
+
   
     // -------------------------------
     // 4) Filter UI
