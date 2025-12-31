@@ -719,15 +719,23 @@
 
     
     .mini-ksp .ksp-kpi-value{
-      font-size: 56px;
+      /* Auto-fit long numbers inside the tile */
+      font-size: clamp(28px, calc(var(--bekalan-mini) / 7.2), 52px);
       font-weight: 900;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.03em;   /* slightly tighter to fit more digits */
       color: #0b1220;
       line-height: 1;
       text-align: center;
-      margin: 0;               /* keep it truly centered */
+      margin: 0;
+    
+      /* prevent clipping */
+      display: block;
+      max-width: 100%;
+      padding: 0 10px;
+      white-space: nowrap;
     }
     
+        
 
 
     /* Big number: clean and tight */
