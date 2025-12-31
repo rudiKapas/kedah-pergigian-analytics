@@ -346,7 +346,7 @@
 
       /* ---------- Header (match exact padding with grid) ---------- */
       header.ph{
-        padding: 16px 14px 0 !important;   /* top, LR, bottom */
+        padding: calc(16px + var(--float-overlap, 0px)) 14px 0 !important;
       }
 
       header.ph h1{
@@ -653,9 +653,9 @@
 
     html, body{ overflow-x: hidden; }
 
-      /* MOBILE: floating filter should not block title; 80% transparent, full on touch */
+      /* MOBILE: floating filter + fab transparency (fab is a .fab div, not #floatingFab) */
       #floatingFilter,
-      #floatingFab{
+      .fab{
         opacity: .8;
         transition: opacity .18s ease;
       }
@@ -663,78 +663,34 @@
       /* Fully visible when user interacts */
       #floatingFilter:active,
       #floatingFilter:focus-within,
-      #floatingFab:active,
-      #floatingFab:focus,
-      #floatingFab:focus-visible{
+      .fab:active,
+      .fab:focus-within{
         opacity: 1;
       }
       
-      /* MOBILE: improve label alignment ("Lokasi", "Tempoh") */
+      /* MOBILE: Lokasi/Tempoh alignment (datasets.js uses span + select, not <label>) */
       #floatingFilter{
+        top: max(12px, env(safe-area-inset-top)) !important;
+      
+        display: grid !important;
+        grid-template-columns: 70px minmax(0, 1fr) !important;
+        column-gap: 10px !important;
+        row-gap: 8px !important;
         align-items: center !important;
-        gap: 10px !important;
       }
       
-      /* Align Lokasi/Tempoh text perfectly */
-      #floatingFilter label{
-        display: flex !important;
-        align-items: center !important;
-        gap: 10px !important;
-        margin: 0 !important;
-        width: 100% !important;
-      }
-      
-      #floatingFilter label > span{
-        width: 70px !important;          /* fixed label column */
-        text-align: left !important;     /* keep consistent with UI */
-        line-height: 1.1 !important;
+      #floatingFilter > span{
+        margin: 0 !important;          /* override inline margins from datasets.js */
+        text-align: right !important;  /* make Lokasi/Tempoh line up perfectly */
         white-space: nowrap !important;
-        flex: 0 0 70px !important;
+        line-height: 1.1 !important;
       }
       
-      #floatingFilter label > select{
-        flex: 1 1 auto !important;
-        min-width: 0 !important;
-        width: auto !important;
-      }
-
-      #floatingFilter select{
+      #floatingFilter > select{
         width: 100% !important;
         min-width: 0 !important;
       }
 
-
-      /* MOBILE FIX: floating filter must not be cut on the left */
-      @media (max-width: 520px){
-        #floatingFilter{
-          left: max(12px, env(safe-area-inset-left)) !important;
-          right: max(12px, env(safe-area-inset-right)) !important;
-          width: auto !important;
-          max-width: calc(100vw - 24px) !important;
-          box-sizing: border-box;
-      
-          display: grid !important;
-          grid-template-columns: auto minmax(0, 1fr) !important;
-          column-gap: 8px !important;
-          row-gap: 8px !important;
-          align-items: center !important;
-        }
-      
-        #floatingFilter select{
-          width: 100% !important;
-          min-width: 0 !important;
-        }
-      }
-
-      /* Put floating filter above the hero/title area */
-      #floatingFilter{
-        top: 8px !important;
-      }
-      
-      /* Reserve space so title is fully visible on first view */
-      main{
-        padding-top: 86px !important; /* adjust if your filter height differs */
-      }
       
 
       
@@ -908,10 +864,17 @@
       white-space: nowrap;
     }
 
-    /* On very small tiles (narrow screens), move stats card to bottom to avoid overlap */
     @media (max-width: 520px){
-      .mini-ksp{ padding: 14px 14px 12px; }
-      .mini-ksp .ksp-kpi-label{ width: auto; font-size: 16px; }
+      #floatingFilter{
+        left: max(12px, env(safe-area-inset-left)) !important;
+        right: max(12px, env(safe-area-inset-right)) !important;
+        max-width: calc(100vw - 24px) !important;
+        box-sizing: border-box;
+      }
+    
+      .fab{
+        right: max(12px, env(safe-area-inset-right)) !important;
+      }
     }
 
 
