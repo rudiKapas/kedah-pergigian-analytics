@@ -546,10 +546,7 @@
         const main = makeBtn('index.html', 'assets/icons/nav.svg', 'fab-main', 'Utama');
         const mainImg = main.querySelector('img');
         main.addEventListener('mouseenter', () => mainImg.src = 'assets/icons/home.svg');
-        main.addEventListener('mouseleave', () => {
-           if (!fab.classList.contains('open')) mainImg.src = 'assets/icons/nav.svg';
-         });
-
+        main.addEventListener('mouseleave', () => mainImg.src = 'assets/icons/nav.svg');
         fab.appendChild(main);
       
         // CHILD buttons (stack downward)
@@ -571,24 +568,6 @@
 
       
         document.body.appendChild(fab);
-
-         // MOBILE: always show labels when menu is open (no hover on touch devices)
-         if (!document.getElementById('fab-mobile-label-style')) {
-           const st = document.createElement('style');
-           st.id = 'fab-mobile-label-style';
-           st.textContent = `
-             @media (max-width: 900px){
-               .fab.open .fab-tip{
-                 opacity: 1 !important;
-                 visibility: visible !important;
-                 transform: none !important;
-                 display: inline-block !important;
-               }
-             }
-           `;
-           document.head.appendChild(st);
-         }
-
       
         // Keep it snug under the filter bar on resize
         window.addEventListener('resize', () => {
@@ -608,51 +587,54 @@
           if (!fab.contains(e.relatedTarget)) close();
         });
 
-        // MOBILE: tap main button to open (first tap), second tap goes Home.
-         // NOTE: focusin opens the menu before click, so we cannot rely on fab.classList.contains('open').
-         // Use a dedicated flag instead.
+        // MOBILE: tap the main nav button to open (do not navigate/refresh on first tap)
          const mqMobile = window.matchMedia('(max-width: 900px)');
-         fab.dataset.mobileMainArmed = '0';
+
+         // Stronger mobile intercept: prevent navigation on FIRST tap (some browsers navigate early)
+         const openOnFirstTap = (e) => {
+           if(!mqMobile.matches) return;
+           if(fab.classList.contains('open')) return; // already open -> allow normal behavior
+           e.preventDefault();
+           e.stopPropagation();
+           fab.classList.add('open');
+         };
          
-         // store original href so we can navigate manually on second tap
-         main.dataset.href = main.getAttribute('href');
+         // Capture earlier than 'click'
+         main.addEventListener('pointerdown', openOnFirstTap, { passive: false });
+         main.addEventListener('touchstart', openOnFirstTap, { passive: false });
+         main.addEventListener('click', openOnFirstTap);
+
          
-         function onMobileMainTap(e){
+         fab.addEventListener('click', (e) => {
            if (!mqMobile.matches) return;
          
            const mainBtn = e.target.closest('.fab-main');
            if (!mainBtn) return; // allow child links to navigate normally
          
-           // Always stop default navigation on mobile taps of the MAIN button
-           e.preventDefault();
-           e.stopPropagation();
-         
-           // First tap: open only
-           if (fab.dataset.mobileMainArmed !== '1') {
-             fab.dataset.mobileMainArmed = '1';
-             open();
+           // First tap: open menu, prevent navigation/refresh
+           if (!fab.classList.contains('open')) {
+             e.preventDefault();
+             e.stopPropagation();
+             fab.classList.add('open');
              return;
            }
          
-           // Second tap: go Home
-           window.location.href = mainBtn.dataset.href || 'index.html';
-         }
+           // If already open: allow default (optional behaviour)
+           // If you prefer second tap to CLOSE instead of navigating, uncomment below and return:
+           // e.preventDefault();
+           // e.stopPropagation();
+           // fab.classList.remove('open');
+         });
          
-         // Capture phase so we beat any other handlers, and we work even after focusin opens the menu
-         main.addEventListener('touchstart', onMobileMainTap, { passive: false });
-         main.addEventListener('click', onMobileMainTap, true);
-         
-         // Tap outside closes + resets the “armed” state
          document.addEventListener('click', (e) => {
            if (!mqMobile.matches) return;
-           if (!fab.contains(e.target)) {
-             fab.dataset.mobileMainArmed = '0';
-             fab.classList.remove('open');
-             // restore icon
-             mainImg.src = 'assets/icons/nav.svg';
-           }
+           if (!fab.contains(e.target)) fab.classList.remove('open');
          }, { passive: true });
 
+      
+        // also open when the main gets hover (snappier)
+        main.addEventListener('mouseenter', open);
+      })();
 
 
   });
@@ -707,4 +689,3 @@
   };
   window.__mapNames = function (arr) { return (arr || []).map(window.__mapName); };
 })();
-
