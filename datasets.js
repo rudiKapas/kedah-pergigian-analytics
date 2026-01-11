@@ -183,14 +183,20 @@
              },
          
              "2025_JAN_DIS": {
-               label: "Jan–Dis 2025 (Belum ada link)",
-               base: "https://docs.google.com/spreadsheets/u/2/d/e/2PACX-1vSmv-uyuolofm_RuuTtXCSApabklB8VYYTs85oqZesufEsrFzCIgqADjOQ7XZtoq0EErPIoJizKyLUG/pub",
+               label: "Jan–Dis 2025",
+               base: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTqwsBGPMzLDVf-uKOwuNJ2RwpK4mNIca8vjnnTdlKORVavGwxgFGmuwB8RqwrJKRoyfsgl49JdurtA/pub",
                bases: {
                  inventori: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5BDbjWy7dS7jk9yD3yRerVSl2U8e0klgsMG4zwfu5k70v4IxnIJWvCQJ5uaE58Q/pub",
                  lbpp: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRGw9irpwzva203tXQAEp4r3XZXvvWoYQRNGKtLvFLKUzQ5_EdfxmD3fyxT4Q0qyg/pub"
                },
                gids: {
-                 bekalan: { b1: null }
+                 index:      { i1: 96848314, i2: 1924084704, i3: 845133596,  i4: 1249532072 },
+                 akses:      { t1: 96848314, t2: 2025261700, t3: 1000081718, t4: 1297790782,  t5: 1924084704, t6: 845133596, t7: 305518586, t8: 1329383851, t9: 1249532072 },
+                 sekolah:    { ps1: 1222894016, s2: 1029789314,  s3: 624721646 },
+                 kpi:        { k1: 1949071226,  k2: 1997871387,   k3: 1866162319 },
+                 workforce:  { t1: 1764151591,   t2: 879011416, t3: 879011416 },
+                 prevention: { p1: 1449670498, p2: 732491936,    p3: 1120592101 },
+                 bekalan:    { b1: null, b2: null }
                }
              }
          
