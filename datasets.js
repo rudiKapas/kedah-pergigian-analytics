@@ -186,8 +186,8 @@
                label: "Jan–Dis 2025",
                base: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTqwsBGPMzLDVf-uKOwuNJ2RwpK4mNIca8vjnnTdlKORVavGwxgFGmuwB8RqwrJKRoyfsgl49JdurtA/pub",
                bases: {
-                 inventori: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5BDbjWy7dS7jk9yD3yRerVSl2U8e0klgsMG4zwfu5k70v4IxnIJWvCQJ5uaE58Q/pub",
-                 lbpp: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRGw9irpwzva203tXQAEp4r3XZXvvWoYQRNGKtLvFLKUzQ5_EdfxmD3fyxT4Q0qyg/pub"
+                 inventori: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSKEk2oC_QlPcqXCy-9m0EouP0EhS8srbmhL15AN9AzPmfdsroaB2Mmlzn-lrIZVg/pub",
+                 lbpp: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRDWeiUonzvcCVBDfI5Zw51YFISBptRglAcs8bBf2eGYeFHSsYqBAl_5COCWm89AA/pub"
                },
                gids: {
                  index:      { i1: 96848314, i2: 1924084704, i3: 845133596,  i4: 1249532072 },
