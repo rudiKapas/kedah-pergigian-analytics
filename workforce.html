@@ -199,6 +199,7 @@
 
       <div class="tb">
         <div class="tags" id="ddt2tags"></div>
+        <div class="tags" id="t2extras"></div>
         <div class="chart"><canvas id="t2"></canvas></div>
         <div class="legend" id="t2legend"></div>
         <div class="err" id="t2err"></div>
@@ -231,6 +232,7 @@
 
       <div class="tb">
         <div class="tags" id="ddt3tags"></div>
+        <div class="tags" id="t3extras"></div>
         <div class="chart"><canvas id="t3"></canvas></div>
         <div class="legend" id="t3legend"></div>
         <div class="err" id="t3err"></div>
@@ -542,6 +544,39 @@
     const body = document.getElementById('ddt2body');
     const tags = document.getElementById('ddt2tags');
 
+    const extras = document.getElementById('t2extras');
+    let excludeAgg = true; // default: exclude last aggregate row (Kedah)
+    
+    function getLabelsPad(){
+      const arr = LABELS_PAD.slice();
+      if(excludeAgg){
+        arr.splice(arr.length - 2, 1); // remove the last area label before the trailing padding
+      }
+      return arr;
+    }
+    
+    function renderExtras(){
+      if(!extras) return;
+      extras.innerHTML = `
+        <label class="tag" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;">
+          <input id="t2ExcludeAgg" type="checkbox" ${excludeAgg ? 'checked' : ''}>
+          Kecualikan Kedah (agregat negeri)
+        </label>
+      `;
+      const cb = extras.querySelector('#t2ExcludeAgg');
+      cb.addEventListener('change', ()=>{
+        excludeAgg = cb.checked;
+        if(!chart) return;
+    
+        const labels = getLabelsPad();
+        chart.data.labels = labels;
+        chart.data.datasets = datasetsFor(chart.ctx, labels);
+        chart.update();
+        setTimeout(adjustXAxisTicks, 0);
+      });
+    }
+
+
     function renderMenu(){
       body.innerHTML = CATS.map(c=>{
         const chk=selected.has(c.id)?'checked':'';
@@ -578,62 +613,98 @@
     }
 
     let chart, TABLE=null;
-    function datasetsFor(ctx){
+    function datasetsFor(ctx, labelsPad){
       const ds=[];
-      const last=LABELS_PAD.length-1;
+      const last=labelsPad.length-1;
       const pointR = x => (x.dataIndex===0 || x.dataIndex===last ? 0 : 3);
-
+    
       function grad(hex){
         const g=ctx.createLinearGradient(0,0,0,300);
         const n=parseInt(hex.slice(1),16), r=(n>>16)&255, g1=(n>>8)&255, b=n&255;
-        const rgba=a=>`rgba(${r},${g1},${b},${a})`; g.addColorStop(0,rgba(.35)); g.addColorStop(1,rgba(.04)); return g;
+        const rgba=a=>`rgba(${r},${g1},${b},${a})`;
+        g.addColorStop(0,rgba(.35));
+        g.addColorStop(1,rgba(.04));
+        return g;
       }
-
+    
       CATS.forEach(cat=>{
         const show=selected.has(cat.id);
         cat.lines.forEach(line=>{
+          // Right axis for "Purata..." and "Bil. PP..."
+          const isAvg = /^Purata\b/i.test(line.label) || /^Bil\.\s*PP\b/i.test(line.label);
+    
+          // Exclude last aggregate cell (Kedah) when toggle is on
+          const cells = excludeAgg ? line.cells.slice(0, -1) : line.cells;
+    
           ds.push({
             _group:cat.id, _pct:false, type:'line', label:line.label,
-            data: PAD(seriesFromCells(TABLE, line.cells)),
-            borderColor: line.color, backgroundColor: grad(line.color),
-            borderWidth:3, tension:.45, fill:true,
+            data: PAD(seriesFromCells(TABLE, cells)),
+            borderColor: line.color,
+            backgroundColor: isAvg ? 'transparent' : grad(line.color),
+            borderWidth:3, tension:.45,
+            fill: !isAvg,
             pointRadius: pointR, pointHoverRadius:3,
-            hidden:!show, yAxisID:'yCnt'
+            hidden:!show,
+            yAxisID: isAvg ? 'yAvg' : 'yCnt'
           });
         });
       });
+    
       return ds;
     }
 
+
     function drawChart(){
-      const ctx=document.getElementById('t2').getContext('2d');
-      if(chart) chart.destroy();
-      chart=new Chart(ctx,{
-        type:'line',
-        data:{ labels: LABELS_PAD, datasets: datasetsFor(ctx) },
-        options:{
-          responsive:true, maintainAspectRatio:false,
-          plugins:{ legend:{ display:false }, tooltip:{
-            mode:'index', intersect:false,
-            callbacks:{ label:(c)=> `${c.dataset.label}: ${Number(c.parsed.y).toLocaleString()}` },
-            filter:(i)=> !(i.dataIndex===0 || i.dataIndex===LABELS_PAD.length-1)
-          }},
-          scales:{
-            x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } },
-            yCnt:{ position:'left', beginAtZero:true, ticks:{ callback:v=>Number(v).toLocaleString() } },
-            yPct:{ display:false }
+        const ctx=document.getElementById('t3').getContext('2d');
+        if(chart) chart.destroy();
+      
+        const labels = getLabelsPad();
+      
+        chart=new Chart(ctx,{
+          type:'line',
+          data:{ labels, datasets: datasetsFor(ctx, labels) },
+          options:{
+            responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{ display:false }, tooltip:{
+              mode:'index', intersect:false,
+              callbacks:{ label:(c)=> `${c.dataset.label}: ${Number(c.parsed.y).toLocaleString()}` },
+              filter:(i)=> !(i.dataIndex===0 || i.dataIndex===i.chart.data.labels.length-1)
+            }},
+            scales:{
+              x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } },
+              yCnt:{
+                position:'left', beginAtZero:true,
+                title:{ display:true, text:'Jumlah' },
+                ticks:{ callback:v=>Number(v).toLocaleString() }
+              },
+              yAvg:{
+                position:'right', beginAtZero:true,
+                grid:{ drawOnChartArea:false },
+                title:{ display:true, text:'Purata / Bil. bertugas' },
+                ticks:{ callback:v=>Number(v).toLocaleString() }
+              },
+              yPct:{ display:false }
+            }
           }
-        }
-      });
-      document.getElementById('t2time').textContent=new Date().toLocaleString();
-      setTimeout(adjustXAxisTicks,0);
-    }
+        });
+      
+        document.getElementById('t3time').textContent=new Date().toLocaleString();
+        setTimeout(adjustXAxisTicks,0);
+      }
+
+    
     function adjustXAxisTicks(){
       if(!chart || !chart.chartArea) return;
-      const n=AREAS.length, w=chart.chartArea.width, px=w/n;
+      const n = Math.max(1, (chart.data.labels?.length || 0) - 2); // exclude 2 padding labels
+      const w=chart.chartArea.width, px=w/n;
       const rot=(px<70)||(window.innerWidth<900);
-      const t=chart.options.scales.x.ticks; t.maxRotation=rot?90:0; t.minRotation=rot?90:0; t.autoSkip=!rot; chart.update();
+      const t=chart.options.scales.x.ticks;
+      t.maxRotation=rot?90:0;
+      t.minRotation=rot?90:0;
+      t.autoSkip=!rot;
+      chart.update();
     }
+
     let __rto; window.addEventListener('resize',()=>{ clearTimeout(__rto); __rto=setTimeout(adjustXAxisTicks,120); });
 
     function syncTagsLegendRedraw(){
@@ -644,26 +715,40 @@
     function drawInModal(){
       const mctx=document.getElementById('mcanvas').getContext('2d');
       if(window.__mchart) window.__mchart.destroy();
+    
+      const labels = getLabelsPad();
+    
       window.__mchart=new Chart(mctx,{
         type:'line',
-        data:{ labels: LABELS_PAD, datasets: datasetsFor(mctx) },
+        data:{ labels, datasets: datasetsFor(mctx, labels) },
         options:{
           plugins:{ legend:{ display:false } },
           scales:{
             x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } },
-            yCnt:{ position:'left', beginAtZero:true, ticks:{ callback:v=>Number(v).toLocaleString() } },
+            yCnt:{
+              position:'left', beginAtZero:true,
+              title:{ display:true, text:'Jumlah' },
+              ticks:{ callback:v=>Number(v).toLocaleString() }
+            },
+            yAvg:{
+              position:'right', beginAtZero:true,
+              grid:{ drawOnChartArea:false },
+              title:{ display:true, text:'Purata / Bil. bertugas' },
+              ticks:{ callback:v=>Number(v).toLocaleString() }
+            },
             yPct:{ display:false }
           }
         }
       });
     }
 
+
     function loadAndDraw(){
       Papa.parse(CSV_URL,{
         download:true, skipEmptyLines:true,
         complete:(res)=>{
           document.getElementById('t2err').style.display='none';
-          TABLE=res.data; renderMenu(); rebuildTags(); rebuildLegend(); drawChart();
+          TABLE=res.data; renderMenu(); rebuildTags(); rebuildLegend(); renderExtras(); drawChart();
           // search suggestions
           window.__tkpSearch.suggestions.push({type:'tile', tile:'tkp2-tile', label:'PURATA HASIL KERJA Pegawai Pergigian'});
           ['Bil. PP yang bertugas','Pesakit Baru + Ulangan','Tampalan Gigi Kekal + Desidus','Cabutan','Penskaleran','Dentur (penuh+separa)','Fisur Sealan','Florida varnis']
@@ -768,6 +853,39 @@
     const body = document.getElementById('ddt3body');
     const tags = document.getElementById('ddt3tags');
 
+    const extras = document.getElementById('t3extras');
+      let excludeAgg = true; // default: exclude last aggregate row (Kedah / Daerah total)
+      
+      function getLabelsPad(){
+        const arr = LABELS_PAD.slice();
+        if(excludeAgg){
+          arr.splice(arr.length - 2, 1); // remove the last real label before trailing padding
+        }
+        return arr;
+      }
+      
+      function renderExtras(){
+        if(!extras) return;
+        extras.innerHTML = `
+          <label class="tag" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;">
+            <input id="t3ExcludeAgg" type="checkbox" ${excludeAgg ? 'checked' : ''}>
+            Kecualikan Kedah (agregat negeri)
+          </label>
+        `;
+        const cb = extras.querySelector('#t3ExcludeAgg');
+        cb.addEventListener('change', ()=>{
+          excludeAgg = cb.checked;
+          if(!chart) return;
+      
+          const labels = getLabelsPad();
+          chart.data.labels = labels;
+          chart.data.datasets = datasetsFor(chart.ctx, labels);
+          chart.update();
+          setTimeout(adjustXAxisTicks, 0);
+        });
+      }
+
+
     function renderMenu(){
       body.innerHTML = CATS.map(c=>{
         const chk=selected.has(c.id)?'checked':'';
@@ -804,32 +922,46 @@
     }
 
     let chart, TABLE=null;
-    function datasetsFor(ctx){
+    function datasetsFor(ctx, labelsPad){
       const ds=[];
-      const last=LABELS_PAD.length-1;
+      const last=labelsPad.length-1;
       const pointR = x => (x.dataIndex===0 || x.dataIndex===last ? 0 : 3);
-
+    
       function grad(hex){
         const g=ctx.createLinearGradient(0,0,0,300);
         const n=parseInt(hex.slice(1),16), r=(n>>16)&255, g1=(n>>8)&255, b=n&255;
-        const rgba=a=>`rgba(${r},${g1},${b},${a})`; g.addColorStop(0,rgba(.35)); g.addColorStop(1,rgba(.04)); return g;
+        const rgba=a=>`rgba(${r},${g1},${b},${a})`;
+        g.addColorStop(0,rgba(.35));
+        g.addColorStop(1,rgba(.04));
+        return g;
       }
-
+    
       CATS.forEach(cat=>{
         const show=selected.has(cat.id);
         cat.lines.forEach(line=>{
+          // Right axis for "Purata..." and "Bil. JP..."
+          const isAvg = /^Purata\b/i.test(line.label) || /^Bil\.\s*JP\b/i.test(line.label);
+    
+          // Exclude last aggregate cell when toggle is on
+          const cells = excludeAgg ? line.cells.slice(0, -1) : line.cells;
+    
           ds.push({
             _group:cat.id, _pct:false, type:'line', label:line.label,
-            data: PAD(seriesFromCells(TABLE, line.cells)),
-            borderColor: line.color, backgroundColor: grad(line.color),
-            borderWidth:3, tension:.45, fill:true,
+            data: PAD(seriesFromCells(TABLE, cells)),
+            borderColor: line.color,
+            backgroundColor: isAvg ? 'transparent' : grad(line.color),
+            borderWidth:3, tension:.45,
+            fill: !isAvg,
             pointRadius: pointR, pointHoverRadius:3,
-            hidden:!show, yAxisID:'yCnt'
+            hidden:!show,
+            yAxisID: isAvg ? 'yAvg' : 'yCnt'
           });
         });
       });
+    
       return ds;
     }
+
 
     function drawChart(){
       const ctx=document.getElementById('t3').getContext('2d');
@@ -856,10 +988,17 @@
     }
     function adjustXAxisTicks(){
       if(!chart || !chart.chartArea) return;
-      const n=AREAS.length, w=chart.chartArea.width, px=w/n;
+      const n = Math.max(1, (chart.data.labels?.length || 0) - 2); // exclude 2 padding labels
+      const w=chart.chartArea.width, px=w/n;
       const rot=(px<70)||(window.innerWidth<900);
-      const t=chart.options.scales.x.ticks; t.maxRotation=rot?90:0; t.minRotation=rot?90:0; t.autoSkip=!rot; chart.update();
+      const t=chart.options.scales.x.ticks;
+      t.maxRotation=rot?90:0;
+      t.minRotation=rot?90:0;
+      t.autoSkip=!rot;
+      chart.update();
     }
+    
+    
     let __rto; window.addEventListener('resize',()=>{ clearTimeout(__rto); __rto=setTimeout(adjustXAxisTicks,120); });
 
     function syncTagsLegendRedraw(){
@@ -870,26 +1009,40 @@
     function drawInModal(){
       const mctx=document.getElementById('mcanvas').getContext('2d');
       if(window.__mchart) window.__mchart.destroy();
+    
+      const labels = getLabelsPad();
+    
       window.__mchart=new Chart(mctx,{
         type:'line',
-        data:{ labels: LABELS_PAD, datasets: datasetsFor(mctx) },
+        data:{ labels, datasets: datasetsFor(mctx, labels) },
         options:{
           plugins:{ legend:{ display:false } },
           scales:{
             x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } },
-            yCnt:{ position:'left', beginAtZero:true, ticks:{ callback:v=>Number(v).toLocaleString() } },
+            yCnt:{
+              position:'left', beginAtZero:true,
+              title:{ display:true, text:'Jumlah' },
+              ticks:{ callback:v=>Number(v).toLocaleString() }
+            },
+            yAvg:{
+              position:'right', beginAtZero:true,
+              grid:{ drawOnChartArea:false },
+              title:{ display:true, text:'Purata / Bil. bertugas' },
+              ticks:{ callback:v=>Number(v).toLocaleString() }
+            },
             yPct:{ display:false }
           }
         }
       });
     }
 
+
     function loadAndDraw(){
       Papa.parse(CSV_URL,{
         download:true, skipEmptyLines:true,
         complete:(res)=>{
           document.getElementById('t3err').style.display='none';
-          TABLE=res.data; renderMenu(); rebuildTags(); rebuildLegend(); drawChart();
+          TABLE=res.data; renderMenu(); rebuildTags(); rebuildLegend(); renderExtras(); drawChart();
           // search suggestions
           window.__tkpSearch.suggestions.push({type:'tile', tile:'tkp3-tile', label:'PURATA HASIL KERJA Juruterapi Pergigian'});
           ['Bil. JP yang bertugas','Pesakit Baru + Ulangan','Tampalan Gigi Kekal + Desidus','Cabutan','Penskaleran','Fisur Sealan','Florida varnis','Kes selesai']
