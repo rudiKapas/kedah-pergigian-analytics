@@ -655,42 +655,42 @@
 
 
     function drawChart(){
-        const ctx=document.getElementById('t3').getContext('2d');
-        if(chart) chart.destroy();
-      
-        const labels = getLabelsPad();
-      
-        chart=new Chart(ctx,{
-          type:'line',
-          data:{ labels, datasets: datasetsFor(ctx, labels) },
-          options:{
-            responsive:true, maintainAspectRatio:false,
-            plugins:{ legend:{ display:false }, tooltip:{
-              mode:'index', intersect:false,
-              callbacks:{ label:(c)=> `${c.dataset.label}: ${Number(c.parsed.y).toLocaleString()}` },
-              filter:(i)=> !(i.dataIndex===0 || i.dataIndex===i.chart.data.labels.length-1)
-            }},
-            scales:{
-              x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } },
-              yCnt:{
-                position:'left', beginAtZero:true,
-                title:{ display:true, text:'Jumlah' },
-                ticks:{ callback:v=>Number(v).toLocaleString() }
-              },
-              yAvg:{
-                position:'right', beginAtZero:true,
-                grid:{ drawOnChartArea:false },
-                title:{ display:true, text:'Purata / Bil. bertugas' },
-                ticks:{ callback:v=>Number(v).toLocaleString() }
-              },
-              yPct:{ display:false }
-            }
+      const ctx=document.getElementById('t2').getContext('2d');
+      if(chart) chart.destroy();
+    
+      const labels = getLabelsPad();
+    
+      chart=new Chart(ctx,{
+        type:'line',
+        data:{ labels, datasets: datasetsFor(ctx, labels) },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ display:false }, tooltip:{
+            mode:'index', intersect:false,
+            callbacks:{ label:(c)=> `${c.dataset.label}: ${Number(c.parsed.y).toLocaleString()}` },
+            filter:(i)=> !(i.dataIndex===0 || i.dataIndex===i.chart.data.labels.length-1)
+          }},
+          scales:{
+            x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } },
+            yCnt:{
+              position:'left', beginAtZero:true,
+              title:{ display:true, text:'Jumlah' },
+              ticks:{ callback:v=>Number(v).toLocaleString() }
+            },
+            yAvg:{
+              position:'right', beginAtZero:true,
+              grid:{ drawOnChartArea:false },
+              title:{ display:true, text:'Purata / Bil. bertugas' },
+              ticks:{ callback:v=>Number(v).toLocaleString() }
+            },
+            yPct:{ display:false }
           }
-        });
-      
-        document.getElementById('t3time').textContent=new Date().toLocaleString();
-        setTimeout(adjustXAxisTicks,0);
-      }
+        }
+      });
+    
+      document.getElementById('t2time').textContent=new Date().toLocaleString();
+      setTimeout(adjustXAxisTicks,0);
+    }
 
     
     function adjustXAxisTicks(){
@@ -966,26 +966,41 @@
     function drawChart(){
       const ctx=document.getElementById('t3').getContext('2d');
       if(chart) chart.destroy();
+    
+      const labels = getLabelsPad();
+    
       chart=new Chart(ctx,{
         type:'line',
-        data:{ labels: LABELS_PAD, datasets: datasetsFor(ctx) },
+        data:{ labels, datasets: datasetsFor(ctx, labels) },
         options:{
           responsive:true, maintainAspectRatio:false,
           plugins:{ legend:{ display:false }, tooltip:{
             mode:'index', intersect:false,
             callbacks:{ label:(c)=> `${c.dataset.label}: ${Number(c.parsed.y).toLocaleString()}` },
-            filter:(i)=> !(i.dataIndex===0 || i.dataIndex===LABELS_PAD.length-1)
+            filter:(i)=> !(i.dataIndex===0 || i.dataIndex===i.chart.data.labels.length-1)
           }},
           scales:{
             x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } },
-            yCnt:{ position:'left', beginAtZero:true, ticks:{ callback:v=>Number(v).toLocaleString() } },
+            yCnt:{
+              position:'left', beginAtZero:true,
+              title:{ display:true, text:'Jumlah' },
+              ticks:{ callback:v=>Number(v).toLocaleString() }
+            },
+            yAvg:{
+              position:'right', beginAtZero:true,
+              grid:{ drawOnChartArea:false },
+              title:{ display:true, text:'Purata / Bil. bertugas' },
+              ticks:{ callback:v=>Number(v).toLocaleString() }
+            },
             yPct:{ display:false }
           }
         }
       });
+    
       document.getElementById('t3time').textContent=new Date().toLocaleString();
       setTimeout(adjustXAxisTicks,0);
     }
+
     function adjustXAxisTicks(){
       if(!chart || !chart.chartArea) return;
       const n = Math.max(1, (chart.data.labels?.length || 0) - 2); // exclude 2 padding labels
