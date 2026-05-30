@@ -2,34 +2,48 @@
 <html lang="ms">
 <head>
   <meta charset="utf-8" />
-  <title>Geospatial Analisis Kesihatan Pergigian Sekolah</title>
+  <title>Geospatial Analisis Kesihatan Pergigian Sekolah Kedah</title>
   <link rel="icon" type="image/svg+xml" href="assets/icons/iconTab.svg">
   <link rel="stylesheet" href="styles.css?v=1" />
   <script src="datasets.js?v=3"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Leaflet CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <style>
+    /* =========================================================
+       PAGE-SPECIFIC DESIGN
+       This page is designed as a decision-focused technical report
+       geospatial dashboard while preserving the visual logic of the
+       existing geospatial page: full map, floating control panel,
+       top-right navigation, compact mobile behaviour.
+       ========================================================= */
 
-    /* geospatial.html only: hide the global floating filter bar, keep our disabled pill */
     #floatingFilter { display: none !important; }
 
     :root{
-      --bg-card: rgba(255,255,255,0.96);
-      --border-card: rgba(148,163,184,0.6);
-      --shadow-card: 0 18px 45px rgba(15,23,42,.35);
+      --bg-card: rgba(255,255,255,0.965);
+      --bg-soft: #f8fafc;
+      --border-card: rgba(148,163,184,0.55);
+      --shadow-card: 0 18px 45px rgba(15,23,42,.28);
+      --shadow-soft: 0 10px 28px rgba(15,23,42,.18);
       --blue: #0ea5e9;
+      --blue-dark: #0369a1;
       --red: #ef4444;
+      --orange: #f97316;
+      --amber: #f59e0b;
+      --green: #10b981;
+      --slate: #334155;
+      --muted: #64748b;
       --text-main:#0f172a;
       --text-sub:#64748b;
+      --white:#ffffff;
+      --radius-xl: 18px;
+      --radius-md: 12px;
     }
 
     *{ box-sizing:border-box; }
@@ -40,10 +54,13 @@
       padding:0;
       font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       color:var(--text-main);
+      background:#e2e8f0;
     }
 
-    body{
-      overflow:hidden;
+    body{ overflow:hidden; }
+
+    button, select, input{
+      font-family:inherit;
     }
 
     #map{
@@ -54,79 +71,151 @@
       z-index:0;
     }
 
-    /* Floating panel */
+    /* =========================================================
+       LEFT FLOATING CONTROL PANEL
+       ========================================================= */
+
     .overlay-panel{
       position:fixed;
       top:12px;
       left:12px;
-      right:auto;
-      max-width:430px;
-      width:calc(100% - 24px);
+      width:430px;
+      max-width:calc(100% - 24px);
+      max-height:calc(100dvh - 24px);
+      overflow:auto;
       background:var(--bg-card);
-      border-radius:18px;
+      border-radius:var(--radius-xl);
       border:1px solid var(--border-card);
       box-shadow:var(--shadow-card);
       padding:14px 16px 12px;
       z-index:1000;
       backdrop-filter:blur(14px);
+      scrollbar-width:thin;
     }
 
-        .overlay-full{
-          display:block;
-          margin-top:4px;
-        }
-    
-        .overlay-collapsed{
-          display:none;
-          width:100%;
-          border-radius:14px;
-          border:1px solid var(--border-card);
-          padding:6px 10px;
-          background:rgba(255,255,255,0.98);
-          box-shadow:0 10px 25px rgba(15,23,42,.18);
-          flex-direction:column;
-          align-items:flex-start;
-          gap:2px;
-          cursor:pointer;
-        }
-    
-        .collapsed-line{
-          font-size:12px;
-          font-weight:600;
-          color:var(--text-main);
-          line-height:1.25;
-        }
-        .collapsed-line.collapsed-sub{
-          font-size:11px;
-          color:var(--text-sub);
-          font-weight:500;
-        }
-    
-        /* When panel is collapsed (mobile) */
-        .overlay-panel.collapsed{
-          padding:8px 10px;
-          max-width:320px;
-        }
-        .overlay-panel.collapsed .overlay-full{
-          display:none;
-        }
-        .overlay-panel.collapsed .overlay-collapsed{
-          display:flex;
-        }
-    
-      
+    .overlay-panel::-webkit-scrollbar{ width:8px; }
+    .overlay-panel::-webkit-scrollbar-thumb{ background:#cbd5e1; border-radius:999px; }
 
+    .overlay-full{ display:block; margin-top:4px; }
+
+    .overlay-collapsed{
+      display:none;
+      width:100%;
+      border-radius:14px;
+      border:1px solid var(--border-card);
+      padding:7px 10px;
+      background:rgba(255,255,255,0.98);
+      box-shadow:var(--shadow-soft);
+      flex-direction:column;
+      align-items:flex-start;
+      gap:2px;
+      cursor:pointer;
+      text-align:left;
+    }
+
+    .collapsed-line{
+      font-size:12px;
+      font-weight:700;
+      color:var(--text-main);
+      line-height:1.25;
+    }
+
+    .collapsed-line.collapsed-sub{
+      font-size:11px;
+      color:var(--text-sub);
+      font-weight:500;
+    }
+
+    .overlay-panel.collapsed{
+      padding:8px 10px;
+      max-width:340px;
+      overflow:hidden;
+    }
+
+    .overlay-panel.collapsed .overlay-full{ display:none; }
+    .overlay-panel.collapsed .overlay-collapsed{ display:flex; }
 
     .overlay-title{
       margin:0 0 4px;
       font-size:18px;
       font-weight:800;
+      line-height:1.16;
+      letter-spacing:-.02em;
     }
 
     .overlay-sub{
       margin:0 0 10px;
       font-size:12px;
+      line-height:1.45;
       color:var(--text-sub);
+    }
+
+    .status-bar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      padding:7px 9px;
+      margin:8px 0 10px;
+      border-radius:12px;
+      background:#eff6ff;
+      border:1px solid #bfdbfe;
+      color:#1e3a8a;
+      font-size:11px;
+      font-weight:600;
+    }
+
+    .status-bar.error{
+      background:#fef2f2;
+      border-color:#fecaca;
+      color:#991b1b;
+    }
+
+    .status-dot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:#3b82f6;
+      flex:0 0 auto;
+    }
+
+    .status-bar.error .status-dot{ background:#ef4444; }
+
+    .summary-grid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap:7px;
+      margin:8px 0 10px;
+    }
+
+    .summary-card{
+      background:#ffffff;
+      border:1px solid #e2e8f0;
+      border-radius:13px;
+      padding:8px 9px;
+      min-height:58px;
+    }
+
+    .summary-label{
+      font-size:10px;
+      color:var(--muted);
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.045em;
+      margin-bottom:3px;
+    }
+
+    .summary-value{
+      font-size:17px;
+      font-weight:800;
+      line-height:1.2;
+      letter-spacing:-.02em;
+    }
+
+    .summary-note{
+      font-size:10px;
+      color:var(--muted);
+      margin-top:2px;
     }
 
     .controls{
@@ -136,6 +225,12 @@
       margin-bottom:8px;
     }
 
+    .control-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:8px;
+    }
+
     .control-row{
       display:flex;
       flex-direction:column;
@@ -143,81 +238,109 @@
     }
 
     .control-row label{
-      font-size:11px;
-      font-weight:600;
+      font-size:10px;
+      font-weight:800;
       text-transform:uppercase;
       letter-spacing:.06em;
       color:var(--text-sub);
     }
 
-    .control-row select{
+    .control-row select,
+    .control-row input{
       width:100%;
       height:38px;
       border-radius:10px;
       border:1px solid #cbd5e1;
       padding:0 10px;
-      font-size:13px;
+      font-size:12px;
       background:#ffffff;
       outline:none;
     }
 
-    .control-row select:focus{
+    .control-row select:focus,
+    .control-row input:focus{
       border-color:#0ea5e9;
-      box-shadow:0 0 0 2px rgba(14,165,233,0.25);
+      box-shadow:0 0 0 2px rgba(14,165,233,0.22);
     }
 
-    .legend-box{
-      margin-top:4px;
+    .button-row{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:2px;
+    }
+
+    .btn{
+      border:1px solid #cbd5e1;
+      background:#ffffff;
+      color:#0f172a;
+      border-radius:999px;
       padding:8px 10px;
+      font-size:11px;
+      font-weight:800;
+      cursor:pointer;
+      line-height:1;
+      transition:transform .12s ease, background .12s ease, border-color .12s ease;
+    }
+
+    .btn:hover{ transform:translateY(-1px); border-color:#38bdf8; }
+    .btn.active{ background:#0f172a; color:#fff; border-color:#0f172a; }
+    .btn.primary{ background:#0ea5e9; color:#fff; border-color:#0ea5e9; }
+    .btn.warning{ background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
+
+    .legend-box,
+    .insight-box{
+      margin-top:8px;
+      padding:9px 10px;
       border-radius:12px;
       background:#f8fafc;
       border:1px solid #e2e8f0;
       font-size:11px;
     }
 
-    .legend-title{
-      font-weight:700;
-      margin-bottom:4px;
+    .legend-title,
+    .insight-title{
+      font-weight:800;
+      margin-bottom:5px;
+      color:#0f172a;
     }
 
     .legend-row{
       display:flex;
       align-items:center;
       gap:6px;
-      margin-top:2px;
+      margin-top:4px;
+      line-height:1.25;
     }
 
     .legend-dot{
-      width:10px;
-      height:10px;
+      width:11px;
+      height:11px;
       border-radius:999px;
       flex-shrink:0;
-      border:1px solid rgba(15,23,42,.3);
+      border:1px solid rgba(15,23,42,.25);
     }
 
-    .legend-dot.good{ background:var(--blue); }
-    .legend-dot.bad{ background:var(--red); }
-
-    .legend-note{
-      margin-top:4px;
-      font-size:10px;
+    .legend-note,
+    .insight-note{
+      margin-top:5px;
+      font-size:10.5px;
+      line-height:1.38;
       color:var(--text-sub);
     }
 
-    /* Leaflet control position tweak on small screens */
-    @media (max-width: 640px){
-      #map .leaflet-control-container .leaflet-top.leaflet-left{
-        top:70px;
-      }
+    .legend-gradient{
+      height:10px;
+      border-radius:999px;
+      border:1px solid rgba(15,23,42,.18);
+      background:linear-gradient(90deg,#0ea5e9,#22c55e,#f59e0b,#ef4444);
+      margin:6px 0 4px;
     }
 
-    /* Tooltip styling a bit clearer */
-    .leaflet-tooltip{
-      font-size:11px;
-      padding:6px 8px;
-    }
+    /* =========================================================
+       TOP-RIGHT NAVIGATION
+       ========================================================= */
 
-    /* ===== Top-right tools (disabled filter + nav) ===== */
     .geo-toptools{
       position:fixed;
       top:12px;
@@ -229,645 +352,1164 @@
       gap:10px;
     }
 
-    /* geospatial.html only: place GLOBAL fab under the disabled filter pill, aligned right */
+    .page-nav{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      background:rgba(15,23,42,.78);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:16px;
+      padding:7px;
+      backdrop-filter:blur(12px);
+      box-shadow:0 10px 25px rgba(15,23,42,.24);
+    }
+
+    .page-nav a,
+    .page-nav button{
+      color:#e2e8f0;
+      text-decoration:none;
+      border:0;
+      background:transparent;
+      padding:8px 10px;
+      border-radius:11px;
+      font-size:12px;
+      font-weight:800;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+
+    .page-nav a:hover,
+    .page-nav button:hover{
+      background:rgba(255,255,255,.10);
+      color:#ffffff;
+    }
+
+    .page-nav a.active{
+      background:rgba(14,165,233,.95);
+      color:#ffffff;
+    }
+
+    .nav-toggle{ display:none !important; }
+
     .fab{
       position: fixed !important;
       right: 12px !important;
       left: auto !important;
-      top: calc(12px + 44px + 10px) !important; /* top + filter height + gap */
-      z-index: 1250 !important;                 /* above map, below overlay if needed */
+      top: calc(12px + 44px + 10px) !important;
+      z-index: 1250 !important;
     }
-    
-    /* ensure child buttons/labels align visually to the right side */
+
     .fab a{ text-decoration:none; }
-    /* geospatial.html only: make tooltip distance match global style */
     .fab .fab-tip{
       left: -10px !important;
       right: auto !important;
       transform: translate(-100%, -50%) scale(.96) !important;
     }
 
+    /* =========================================================
+       RIGHT DECISION PANEL
+       ========================================================= */
 
-    
-    .geo-filter-disabled{
-      height:44px;
-      padding:0 14px;
-      border-radius:14px;
-      background: rgba(15,23,42,.70);
-      border:1px solid rgba(255,255,255,.10);
-      color: rgba(255,255,255,.65);
-      font-weight:700;
-      font-size:13px;
+    .decision-panel{
+      position:fixed;
+      right:12px;
+      bottom:12px;
+      z-index:1100;
+      width:430px;
+      max-width:calc(100% - 24px);
+      max-height:44dvh;
+      overflow:hidden;
+      border-radius:var(--radius-xl);
+      background:var(--bg-card);
+      border:1px solid var(--border-card);
+      box-shadow:var(--shadow-card);
+      backdrop-filter:blur(14px);
+      display:flex;
+      flex-direction:column;
+    }
+
+    .decision-panel-header{
+      padding:11px 13px;
       display:flex;
       align-items:center;
+      justify-content:space-between;
       gap:10px;
-      opacity:.55;
-      cursor:not-allowed;
-      pointer-events:none; /* non-clickable */
-      user-select:none;
+      border-bottom:1px solid #e2e8f0;
     }
-    
 
+    .decision-panel-title{
+      margin:0;
+      font-size:13px;
+      font-weight:900;
+    }
+
+    .decision-panel-sub{
+      margin:2px 0 0;
+      color:var(--muted);
+      font-size:10.5px;
+    }
+
+    .decision-panel-body{
+      overflow:auto;
+      padding:0;
+    }
+
+    .priority-table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:11px;
+    }
+
+    .priority-table th{
+      position:sticky;
+      top:0;
+      background:#f8fafc;
+      z-index:1;
+      text-align:left;
+      padding:8px 8px;
+      color:#475569;
+      border-bottom:1px solid #e2e8f0;
+      font-size:10px;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+    }
+
+    .priority-table td{
+      padding:8px 8px;
+      border-bottom:1px solid #e2e8f0;
+      vertical-align:top;
+    }
+
+    .priority-table tr{ cursor:pointer; }
+    .priority-table tr:hover{ background:#f8fafc; }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:3px 7px;
+      border-radius:999px;
+      font-size:10px;
+      font-weight:900;
+      white-space:nowrap;
+    }
+
+    .pill.p1{ background:#fee2e2; color:#991b1b; }
+    .pill.p2{ background:#ffedd5; color:#9a3412; }
+    .pill.p3{ background:#fef3c7; color:#92400e; }
+    .pill.routine{ background:#e0f2fe; color:#075985; }
+
+    /* =========================================================
+       LEAFLET CUSTOMS
+       ========================================================= */
+
+    .leaflet-tooltip{
+      font-size:11px;
+      padding:8px 9px;
+      border-radius:10px;
+      border:1px solid rgba(15,23,42,.12);
+      box-shadow:0 8px 20px rgba(15,23,42,.18);
+    }
+
+    .tooltip-title{
+      font-weight:900;
+      margin-bottom:4px;
+      color:#0f172a;
+    }
+
+    .tooltip-grid{
+      display:grid;
+      grid-template-columns:auto auto;
+      gap:2px 10px;
+      align-items:start;
+    }
+
+    .tooltip-label{ color:#64748b; }
+    .tooltip-value{ font-weight:700; color:#0f172a; text-align:right; }
+
+    .clinic-icon{
+      width:20px;
+      height:20px;
+      border-radius:6px;
+      background:#0f172a;
+      border:2px solid #ffffff;
+      box-shadow:0 5px 12px rgba(15,23,42,.35);
+      position:relative;
+    }
+
+    .clinic-icon::before,
+    .clinic-icon::after{
+      content:"";
+      position:absolute;
+      background:#ffffff;
+      border-radius:999px;
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-50%);
+    }
+
+    .clinic-icon::before{ width:10px; height:3px; }
+    .clinic-icon::after{ width:3px; height:10px; }
+
+    .map-message{
+      position:fixed;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%);
+      z-index:1400;
+      background:rgba(15,23,42,.86);
+      color:#fff;
+      border-radius:999px;
+      padding:9px 13px;
+      font-size:12px;
+      font-weight:800;
+      display:none;
+      box-shadow:0 10px 24px rgba(15,23,42,.28);
+    }
+
+    /* =========================================================
+       MOBILE RESPONSIVE
+       ========================================================= */
+
+    @media (max-width: 900px){
+      .decision-panel{
+        left:12px;
+        right:12px;
+        width:auto;
+        max-height:36dvh;
+      }
+
+      .overlay-panel{
+        width:400px;
+      }
+    }
+
+    @media (max-width: 640px){
+      body{ overflow:hidden; }
+
+      .overlay-panel{
+        top:10px;
+        left:10px;
+        right:10px;
+        width:auto;
+        max-width:none;
+        max-height:58dvh;
+        padding:12px;
+      }
+
+      .overlay-title{ font-size:16px; }
+      .overlay-sub{ font-size:11.5px; }
+
+      .summary-grid{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+      .summary-value{ font-size:15px; }
+
+      .control-grid{ grid-template-columns:1fr; }
+
+      .geo-toptools{
+        top:auto;
+        bottom:12px;
+        right:12px;
+        z-index:1300;
+      }
+
+      .page-nav{
+        flex-direction:column;
+        align-items:stretch;
+        gap:4px;
+        max-width:calc(100vw - 24px);
+      }
+
+      .page-nav.collapsed a{
+        display:none;
+      }
+
+      .page-nav.collapsed .nav-toggle{
+        display:block !important;
+      }
+
+      .nav-toggle{
+        display:block !important;
+      }
+
+      .decision-panel{
+        left:10px;
+        right:10px;
+        bottom:76px;
+        max-width:none;
+        width:auto;
+        max-height:28dvh;
+      }
+
+      .priority-table th:nth-child(4),
+      .priority-table td:nth-child(4),
+      .priority-table th:nth-child(5),
+      .priority-table td:nth-child(5){
+        display:none;
+      }
+
+      #map .leaflet-control-container .leaflet-top.leaflet-left{
+        top:70px;
+      }
+    }
+
+    @media (max-width: 430px){
+      .decision-panel{ display:none; }
+      .summary-grid{ grid-template-columns:1fr 1fr; }
+      .btn{ padding:7px 8px; }
+    }
   </style>
 </head>
-<body>
-    <div id="map"></div>
 
-    <div class="overlay-panel" id="overlayPanel">
-      <!-- Collapsed bar (shown only in mobile collapsed mode) -->
-      <button class="overlay-collapsed" id="overlayCollapsed" type="button">
-        <div class="collapsed-line" id="collapsedDataset">MBK 6 Tahun</div>
-        <div class="collapsed-line collapsed-sub" id="collapsedView">Mean dfx tahun 1</div>
-      </button>
-  
-      <!-- Full panel -->
-      <div class="overlay-full" id="overlayFull">
-        <h1 class="overlay-title">Geospatial Analisis Kesihatan Pergigian Sekolah</h1>
-        <p class="overlay-sub">Pilih kohort dan jenis paparan. Halakan kursor ke sekolah untuk melihat ringkasan data.</p>
-  
-        <div class="controls">
-          <div class="control-row">
-            <label for="datasetSelect">Kohort</label>
-            <select id="datasetSelect">
-              <option value="mbk6">MBK 6 Tahun</option>
-              <option value="bk12">BK 12 Tahun</option>
-              <option value="bk16">BK 16 Tahun</option>
-            </select>
-          </div>
-          <div class="control-row">
-            <label for="viewSelect">Paparan</label>
-            <select id="viewSelect"></select>
-          </div>
+<body>
+  <div id="map" aria-label="Peta geospatial kesihatan pergigian sekolah Kedah"></div>
+
+  <div class="overlay-panel" id="overlayPanel">
+    <button class="overlay-collapsed" id="overlayCollapsed" type="button" aria-label="Open map controls">
+      <div class="collapsed-line" id="collapsedDataset">PGS201 Kedah</div>
+      <div class="collapsed-line collapsed-sub" id="collapsedView">Mean DMFX</div>
+    </button>
+
+    <div class="overlay-full" id="overlayFull">
+      <h1 class="overlay-title">Geospatial Analisis Kesihatan Pergigian Sekolah Kedah</h1>
+      <p class="overlay-sub">
+        Paparan teknikal untuk mengenal pasti taburan mean DMFX, output perkhidmatan pergigian sekolah, dan keutamaan tindakan mengikut lokasi sekolah.
+      </p>
+
+      <div class="status-bar" id="dataStatus">
+        <span class="status-dot"></span>
+        <span id="dataStatusText">Memuatkan data...</span>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="summary-label">Sekolah</div>
+          <div class="summary-value" id="sumSchools">-</div>
+          <div class="summary-note">dalam paparan semasa</div>
         </div>
-  
-        <div id="legend" class="legend-box">
-          <!-- legend content injected by JS -->
+        <div class="summary-card">
+          <div class="summary-label">Murid diperiksa</div>
+          <div class="summary-value" id="sumExamined">-</div>
+          <div class="summary-note">kedatangan baru</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Mean DMFX</div>
+          <div class="summary-value" id="sumMeanDmfx">-</div>
+          <div class="summary-note">weighted by examined pupils</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Prioriti tinggi</div>
+          <div class="summary-value" id="sumPriority">-</div>
+          <div class="summary-note">berdasarkan burden/service gap</div>
         </div>
       </div>
-    </div>
 
-        <!-- Top-right tools: disabled filter placeholder + navigation -->
-        <div class="geo-toptools" aria-label="Geospatial tools">
-          <div class="geo-filter-disabled" aria-disabled="true">
-            Filter (tidak tersedia)
-          </div>
-    
+      <div class="controls">
+        <div class="control-row">
+          <label for="viewSelect">Paparan</label>
+          <select id="viewSelect">
+            <option value="mean_dmfx">Mean DMFX</option>
+            <option value="priority">Keutamaan tindakan</option>
+            <option value="prr_rate">PRR Jenis 1 per 100 murid diperiksa</option>
+            <option value="fs_rate">Fissure sealant per 100 murid diperiksa</option>
+            <option value="filling_rate">Tampalan per 100 murid diperiksa</option>
+            <option value="distance">Jarak sekolah ke klinik</option>
+          </select>
         </div>
 
+        <div class="control-grid">
+          <div class="control-row">
+            <label for="districtSelect">Daerah</label>
+            <select id="districtSelect"><option value="__all__">Semua daerah</option></select>
+          </div>
+          <div class="control-row">
+            <label for="clinicSelect">Klinik</label>
+            <select id="clinicSelect"><option value="__all__">Semua klinik</option></select>
+          </div>
+        </div>
 
+        <div class="control-row">
+          <label for="searchInput">Carian sekolah / klinik</label>
+          <input id="searchInput" type="search" placeholder="Taip nama sekolah atau klinik..." autocomplete="off" />
+        </div>
+
+        <div class="button-row">
+          <button class="btn" id="priorityToggle" type="button">Prioriti sahaja</button>
+          <button class="btn" id="clinicToggle" type="button">Tunjuk klinik</button>
+          <button class="btn" id="lineToggle" type="button">Tunjuk jarak</button>
+          <button class="btn warning" id="resetBtn" type="button">Reset</button>
+        </div>
+      </div>
+
+      <div id="legend" class="legend-box"></div>
+      <div id="insight" class="insight-box"></div>
+    </div>
+  </div>
+
+  <div class="geo-toptools" aria-label="Page navigation">
+    <nav class="page-nav collapsed" id="pageNav">
+      <button class="nav-toggle" id="navToggle" type="button">Menu</button>
+      <!-- Adjust href values below to match your actual website filenames -->
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a class="active" href="geospatial.html">Geospatial</a>
+      <a href="laporan.html">Laporan</a>
+    </nav>
+  </div>
+
+  <section class="decision-panel" id="decisionPanel" aria-label="Priority schools panel">
+    <div class="decision-panel-header">
+      <div>
+        <h2 class="decision-panel-title">Senarai sekolah keutamaan</h2>
+        <p class="decision-panel-sub">Klik baris untuk fokus pada sekolah dalam peta</p>
+      </div>
+      <button class="btn" id="collapseMapBtn" type="button">Peta penuh</button>
+    </div>
+    <div class="decision-panel-body">
+      <table class="priority-table">
+        <thead>
+          <tr>
+            <th>Prioriti</th>
+            <th>Sekolah</th>
+            <th>Daerah</th>
+            <th>Mean DMFX</th>
+            <th>Sebab</th>
+          </tr>
+        </thead>
+        <tbody id="priorityTableBody">
+          <tr><td colspan="5">Memuatkan data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="map-message" id="mapMessage"></div>
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- Leaflet heatmap plugin -->
-  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
-  <!-- PapaParse for robust CSV parsing -->
+  <!-- PapaParse for CSV parsing -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-   <script>
-    // ==========================
-    //  CONFIG
-    // ==========================
+  <script>
+    // =========================================================
+    // CONFIGURATION
+    // =========================================================
 
-    const DATASETS = {
-      mbk6: {
-        key: 'mbk6',
-        name: 'MBK 6 Tahun',
-        url: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHeLiGRXsoQF5txoIk71hhTbSq1iq0KnXZD3R7JartHWfqbWt_fTQF-Nwzyy4B7Q/pub?gid=429148099&single=true&output=csv',
-        latField: 'lat',
-        lngField: 'long',
-        popupFields: [
-          {label:'Nama Sekolah', field:'Nama Sekolah'},
-          {label:'Nama Klinik', field:'Nama Klinik'},
-          {label:'Enrolment Tahun 1', field:'Enrolment tahun 1'},
-          {label:'Mean DMFX Tahun 1', field:'Mean DMFX Tahun 1'},
-          {label:'%MBK Tahun 1', field:'%MBK Tahun 1'},
-          {label:'Kebersihan mulut A', field:'Kebersihan mulut A'},
-          {label:'Kebersihan mulut C', field:'Kebersihan mulut C'},
-          {label:'Kebersihan mulut E', field:'Kebersihan mulut E'}
-        ],
-        views: [
-          {
-            id:'mbk6_mean_dfx_heat',
-            type:'heat',
-            label:'Mean dfx tahun 1',
-            valueField:'Mean dfx tahun 1',
-            invert:false
-          },
-          {
-            id:'mbk6_mean_dfx_target',
-            type:'points',
-            label:'Mean dfx tahun 1 mencapai sasaran',
-            valueField:'Mean dfx tahun 1',
-            threshold:2,
-            badWhen:'>',
-            legendGood:'≤ 2 (sasaran tercapai)',
-            legendBad:'> 2 (melebihi sasaran)'
-          },
-          {
-            id:'mbk6_pct_mbk_heat',
-            type:'heat',
-            label:'%MBK Tahun 1',
-            valueField:'%MBK Tahun 1',
-            invert:true
-          },
-          {
-            id:'mbk6_pct_mbk_target',
-            type:'points',
-            label:'%MBK Tahun 1 mencapai sasaran',
-            valueField:'%MBK Tahun 1',
-            threshold:50,
-            badWhen:'<',
-            legendGood:'≥ 50% (sasaran tercapai)',
-            legendBad:'< 50% (tidak capai sasaran)'
-          }
-        ]
-      },
+    /*
+      Recommended data setup:
+      1. Export your final Excel sheet as CSV.
+      2. Publish your Google Sheet as CSV.
+      3. This page now uses your published Google Sheet CSV as the default live data source.
+      4. Keep the column names similar to your extracted dataset:
+         district_name, clinic_name, school_name,
+         clinic long, clinic lat, school long, school lat,
+         examined_students_kedatangan_baru, total_DMFX, mean_DMFX,
+         PRR_Jenis_1_teeth, Fissure_Sealant_teeth, Jumlah_Tampalan
 
-      bk12: {
-        key: 'bk12',
-        name: 'BK 12 Tahun',
-        url: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHeLiGRXsoQF5txoIk71hhTbSq1iq0KnXZD3R7JartHWfqbWt_fTQF-Nwzyy4B7Q/pub?gid=1067638663&single=true&output=csv',
-        latField: 'lat',
-        lngField: 'long',
-        popupFields: [
-          {label:'Nama Sekolah', field:'Nama Sekolah'},
-          {label:'Nama Klinik', field:'Nama Klinik'},
-          {label:'Enrolment Tahun 6', field:'Enrolment tahun 6'},
-          {label:'Mean DMFX 12 tahun', field:'Mean DMFX 12 tahun'},
-          {label:'%BK 12 tahun', field:'%BK 12 tahun'},
-          {label:'Kebersihan mulut A', field:'Kebersihan mulut A'},
-          {label:'Kebersihan mulut C', field:'Kebersihan mulut C'},
-          {label:'Kebersihan mulut E', field:'Kebersihan mulut E'}
-        ],
-        views: [
-          {
-            id:'bk12_mean_dmfx_heat',
-            type:'heat',
-            label:'Mean DMFX 12 tahun',
-            valueField:'Mean DMFX 12 tahun',
-            invert:false
-          },
-          {
-            id:'bk12_mean_dmfx_target',
-            type:'points',
-            label:'Mean DMFX 12 tahun mencapai sasaran',
-            valueField:'Mean DMFX 12 tahun',
-            threshold:0.6,
-            badWhen:'>',
-            legendGood:'≤ 0.6 (sasaran tercapai)',
-            legendBad:'> 0.6 (melebihi sasaran)'
-          },
-          {
-            id:'bk12_pct_bk_heat',
-            type:'heat',
-            label:'%BK 12 Tahun',
-            valueField:'%BK 12 tahun',
-            invert:true
-          },
-          {
-            id:'bk12_pct_bk_target',
-            type:'points',
-            label:'%BK 12 tahun mencapai sasaran',
-            valueField:'%BK 12 tahun',
-            threshold:80,
-            badWhen:'<',
-            legendGood:'≥ 80% (sasaran tercapai)',
-            legendBad:'< 80% (tidak capai sasaran)'
-          }
-        ]
-      },
+      Alternative:
+      Open this page with: geospatial.html?csv=YOUR_PUBLISHED_CSV_URL
+    */
 
-      bk16: {
-        key: 'bk16',
-        name: 'BK 16 Tahun',
-        url: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHeLiGRXsoQF5txoIk71hhTbSq1iq0KnXZD3R7JartHWfqbWt_fTQF-Nwzyy4B7Q/pub?gid=302471074&single=true&output=csv',
-        latField: 'lat',
-        lngField: 'long',
-        popupFields: [
-          {label:'Nama Sekolah', field:'Nama Sekolah'},
-          {label:'Nama Klinik', field:'Nama Klinik'},
-          {label:'Enrolment Tingkatan 4', field:'Enrolment tingkatan 4'},
-          {label:'Mean DMFX 16 tahun', field:'Mean DMFX 16 tahun'},
-          {label:'%BK 16 tahun', field:'%BK 16 tahun'},
-          {label:'Kebersihan mulut A', field:'Kebersihan mulut A'},
-          {label:'Kebersihan mulut C', field:'Kebersihan mulut C'},
-          {label:'Kebersihan mulut E', field:'Kebersihan mulut E'}
-        ],
-        views: [
-          {
-            id:'bk16_mean_dmfx_heat',
-            type:'heat',
-            label:'Mean DMFX 16 tahun',
-            valueField:'Mean DMFX 16 tahun',
-            invert:false
-          },
-          {
-            id:'bk16_mean_dmfx_target',
-            type:'points',
-            label:'Mean DMFX 16 tahun mencapai sasaran',
-            valueField:'Mean DMFX 16 tahun',
-            threshold:1.5,
-            badWhen:'>',
-            legendGood:'≤ 1.5 (sasaran tercapai)',
-            legendBad:'> 1.5 (melebihi sasaran)'
-          },
-          {
-            id:'bk16_pct_bk_heat',
-            type:'heat',
-            label:'%BK 16 Tahun',
-            valueField:'%BK 16 tahun',
-            invert:true
-          },
-          {
-            id:'bk16_pct_bk_target',
-            type:'points',
-            label:'%BK 16 tahun mencapai sasaran',
-            valueField:'%BK 16 tahun',
-            threshold:70,
-            badWhen:'<',
-            legendGood:'≥ 70% (sasaran tercapai)',
-            legendBad:'< 70% (tidak capai sasaran)'
-          }
-        ]
-      }
+    const DATA_URL = new URLSearchParams(window.location.search).get('csv') || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQAJrmdtjQ3kvraJRev8zOLEcazzgDPtVT-eF4if4UgqybXPXOOTr-v25nwiK2mOg/pub?gid=453900884&single=true&output=csv';
+
+    const FIELD_ALIASES = {
+      district: ['district_name', 'district', 'daerah', 'district folder name'],
+      clinic: ['clinic_name', 'clinic name', 'nama klinik', 'Nama Klinik'],
+      school: ['school_name', 'school name', 'nama sekolah', 'Nama Sekolah'],
+      schoolLat: ['school lat', 'school_lat', 'school latitude', 'lat_school', 'latitude_school', 'lat'],
+      schoolLng: ['school long', 'school_long', 'school longitude', 'lng_school', 'long_school', 'longitude_school', 'long'],
+      clinicLat: ['clinic lat', 'clinic_lat', 'clinic latitude', 'lat_clinic', 'latitude_clinic'],
+      clinicLng: ['clinic long', 'clinic_long', 'clinic longitude', 'lng_clinic', 'long_clinic', 'longitude_clinic'],
+      examined: ['examined_students_kedatangan_baru', 'examined students kedatangan baru', 'examined_students', 'kedatangan baru', 'baru'],
+      totalDmfx: ['total_DMFX', 'total dmfx', 'jumlah dmfx', 'DMFX'],
+      meanDmfx: ['mean_DMFX', 'mean dmfx', 'mean_DMFX ', 'meanDMFX'],
+      prr: ['PRR_Jenis_1_teeth', 'PRR Jenis 1', 'PRR_Jenis_1', 'prr jenis 1 teeth', 'prr'],
+      fs: ['Fissure_Sealant_teeth', 'Fissure Sealant', 'fissure sealant teeth', 'fs'],
+      filling: ['Jumlah_Tampalan', 'Jumlah Tampalan', 'jumlah tampalan', 'total fillings', 'fillings'],
+      coordStatus: ['coordinate_status', 'school_match_status', 'coordinate notes', 'coordinate_notes']
     };
 
-    // ==========================
-    //  MAP + HELPERS
-    // ==========================
+    const MAP_CENTER = [6.15, 100.40];
+    const MAP_ZOOM = 9;
+
+    // =========================================================
+    // GLOBAL STATE
+    // =========================================================
 
     let map;
-    let heatLayer = null;
-    let markerLayer = null;
-    let currentDatasetKey = 'mbk6';
-    let currentViewId = null;
+    let schoolLayer = null;
+    let clinicLayer = null;
+    let lineLayer = null;
+    let allRows = [];
+    let filteredRows = [];
+    let markersBySchoolKey = new Map();
+    let activeView = 'mean_dmfx';
+    let showPriorityOnly = false;
+    let showClinicMarkers = false;
+    let showConnectionLines = false;
+    let quantiles = {};
+
+    // =========================================================
+    // UTILITIES
+    // =========================================================
+
+    function normFieldName(name){
+      return String(name || '')
+        .toLowerCase()
+        .replace(/\u00a0/g, ' ')
+        .replace(/_/g, ' ')
+        .replace(/\s+/g, '')
+        .replace(/[^a-z0-9%]/g, '');
+    }
+
+    function cleanText(v){
+      return String(v ?? '').trim();
+    }
 
     function toNum(v){
       if (v === null || v === undefined) return NaN;
       const s = String(v).replace(/\u00A0/g,'').replace(/\s/g,'').replace(',', '.');
       const n = parseFloat(s);
-      return isNaN(n) ? NaN : n;
+      return Number.isFinite(n) ? n : NaN;
     }
 
-    // ---- field name normalisation (fixes header mismatches) ----
-    function normFieldName(name){
-      return String(name || '')
-        .toLowerCase()
-        .replace(/\s+/g,'')
-        .replace(/[^a-z0-9%]/g,'');
+    function fmtNum(v, digits=2){
+      if (!Number.isFinite(v)) return '-';
+      return Number(v).toLocaleString('en-MY', { maximumFractionDigits: digits, minimumFractionDigits: digits });
     }
 
-    function buildFieldMap(ds){
-      ds.fieldMap = {};
-      if (!ds.rows || !ds.rows.length) return;
-      const sample = ds.rows[0];
-      Object.keys(sample).forEach(k=>{
-        ds.fieldMap[normFieldName(k)] = k;
+    function fmtInt(v){
+      if (!Number.isFinite(v)) return '-';
+      return Math.round(v).toLocaleString('en-MY');
+    }
+
+    function uniqueSorted(values){
+      return Array.from(new Set(values.filter(v => cleanText(v) !== '').map(v => cleanText(v))))
+        .sort((a,b)=>a.localeCompare(b));
+    }
+
+    function escapeHtml(s){
+      return String(s ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function showMessage(text, duration=2200){
+      const el = document.getElementById('mapMessage');
+      el.textContent = text;
+      el.style.display = 'block';
+      clearTimeout(showMessage._timer);
+      showMessage._timer = setTimeout(()=>{ el.style.display = 'none'; }, duration);
+    }
+
+    function getFieldMap(row){
+      const map = {};
+      Object.keys(row || {}).forEach(k => { map[normFieldName(k)] = k; });
+      return map;
+    }
+
+    function getAliasedValue(row, fieldMap, aliasGroup){
+      const aliases = FIELD_ALIASES[aliasGroup] || [];
+      for (const alias of aliases){
+        const key = fieldMap[normFieldName(alias)];
+        if (key !== undefined && row[key] !== undefined && String(row[key]).trim() !== ''){
+          return row[key];
+        }
+      }
+      return '';
+    }
+
+    function quantile(values, q){
+      const arr = values.filter(Number.isFinite).sort((a,b)=>a-b);
+      if (!arr.length) return NaN;
+      const pos = (arr.length - 1) * q;
+      const base = Math.floor(pos);
+      const rest = pos - base;
+      if (arr[base + 1] !== undefined) return arr[base] + rest * (arr[base + 1] - arr[base]);
+      return arr[base];
+    }
+
+    function haversineKm(lat1, lon1, lat2, lon2){
+      if (![lat1, lon1, lat2, lon2].every(Number.isFinite)) return NaN;
+      const R = 6371;
+      const dLat = (lat2-lat1) * Math.PI / 180;
+      const dLon = (lon2-lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) ** 2 +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon/2) ** 2;
+      return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    function markerRadius(examined){
+      if (!Number.isFinite(examined) || examined <= 0) return 5;
+      return Math.max(5, Math.min(12, 4 + Math.sqrt(examined) / 3.2));
+    }
+
+    // =========================================================
+    // DATA PREPARATION
+    // =========================================================
+
+    function deriveRows(rawRows){
+      const derived = rawRows.map((row, index) => {
+        const fieldMap = getFieldMap(row);
+
+        const district = cleanText(getAliasedValue(row, fieldMap, 'district'));
+        const clinicName = cleanText(getAliasedValue(row, fieldMap, 'clinic'));
+        const schoolName = cleanText(getAliasedValue(row, fieldMap, 'school'));
+
+        const schoolLat = toNum(getAliasedValue(row, fieldMap, 'schoolLat'));
+        const schoolLng = toNum(getAliasedValue(row, fieldMap, 'schoolLng'));
+        const clinicLat = toNum(getAliasedValue(row, fieldMap, 'clinicLat'));
+        const clinicLng = toNum(getAliasedValue(row, fieldMap, 'clinicLng'));
+
+        const examined = toNum(getAliasedValue(row, fieldMap, 'examined'));
+        const totalDmfx = toNum(getAliasedValue(row, fieldMap, 'totalDmfx'));
+        let meanDmfx = toNum(getAliasedValue(row, fieldMap, 'meanDmfx'));
+
+        if (!Number.isFinite(meanDmfx) && Number.isFinite(totalDmfx) && Number.isFinite(examined) && examined > 0){
+          meanDmfx = totalDmfx / examined;
+        }
+
+        const prr = toNum(getAliasedValue(row, fieldMap, 'prr'));
+        const fs = toNum(getAliasedValue(row, fieldMap, 'fs'));
+        const filling = toNum(getAliasedValue(row, fieldMap, 'filling'));
+
+        const prrRate = Number.isFinite(prr) && Number.isFinite(examined) && examined > 0 ? prr / examined * 100 : NaN;
+        const fsRate = Number.isFinite(fs) && Number.isFinite(examined) && examined > 0 ? fs / examined * 100 : NaN;
+        const fillingRate = Number.isFinite(filling) && Number.isFinite(examined) && examined > 0 ? filling / examined * 100 : NaN;
+        const preventionRate = [prrRate, fsRate].filter(Number.isFinite).reduce((a,b)=>a+b, 0);
+        const distanceKm = haversineKm(schoolLat, schoolLng, clinicLat, clinicLng);
+        const coordStatus = cleanText(getAliasedValue(row, fieldMap, 'coordStatus'));
+
+        return {
+          raw: row,
+          index,
+          key: `${schoolName}|${clinicName}|${district}|${index}`,
+          district,
+          clinicName,
+          schoolName,
+          schoolLat,
+          schoolLng,
+          clinicLat,
+          clinicLng,
+          examined,
+          totalDmfx,
+          meanDmfx,
+          prr,
+          fs,
+          filling,
+          prrRate,
+          fsRate,
+          fillingRate,
+          preventionRate,
+          distanceKm,
+          coordStatus,
+          priorityLevel: 'routine',
+          priorityReason: 'Pemantauan rutin',
+          suggestedAction: 'Teruskan pemantauan tahunan'
+        };
+      })
+      .filter(r => r.schoolName || r.clinicName)
+      .filter(r => Number.isFinite(r.schoolLat) && Number.isFinite(r.schoolLng));
+
+      computeQuantilesAndPriority(derived);
+      return derived;
+    }
+
+    function computeQuantilesAndPriority(rows){
+      quantiles = {
+        dmfx25: quantile(rows.map(r=>r.meanDmfx), .25),
+        dmfx50: quantile(rows.map(r=>r.meanDmfx), .50),
+        dmfx75: quantile(rows.map(r=>r.meanDmfx), .75),
+        prevention25: quantile(rows.map(r=>r.preventionRate), .25),
+        distance75: quantile(rows.map(r=>r.distanceKm), .75),
+        filling75: quantile(rows.map(r=>r.fillingRate), .75)
+      };
+
+      rows.forEach(r => {
+        const highBurden = Number.isFinite(r.meanDmfx) && r.meanDmfx >= quantiles.dmfx75;
+        const moderateBurden = Number.isFinite(r.meanDmfx) && r.meanDmfx >= quantiles.dmfx50;
+        const lowPrevention = Number.isFinite(r.preventionRate) && r.preventionRate <= quantiles.prevention25;
+        const longDistance = Number.isFinite(r.distanceKm) && r.distanceKm >= quantiles.distance75;
+        const highFilling = Number.isFinite(r.fillingRate) && r.fillingRate >= quantiles.filling75;
+
+        if (highBurden && lowPrevention){
+          r.priorityLevel = 'p1';
+          r.priorityReason = 'Mean DMFX tinggi + output pencegahan rendah';
+          r.suggestedAction = 'Utamakan lawatan pencegahan, semak liputan PRR/fissure sealant';
+        } else if (highBurden && longDistance){
+          r.priorityLevel = 'p1';
+          r.priorityReason = 'Mean DMFX tinggi + jarak sekolah-klinik jauh';
+          r.suggestedAction = 'Pertimbangkan lawatan outreach/mobile team';
+        } else if (highBurden && highFilling){
+          r.priorityLevel = 'p2';
+          r.priorityReason = 'Mean DMFX tinggi + beban tampalan tinggi';
+          r.suggestedAction = 'Semak keperluan rawatan dan strategi pencegahan susulan';
+        } else if (highBurden){
+          r.priorityLevel = 'p2';
+          r.priorityReason = 'Mean DMFX dalam kuartil tertinggi';
+          r.suggestedAction = 'Pantau dan masukkan dalam senarai keutamaan daerah';
+        } else if (moderateBurden && lowPrevention){
+          r.priorityLevel = 'p3';
+          r.priorityReason = 'Burden sederhana + output pencegahan rendah';
+          r.suggestedAction = 'Kukuhkan pencegahan sebelum burden meningkat';
+        } else {
+          r.priorityLevel = 'routine';
+          r.priorityReason = 'Pemantauan rutin';
+          r.suggestedAction = 'Teruskan pemantauan tahunan';
+        }
       });
     }
 
-    function resolveField(ds, logicalName){
-      if (!logicalName) return logicalName;
-      const key = ds.fieldMap?.[normFieldName(logicalName)];
-      return key || logicalName;
+    // =========================================================
+    // MAP COLOURS + LEGEND
+    // =========================================================
+
+    function continuousColor(value, min, max, invert=false){
+      if (!Number.isFinite(value)) return '#cbd5e1';
+      if (!Number.isFinite(min) || !Number.isFinite(max) || min === max) return '#0ea5e9';
+      let t = (value - min) / (max - min);
+      if (invert) t = 1 - t;
+      t = Math.max(0, Math.min(1, t));
+
+      if (t < .25) return '#0ea5e9';
+      if (t < .50) return '#22c55e';
+      if (t < .75) return '#f59e0b';
+      return '#ef4444';
     }
 
-    function getFieldValue(ds, row, logicalName){
-      const key = resolveField(ds, logicalName);
-      return row[key];
+    function priorityColor(level){
+      if (level === 'p1') return '#dc2626';
+      if (level === 'p2') return '#f97316';
+      if (level === 'p3') return '#f59e0b';
+      return '#0ea5e9';
     }
 
-    function buildTooltip(datasetKey, row){
-      const ds = DATASETS[datasetKey];
-      const cfg = ds.popupFields;
-      const lines = cfg.map(f=>{
-        const val = getFieldValue(ds, row, f.field) ?? '-';
-        return `<div><strong>${f.label}:</strong> ${val}</div>`;
-      });
-      return lines.join('');
+    function getViewMeta(){
+      const values = filteredRows.map(r => getMetricValue(r, activeView)).filter(Number.isFinite);
+      return {
+        min: values.length ? Math.min(...values) : NaN,
+        max: values.length ? Math.max(...values) : NaN
+      };
     }
 
-    // Load CSV once per dataset (cached)
-    function loadDataset(key){
-      const ds = DATASETS[key];
-      if (ds.rows) return Promise.resolve(ds.rows);
-
-      return fetch(ds.url)
-        .then(r => r.text())
-        .then(text => new Promise((resolve, reject)=>{
-          Papa.parse(text,{
-            header:true,
-            skipEmptyLines:true,
-            complete: (res)=>{
-              ds.rows = res.data || [];
-              buildFieldMap(ds);
-
-              ds.geoRows = ds.rows
-                .map(row=>{
-                  const lat = toNum(getFieldValue(ds, row, ds.latField));
-                  const lng = toNum(getFieldValue(ds, row, ds.lngField));
-                  if (!isFinite(lat) || !isFinite(lng)) return null;
-                  return {lat, lng, row};
-                })
-                .filter(Boolean);
-
-              if (ds.geoRows.length){
-                ds.bounds = ds.geoRows.reduce((b,g)=>{
-                  if (!b) return L.latLngBounds([g.lat,g.lng],[g.lat,g.lng]);
-                  return b.extend([g.lat,g.lng]);
-                }, null);
-              }
-              resolve(ds.rows);
-            },
-            error: err => reject(err)
-          });
-        }));
-    }
-
-    function buildHeatPoints(ds, fieldLogicalName, invert){
-      const geoRows = ds.geoRows || [];
-      const pts = [];
-      let min = Infinity, max = -Infinity;
-
-      geoRows.forEach(g=>{
-        const v = toNum(getFieldValue(ds, g.row, fieldLogicalName));
-        if (!isFinite(v)) return;
-        if (v < min) min = v;
-        if (v > max) max = v;
-        pts.push({lat:g.lat, lng:g.lng, val:v});
-      });
-
-      if (!pts.length) return [];
-
-      const span = (max - min) || 1;
-      return pts.map(p=>{
-        let w = (p.val - min) / span;
-        if (invert) w = 1 - w;
-        if (w < 0) w = 0;
-        if (w > 1) w = 1;
-        if (!w) w = 0.05;
-        return [p.lat, p.lng, w];
-      });
-    }
-
-    function buildBasicMarkerLayer(datasetKey, ds){
-      const group = L.layerGroup();
-      (ds.geoRows || []).forEach(g=>{
-        const m = L.circleMarker([g.lat, g.lng],{
-          radius:5,
-          color:'#0f172a',
-          weight:1,
-          fillColor:'#38bdf8',
-          fillOpacity:0.85
-        });
-        m.bindTooltip(buildTooltip(datasetKey, g.row), {direction:'top', offset:[0,-4], sticky:true});
-        group.addLayer(m);
-      });
-      return group;
-    }
-
-    function compareWithThreshold(val, threshold, badWhen){
-      if (!isFinite(val)) return false;
-      switch(badWhen){
-        case '>':  return val > threshold;
-        case '>=': return val >= threshold;
-        case '<':  return val < threshold;
-        case '<=': return val <= threshold;
-        default:   return false;
+    function getMetricValue(r, view){
+      switch(view){
+        case 'mean_dmfx': return r.meanDmfx;
+        case 'prr_rate': return r.prrRate;
+        case 'fs_rate': return r.fsRate;
+        case 'filling_rate': return r.fillingRate;
+        case 'distance': return r.distanceKm;
+        default: return r.meanDmfx;
       }
     }
 
-    function buildClassifiedMarkerLayer(datasetKey, ds, view){
-      const group = L.layerGroup();
-      (ds.geoRows || []).forEach(g=>{
-        const v = toNum(getFieldValue(ds, g.row, view.valueField));
-        const isBad = compareWithThreshold(v, view.threshold, view.badWhen);
-        const color = isBad ? '#ef4444' : '#0ea5e9';
-        const m = L.circleMarker([g.lat, g.lng],{
-          radius:6,
-          color:'#ffffff',
-          weight:1,
-          fillColor:color,
-          fillOpacity:0.9
-        });
-        m.bindTooltip(buildTooltip(datasetKey, g.row), {direction:'top', offset:[0,-4], sticky:true});
-        group.addLayer(m);
-      });
-      return group;
+    function getMarkerColor(r, meta){
+      if (activeView === 'priority') return priorityColor(r.priorityLevel);
+      const value = getMetricValue(r, activeView);
+      const invert = false;
+      return continuousColor(value, meta.min, meta.max, invert);
     }
 
-        function valueColor(v, min, max, invert){
-          if (!isFinite(v)) return '#cbd5e1';
-          if (max === min) return '#0ea5e9';
-          let t = (v - min) / (max - min);
-          if (invert) t = 1 - t;
-          if (t < 0) t = 0;
-          if (t > 1) t = 1;
-          // 210 (biru) → 0 (merah)
-          const h = (1 - t) * 210;
-          const s = 85;
-          const l = 45 + t * 15; // lebih terang untuk nilai tinggi
-          return `hsl(${h},${s}%,${l}%)`;
-        }
-    
-        function buildGradientMarkerLayer(datasetKey, ds, view){
-          const geoRows = ds.geoRows || [];
-          const values = geoRows
-            .map(g => toNum(getFieldValue(ds, g.row, view.valueField)))
-            .filter(v => isFinite(v));
-    
-          let min = Math.min(...values);
-          let max = Math.max(...values);
-          if (!isFinite(min) || !isFinite(max)) { min = 0; max = 1; }
-    
-          const group = L.layerGroup();
-          geoRows.forEach(g=>{
-            const v = toNum(getFieldValue(ds, g.row, view.valueField));
-            const col = valueColor(v, min, max, !!view.invert);
-            const m = L.circleMarker([g.lat, g.lng],{
-              radius:7,
-              color:'#0f172a',
-              weight:0.6,
-              fillColor:col,
-              fillOpacity:0.9
-            });
-            m.bindTooltip(buildTooltip(datasetKey, g.row), {direction:'top', offset:[0,-4], sticky:true});
-            group.addLayer(m);
-          });
-          return group;
-        }
+    function getLegendHtml(){
+      const viewLabel = {
+        mean_dmfx: 'Mean DMFX',
+        priority: 'Keutamaan tindakan',
+        prr_rate: 'PRR Jenis 1 per 100 murid diperiksa',
+        fs_rate: 'Fissure sealant per 100 murid diperiksa',
+        filling_rate: 'Tampalan per 100 murid diperiksa',
+        distance: 'Jarak sekolah ke klinik'
+      }[activeView] || 'Paparan';
 
-     
-    function updateLegend(datasetKey, view){
-      const el = document.getElementById('legend');
-      let html = `<div class="legend-title">${DATASETS[datasetKey].name}</div>`;
-      html += `<div style="font-weight:600; font-size:11px; margin-bottom:4px;">${view.label}</div>`;
-
-      if (view.type === 'heat'){
-        html += `<div class="legend-note">${
-          view.invert
-            ? 'Peta haba: nilai lebih rendah dipaparkan lebih terang.'
-            : 'Peta haba: nilai lebih tinggi dipaparkan lebih terang.'
-        }</div>`;
-      } else {
-        html += `
-          <div class="legend-row">
-            <span class="legend-dot good"></span>
-            <span>${view.legendGood || 'Sasaran tercapai'}</span>
-          </div>
-          <div class="legend-row">
-            <span class="legend-dot bad"></span>
-            <span>${view.legendBad || 'Tidak capai sasaran'}</span>
-          </div>
-          <div class="legend-note">Titik merah menunjukkan sekolah yang tidak mencapai sasaran.</div>
+      if (activeView === 'priority'){
+        return `
+          <div class="legend-title">${viewLabel}</div>
+          <div class="legend-row"><span class="legend-dot" style="background:#dc2626"></span><span>Prioriti 1: burden tinggi + gap pencegahan / akses</span></div>
+          <div class="legend-row"><span class="legend-dot" style="background:#f97316"></span><span>Prioriti 2: burden tinggi / rawatan tinggi</span></div>
+          <div class="legend-row"><span class="legend-dot" style="background:#f59e0b"></span><span>Prioriti 3: burden sederhana + pencegahan rendah</span></div>
+          <div class="legend-row"><span class="legend-dot" style="background:#0ea5e9"></span><span>Pemantauan rutin</span></div>
+          <div class="legend-note">Kategori prioriti adalah relatif kepada taburan semasa dataset menggunakan median/kuartil.</div>
         `;
       }
-      el.innerHTML = html;
+
+      return `
+        <div class="legend-title">${viewLabel}</div>
+        <div class="legend-gradient"></div>
+        <div class="legend-row"><span class="legend-dot" style="background:#0ea5e9"></span><span>Nilai lebih rendah</span></div>
+        <div class="legend-row"><span class="legend-dot" style="background:#ef4444"></span><span>Nilai lebih tinggi</span></div>
+        <div class="legend-note">Warna menunjukkan nilai relatif dalam data yang sedang ditapis. Semak jadual keutamaan untuk interpretasi tindakan.</div>
+      `;
     }
 
-    function clearLayers(){
-      if (heatLayer){
-        map.removeLayer(heatLayer);
-        heatLayer = null;
-      }
-      if (markerLayer){
-        map.removeLayer(markerLayer);
-        markerLayer = null;
+    function getInsightHtml(){
+      const p1 = filteredRows.filter(r => r.priorityLevel === 'p1').length;
+      const high = filteredRows.filter(r => Number.isFinite(r.meanDmfx) && r.meanDmfx >= quantiles.dmfx75).length;
+      const dist = filteredRows.map(r=>r.distanceKm).filter(Number.isFinite);
+      const meanDist = dist.length ? dist.reduce((a,b)=>a+b,0)/dist.length : NaN;
+
+      return `
+        <div class="insight-title">Interpretasi untuk laporan teknikal</div>
+        <div class="insight-note">
+          Paparan semasa merangkumi <strong>${filteredRows.length}</strong> sekolah. 
+          <strong>${high}</strong> sekolah berada dalam kategori burden DMFX relatif tinggi dan 
+          <strong>${p1}</strong> sekolah dikategorikan sebagai Prioriti 1. 
+          Purata jarak sekolah-klinik ialah <strong>${fmtNum(meanDist,1)} km</strong>.
+        </div>
+      `;
+    }
+
+    // =========================================================
+    // TOOLTIP + POPUP CONTENT
+    // =========================================================
+
+    function buildTooltip(r){
+      return `
+        <div class="tooltip-title">${escapeHtml(r.schoolName || 'Sekolah')}</div>
+        <div class="tooltip-grid">
+          <div class="tooltip-label">Daerah</div><div class="tooltip-value">${escapeHtml(r.district || '-')}</div>
+          <div class="tooltip-label">Klinik</div><div class="tooltip-value">${escapeHtml(r.clinicName || '-')}</div>
+          <div class="tooltip-label">Murid diperiksa</div><div class="tooltip-value">${fmtInt(r.examined)}</div>
+          <div class="tooltip-label">Total DMFX</div><div class="tooltip-value">${fmtNum(r.totalDmfx,0)}</div>
+          <div class="tooltip-label">Mean DMFX</div><div class="tooltip-value">${fmtNum(r.meanDmfx,2)}</div>
+          <div class="tooltip-label">PRR/100</div><div class="tooltip-value">${fmtNum(r.prrRate,1)}</div>
+          <div class="tooltip-label">FS/100</div><div class="tooltip-value">${fmtNum(r.fsRate,1)}</div>
+          <div class="tooltip-label">Tampalan/100</div><div class="tooltip-value">${fmtNum(r.fillingRate,1)}</div>
+          <div class="tooltip-label">Jarak</div><div class="tooltip-value">${fmtNum(r.distanceKm,1)} km</div>
+          <div class="tooltip-label">Prioriti</div><div class="tooltip-value">${priorityLabel(r.priorityLevel)}</div>
+        </div>
+      `;
+    }
+
+    function priorityLabel(level){
+      if (level === 'p1') return 'Prioriti 1';
+      if (level === 'p2') return 'Prioriti 2';
+      if (level === 'p3') return 'Prioriti 3';
+      return 'Rutin';
+    }
+
+    // =========================================================
+    // FILTERING
+    // =========================================================
+
+    function populateFilters(){
+      const districts = uniqueSorted(allRows.map(r=>r.district));
+      const clinics = uniqueSorted(allRows.map(r=>r.clinicName));
+      fillSelect('districtSelect', districts, 'Semua daerah');
+      fillSelect('clinicSelect', clinics, 'Semua klinik');
+    }
+
+    function fillSelect(id, values, allLabel){
+      const select = document.getElementById(id);
+      const current = select.value || '__all__';
+      select.innerHTML = `<option value="__all__">${allLabel}</option>`;
+      values.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v;
+        opt.textContent = v;
+        select.appendChild(opt);
+      });
+      if ([...select.options].some(o=>o.value === current)) select.value = current;
+    }
+
+    function applyFilters(){
+      const district = document.getElementById('districtSelect').value;
+      const clinic = document.getElementById('clinicSelect').value;
+      const search = cleanText(document.getElementById('searchInput').value).toLowerCase();
+
+      filteredRows = allRows.filter(r => {
+        if (district !== '__all__' && r.district !== district) return false;
+        if (clinic !== '__all__' && r.clinicName !== clinic) return false;
+        if (showPriorityOnly && r.priorityLevel === 'routine') return false;
+        if (search){
+          const hay = `${r.schoolName} ${r.clinicName} ${r.district}`.toLowerCase();
+          if (!hay.includes(search)) return false;
+        }
+        return true;
+      });
+
+      updateAllViews();
+    }
+
+    // =========================================================
+    // RENDERING
+    // =========================================================
+
+    function clearMapLayers(){
+      if (schoolLayer){ map.removeLayer(schoolLayer); schoolLayer = null; }
+      if (clinicLayer){ map.removeLayer(clinicLayer); clinicLayer = null; }
+      if (lineLayer){ map.removeLayer(lineLayer); lineLayer = null; }
+      markersBySchoolKey.clear();
+    }
+
+    function updateAllViews(){
+      renderMap();
+      renderSummary();
+      renderPriorityTable();
+      document.getElementById('legend').innerHTML = getLegendHtml();
+      document.getElementById('insight').innerHTML = getInsightHtml();
+      updateCollapsedLabels();
+    }
+
+    function renderMap(){
+      clearMapLayers();
+
+      const meta = getViewMeta();
+      schoolLayer = L.layerGroup();
+      lineLayer = L.layerGroup();
+      clinicLayer = L.layerGroup();
+
+      const clinicSeen = new Map();
+      const bounds = [];
+
+      filteredRows.forEach(r => {
+        const color = getMarkerColor(r, meta);
+        const marker = L.circleMarker([r.schoolLat, r.schoolLng], {
+          radius: markerRadius(r.examined),
+          color: '#ffffff',
+          weight: 1.2,
+          fillColor: color,
+          fillOpacity: 0.92
+        });
+
+        marker.bindTooltip(buildTooltip(r), {direction:'top', offset:[0,-5], sticky:true});
+        marker.on('click', () => focusSchool(r));
+        marker.addTo(schoolLayer);
+        markersBySchoolKey.set(r.key, marker);
+        bounds.push([r.schoolLat, r.schoolLng]);
+
+        if (showConnectionLines && Number.isFinite(r.clinicLat) && Number.isFinite(r.clinicLng)){
+          L.polyline([[r.schoolLat, r.schoolLng], [r.clinicLat, r.clinicLng]], {
+            color: '#0f172a',
+            weight: 1,
+            opacity: .18,
+            dashArray: '3,5'
+          }).addTo(lineLayer);
+        }
+
+        if (showClinicMarkers && Number.isFinite(r.clinicLat) && Number.isFinite(r.clinicLng)){
+          const clinicKey = `${r.clinicName}|${r.clinicLat}|${r.clinicLng}`;
+          if (!clinicSeen.has(clinicKey)){
+            clinicSeen.set(clinicKey, true);
+            const icon = L.divIcon({ className:'', html:'<div class="clinic-icon"></div>', iconSize:[20,20], iconAnchor:[10,10] });
+            const clinicMarker = L.marker([r.clinicLat, r.clinicLng], {icon});
+            clinicMarker.bindTooltip(`<strong>${escapeHtml(r.clinicName || 'Klinik')}</strong><br>${escapeHtml(r.district || '')}`, {direction:'top', offset:[0,-6]});
+            clinicMarker.addTo(clinicLayer);
+            bounds.push([r.clinicLat, r.clinicLng]);
+          }
+        }
+      });
+
+      if (showConnectionLines) lineLayer.addTo(map);
+      if (showClinicMarkers) clinicLayer.addTo(map);
+      schoolLayer.addTo(map);
+
+      if (bounds.length){
+        map.fitBounds(L.latLngBounds(bounds), {padding:[42,42], maxZoom:13});
       }
     }
 
-    function updateView(){
-      const ds = DATASETS[currentDatasetKey];
-      const view = ds.views.find(v=>v.id === currentViewId) || ds.views[0];
-      currentViewId = view.id;
+    function renderSummary(){
+      const schools = filteredRows.length;
+      const examined = filteredRows.map(r=>r.examined).filter(Number.isFinite).reduce((a,b)=>a+b,0);
+      const totalDmfx = filteredRows.map(r=>r.totalDmfx).filter(Number.isFinite).reduce((a,b)=>a+b,0);
+      const weightedMean = examined > 0 ? totalDmfx / examined : NaN;
+      const priority = filteredRows.filter(r => r.priorityLevel === 'p1').length;
 
-      if (!ds.geoRows || !ds.geoRows.length){
-        clearLayers();
+      document.getElementById('sumSchools').textContent = fmtInt(schools);
+      document.getElementById('sumExamined').textContent = fmtInt(examined);
+      document.getElementById('sumMeanDmfx').textContent = fmtNum(weightedMean, 2);
+      document.getElementById('sumPriority').textContent = fmtInt(priority);
+    }
+
+    function priorityRankValue(level){
+      if (level === 'p1') return 1;
+      if (level === 'p2') return 2;
+      if (level === 'p3') return 3;
+      return 4;
+    }
+
+    function renderPriorityTable(){
+      const body = document.getElementById('priorityTableBody');
+      const rows = filteredRows
+        .slice()
+        .sort((a,b)=>{
+          const pa = priorityRankValue(a.priorityLevel);
+          const pb = priorityRankValue(b.priorityLevel);
+          if (pa !== pb) return pa - pb;
+          return (b.meanDmfx || 0) - (a.meanDmfx || 0);
+        })
+        .slice(0, 15);
+
+      if (!rows.length){
+        body.innerHTML = '<tr><td colspan="5">Tiada data untuk paparan semasa.</td></tr>';
         return;
       }
 
-      clearLayers();
+      body.innerHTML = rows.map(r => `
+        <tr data-key="${escapeHtml(r.key)}">
+          <td><span class="pill ${r.priorityLevel}">${priorityLabel(r.priorityLevel)}</span></td>
+          <td><strong>${escapeHtml(r.schoolName || '-')}</strong><br><span style="color:#64748b">${escapeHtml(r.clinicName || '-')}</span></td>
+          <td>${escapeHtml(r.district || '-')}</td>
+          <td>${fmtNum(r.meanDmfx,2)}</td>
+          <td>${escapeHtml(r.priorityReason)}</td>
+        </tr>
+      `).join('');
 
-        if (view.type === 'heat'){
-        // Gabung peta haba + titik berwarna-magnitud
-        const heatPoints = buildHeatPoints(ds, view.valueField, !!view.invert);
-        if (heatPoints.length){
-          heatLayer = L.heatLayer(heatPoints, {
-            radius:38,
-            blur:26,
-            maxZoom:18,
-            minOpacity:0.25
-          }).addTo(map);
-        }
-        // Titik individu masih berwarna mengikut nilai untuk setiap sekolah
-        markerLayer = buildGradientMarkerLayer(ds.key, ds, view);
-        markerLayer.addTo(map);
-      } else if (view.type === 'points'){
-
-
-        markerLayer = buildClassifiedMarkerLayer(ds.key, ds, view);
-        markerLayer.addTo(map);
-      }
-
-      if (ds.bounds){
-        map.fitBounds(ds.bounds, { padding:[40,40] });
-      }
-
-      updateLegend(ds.key, view);
-    }
-
-    function populateViewSelect(){
-      const ds = DATASETS[currentDatasetKey];
-      const select = document.getElementById('viewSelect');
-      select.innerHTML = '';
-      ds.views.forEach((v,i)=>{
-        const opt = document.createElement('option');
-        opt.value = v.id;
-        opt.textContent = v.label;
-        if (i === 0) currentViewId = v.id;
-        select.appendChild(opt);
+      [...body.querySelectorAll('tr[data-key]')].forEach(tr => {
+        tr.addEventListener('click', () => {
+          const key = tr.getAttribute('data-key');
+          const row = filteredRows.find(r => r.key === key);
+          if (row) focusSchool(row);
+        });
       });
-      select.value = currentViewId;
     }
 
-    // ==========================
-    //  INIT
-    // ==========================
+    function focusSchool(r){
+      map.setView([r.schoolLat, r.schoolLng], Math.max(map.getZoom(), 14), {animate:true});
+      const marker = markersBySchoolKey.get(r.key);
+      if (marker) marker.openTooltip();
+      showMessage(`${r.schoolName}: Mean DMFX ${fmtNum(r.meanDmfx,2)} | ${priorityLabel(r.priorityLevel)}`);
+    }
 
-    document.addEventListener('DOMContentLoaded', ()=>{
-      map = L.map('map',{
-        center:[6.15, 100.4],
-        zoom:9,
-        zoomControl:true
+    function updateCollapsedLabels(){
+      const viewSelect = document.getElementById('viewSelect');
+      const viewText = viewSelect.options[viewSelect.selectedIndex]?.text || 'Paparan';
+      document.getElementById('collapsedDataset').textContent = 'PGS201 Kedah';
+      document.getElementById('collapsedView').textContent = viewText;
+    }
+
+    // =========================================================
+    // DATA LOADING
+    // =========================================================
+
+    function setStatus(text, isError=false){
+      const bar = document.getElementById('dataStatus');
+      const label = document.getElementById('dataStatusText');
+      label.textContent = text;
+      bar.classList.toggle('error', !!isError);
+    }
+
+    function loadData(){
+      setStatus('Memuatkan data...');
+      return fetch(DATA_URL, {cache:'no-store'})
+        .then(response => {
+          if (!response.ok) throw new Error(`Data file not found or not accessible: ${DATA_URL}`);
+          return response.text();
+        })
+        .then(text => new Promise((resolve, reject) => {
+          Papa.parse(text, {
+            header:true,
+            skipEmptyLines:true,
+            complete: res => {
+              if (res.errors && res.errors.length){
+                console.warn('CSV parse warnings:', res.errors);
+              }
+              resolve(res.data || []);
+            },
+            error: reject
+          });
+        }))
+        .then(rawRows => {
+          allRows = deriveRows(rawRows);
+          filteredRows = allRows.slice();
+          populateFilters();
+          applyFilters();
+          setStatus(`Data dimuatkan: ${allRows.length} sekolah dengan koordinat sah.`);
+        })
+        .catch(err => {
+          console.error(err);
+          setStatus(`Ralat data: ${err.message}`, true);
+          document.getElementById('priorityTableBody').innerHTML = '<tr><td colspan="5">Data tidak dapat dimuatkan. Semak lokasi CSV.</td></tr>';
+          showMessage('Data CSV tidak dapat dimuatkan. Semak pautan Google Sheet CSV atau parameter ?csv=', 6000);
+        });
+    }
+
+    // =========================================================
+    // INIT
+    // =========================================================
+
+    document.addEventListener('DOMContentLoaded', () => {
+      map = L.map('map', {
+        center: MAP_CENTER,
+        zoom: MAP_ZOOM,
+        zoomControl:true,
+        preferCanvas:true
       });
       map.zoomControl.setPosition('bottomright');
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom:19,
         attribution:'&copy; OpenStreetMap contributors'
       }).addTo(map);
 
-      const datasetSelect = document.getElementById('datasetSelect');
-      const viewSelect = document.getElementById('viewSelect');
-
       const overlayPanel = document.getElementById('overlayPanel');
       const overlayCollapsed = document.getElementById('overlayCollapsed');
-      const collapsedDataset = document.getElementById('collapsedDataset');
-      const collapsedView = document.getElementById('collapsedView');
+      const pageNav = document.getElementById('pageNav');
 
-      function updateCollapsedLabels(){
-        if (!collapsedDataset || !collapsedView) return;
-        const dsText = datasetSelect.options[datasetSelect.selectedIndex]?.text || '';
-        const viewText = viewSelect.options[viewSelect.selectedIndex]?.text || '';
-        collapsedDataset.textContent = dsText;
-        collapsedView.textContent = viewText;
-      }
-
-      populateViewSelect();
-      populateViewSelect();
-      updateCollapsedLabels();
-
-
-      loadDataset(currentDatasetKey).then(()=>{
-        updateView();
+      document.getElementById('viewSelect').addEventListener('change', e => {
+        activeView = e.target.value;
+        updateAllViews();
       });
 
-        datasetSelect.addEventListener('change', ()=>{
-          currentDatasetKey = datasetSelect.value;
-          populateViewSelect();
-          loadDataset(currentDatasetKey).then(()=>{
-            updateView();
-            updateCollapsedLabels();
-          });
+      document.getElementById('districtSelect').addEventListener('change', applyFilters);
+      document.getElementById('clinicSelect').addEventListener('change', applyFilters);
+      document.getElementById('searchInput').addEventListener('input', applyFilters);
+
+      document.getElementById('priorityToggle').addEventListener('click', e => {
+        showPriorityOnly = !showPriorityOnly;
+        e.currentTarget.classList.toggle('active', showPriorityOnly);
+        applyFilters();
+      });
+
+      document.getElementById('clinicToggle').addEventListener('click', e => {
+        showClinicMarkers = !showClinicMarkers;
+        e.currentTarget.classList.toggle('active', showClinicMarkers);
+        renderMap();
+      });
+
+      document.getElementById('lineToggle').addEventListener('click', e => {
+        showConnectionLines = !showConnectionLines;
+        e.currentTarget.classList.toggle('active', showConnectionLines);
+        renderMap();
+      });
+
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        document.getElementById('districtSelect').value = '__all__';
+        document.getElementById('clinicSelect').value = '__all__';
+        document.getElementById('searchInput').value = '';
+        showPriorityOnly = false;
+        document.getElementById('priorityToggle').classList.remove('active');
+        applyFilters();
+      });
+
+      document.getElementById('collapseMapBtn').addEventListener('click', () => {
+        overlayPanel.classList.add('collapsed');
+        showMessage('Panel dikurangkan. Klik panel kecil untuk buka semula.');
+      });
+
+      document.getElementById('navToggle').addEventListener('click', () => {
+        pageNav.classList.toggle('collapsed');
+      });
+
+      map.on('click', () => {
+        if (window.innerWidth <= 900) overlayPanel.classList.add('collapsed');
+      });
+
+      if (overlayCollapsed){
+        overlayCollapsed.addEventListener('click', e => {
+          e.stopPropagation();
+          overlayPanel.classList.remove('collapsed');
         });
-  
-        viewSelect.addEventListener('change', ()=>{
-          currentViewId = viewSelect.value;
-          updateView();
-          updateCollapsedLabels();
-        });
+      }
 
-        // On any screen: click map to collapse panel
-        map.on('click', ()=>{
-          if (overlayPanel){
-            overlayPanel.classList.add('collapsed');
-          }
-        });
+      if (window.innerWidth <= 640){
+        overlayPanel.classList.add('collapsed');
+      }
 
-  
-        // Tap collapsed bar to re-open full panel
-        if (overlayCollapsed){
-          overlayCollapsed.addEventListener('click', (e)=>{
-            e.stopPropagation();
-            overlayPanel.classList.remove('collapsed');
-          });
-        }
-
-
+      loadData();
     });
-    </script>
-
-  
-  </body>
-
+  </script>
+</body>
 </html>
