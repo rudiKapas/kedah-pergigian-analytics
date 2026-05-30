@@ -1336,37 +1336,68 @@
     }
 
     function loadData(){
-      setStatus('Memuatkan data...');
-      return fetch(DATA_URL, {cache:'no-store'})
+      setStatus('Memuatkan data dari Google Sheet...');
+
+      return fetch(DATA_URL, { cache:'no-store' })
         .then(response => {
-          if (!response.ok) throw new Error(`Data file not found or not accessible: ${DATA_URL}`);
+          if (!response.ok){
+            throw new Error(`CSV tidak dapat dicapai. HTTP ${response.status}. Semak pautan Google Sheet.`);
+          }
           return response.text();
         })
-        .then(text => new Promise((resolve, reject) => {
-          Papa.parse(text, {
-            header:true,
-            skipEmptyLines:true,
-            complete: res => {
-              if (res.errors && res.errors.length){
-                console.warn('CSV parse warnings:', res.errors);
-              }
-              resolve(res.data || []);
-            },
-            error: reject
+        .then(csvText => {
+          if (!csvText || csvText.trim().length < 20){
+            throw new Error('CSV kosong atau tidak lengkap. Semak Publish to web Google Sheet.');
+          }
+
+          return new Promise((resolve, reject) => {
+            Papa.parse(csvText, {
+              header:true,
+              skipEmptyLines:true,
+              complete: res => {
+                if (res.errors && res.errors.length){
+                  console.warn('CSV parse warnings:', res.errors);
+                }
+                resolve(res.data || []);
+              },
+              error: reject
+            });
           });
-        }))
+        })
         .then(rawRows => {
+          setStatus(`CSV dibaca: ${rawRows.length} baris. Memproses koordinat...`);
+
           allRows = deriveRows(rawRows);
+
+          if (!allRows.length){
+            throw new Error(
+              'CSV berjaya dibaca, tetapi tiada rekod mempunyai koordinat sekolah yang sah. ' +
+              'Semak nama header: school long dan school lat, atau pastikan kolum koordinat tidak kosong.'
+            );
+          }
+
           filteredRows = allRows.slice();
           populateFilters();
-          applyFilters();
+
+          // Set status BEFORE rendering so the UI does not remain stuck at loading
+          // if a map/table rendering issue occurs.
           setStatus(`Data dimuatkan: ${allRows.length} sekolah dengan koordinat sah.`);
+
+          try {
+            applyFilters();
+          } catch (renderErr){
+            console.error('Rendering error after data was loaded:', renderErr);
+            setStatus(`Data dibaca (${allRows.length} sekolah), tetapi paparan peta gagal: ${renderErr.message}`, true);
+            document.getElementById('priorityTableBody').innerHTML =
+              '<tr><td colspan="5">Data berjaya dibaca, tetapi paparan peta/table gagal. Semak Console browser.</td></tr>';
+          }
         })
         .catch(err => {
-          console.error(err);
+          console.error('Data loading error:', err);
           setStatus(`Ralat data: ${err.message}`, true);
-          document.getElementById('priorityTableBody').innerHTML = '<tr><td colspan="5">Data tidak dapat dimuatkan. Semak lokasi CSV.</td></tr>';
-          showMessage('Data CSV tidak dapat dimuatkan. Semak pautan Google Sheet CSV atau parameter ?csv=', 6000);
+          document.getElementById('priorityTableBody').innerHTML =
+            '<tr><td colspan="5">Data tidak dapat dimuatkan. Semak pautan Google Sheet CSV dan header koordinat.</td></tr>';
+          showMessage('Data CSV tidak dapat dimuatkan. Semak pautan Google Sheet CSV atau gunakan parameter ?csv=', 6500);
         });
     }
 
@@ -1391,6 +1422,7 @@
       const overlayPanel = document.getElementById('overlayPanel');
       const overlayCollapsed = document.getElementById('overlayCollapsed');
       const pageNav = document.getElementById('pageNav');
+      const navToggle = document.getElementById('navToggle');
 
       document.getElementById('viewSelect').addEventListener('change', e => {
         activeView = e.target.value;
@@ -1433,9 +1465,13 @@
         showMessage('Panel dikurangkan. Klik panel kecil untuk buka semula.');
       });
 
-      document.getElementById('navToggle').addEventListener('click', () => {
-        pageNav.classList.toggle('collapsed');
-      });
+      // Top text navigation was removed. Keep this guarded so the page does not
+      // crash if only the circular mother/FAB navigation is present.
+      if (navToggle && pageNav){
+        navToggle.addEventListener('click', () => {
+          pageNav.classList.toggle('collapsed');
+        });
+      }
 
       map.on('click', () => {
         if (window.innerWidth <= 900) overlayPanel.classList.add('collapsed');
