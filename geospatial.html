@@ -728,8 +728,6 @@
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- Leaflet heatmap plugin -->
-  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
   <!-- PapaParse for CSV parsing -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
@@ -1041,6 +1039,7 @@
         case 'prr_rate': return r.prrRate;
         case 'fs_rate': return r.fsRate;
         case 'filling_rate': return r.fillingRate;
+        case 'distance': return r.distanceKm;
         default: return r.meanDmfx;
       }
     }
@@ -1066,9 +1065,9 @@
         return `
           <div class="legend-title">${viewLabel}</div>
           <div class="legend-gradient"></div>
-          <div class="legend-row"><span class="legend-dot" style="background:#0ea5e9"></span><span>Kawasan sekolah dengan burden relatif rendah</span></div>
-          <div class="legend-row"><span class="legend-dot" style="background:#ef4444"></span><span>Kawasan sekolah dengan burden relatif tinggi</span></div>
-          <div class="legend-note">Heat map membantu melihat corak kawasan. Semak titik sekolah dan jadual keutamaan untuk keputusan tindakan kerana heat map dipengaruhi oleh ketumpatan lokasi sekolah.</div>
+          <div class="legend-row"><span class="legend-dot" style="background:#0ea5e9"></span><span>Rendah / kurang tertumpu</span></div>
+          <div class="legend-row"><span class="legend-dot" style="background:#ef4444"></span><span>Hotspot relatif mean DMFX lebih tinggi</span></div>
+          <div class="legend-note">Heat map ini ditajamkan untuk menonjolkan kawasan sekolah dengan mean DMFX melebihi median. Titik kecil menunjukkan lokasi sekolah sebenar; titik merah menunjukkan sekolah Prioriti 1.</div>
         `;
       }
 
@@ -1095,13 +1094,17 @@
     function getInsightHtml(){
       const p1 = filteredRows.filter(r => r.priorityLevel === 'p1').length;
       const high = filteredRows.filter(r => Number.isFinite(r.meanDmfx) && r.meanDmfx >= quantiles.dmfx75).length;
+      const examined = filteredRows.map(r=>r.examined).filter(Number.isFinite).reduce((a,b)=>a+b,0);
+      const totalDmfx = filteredRows.map(r=>r.totalDmfx).filter(Number.isFinite).reduce((a,b)=>a+b,0);
+      const weightedMean = examined > 0 ? totalDmfx / examined : NaN;
+
       return `
         <div class="insight-title">Interpretasi untuk laporan teknikal</div>
         <div class="insight-note">
-          Paparan semasa merangkumi <strong>${filteredRows.length}</strong> sekolah. 
-          <strong>${high}</strong> sekolah berada dalam kategori burden DMFX relatif tinggi dan 
+          Paparan semasa merangkumi <strong>${filteredRows.length}</strong> sekolah dengan 
+          <strong>${fmtInt(examined)}</strong> murid diperiksa. Weighted mean DMFX ialah 
+          <strong>${fmtNum(weightedMean,2)}</strong>. Sebanyak <strong>${high}</strong> sekolah berada dalam kategori burden DMFX relatif tinggi dan 
           <strong>${p1}</strong> sekolah dikategorikan sebagai Prioriti 1.
-          Heat map digunakan untuk melihat corak kawasan, manakala titik sekolah dan jadual keutamaan digunakan untuk keputusan tindakan.
         </div>
       `;
     }
@@ -1200,31 +1203,49 @@
 
 
     function buildMeanDmfxHeatLayer(rows){
-      const values = rows.map(r => r.meanDmfx).filter(Number.isFinite);
-      if (!values.length || typeof L.heatLayer !== 'function') return null;
+      const validRows = rows.filter(r =>
+        Number.isFinite(r.schoolLat) &&
+        Number.isFinite(r.schoolLng) &&
+        Number.isFinite(r.meanDmfx)
+      );
 
-      const min = Math.min(...values);
-      const max = Math.max(...values);
-      const span = (max - min) || 1;
+      if (!validRows.length || typeof L.heatLayer !== 'function') return null;
 
-      const points = rows
-        .filter(r => Number.isFinite(r.schoolLat) && Number.isFinite(r.schoolLng) && Number.isFinite(r.meanDmfx))
+      const values = validRows.map(r => r.meanDmfx).filter(Number.isFinite);
+      const median = quantile(values, 0.50);
+      const q75 = quantile(values, 0.75);
+      const q95 = quantile(values, 0.95);
+      const upper = Number.isFinite(q95) && q95 > median ? q95 : Math.max(...values);
+      const span = (upper - median) || 1;
+
+      const points = validRows
         .map(r => {
-          let intensity = (r.meanDmfx - min) / span;
-          intensity = Math.max(0.12, Math.min(1, intensity));
+          // Decision-focused heatmap:
+          // Values below the median are intentionally very faint.
+          // Values above median become progressively stronger, with priority schools emphasised.
+          let t = (r.meanDmfx - median) / span;
+          t = Math.max(0, Math.min(1, t));
+          let intensity = Math.pow(t, 1.55);
+
+          if (r.priorityLevel === 'p1') intensity = Math.max(intensity, 0.92);
+          else if (r.meanDmfx >= q75) intensity = Math.max(intensity, 0.55);
+          else if (r.meanDmfx >= median) intensity = Math.max(intensity, 0.18);
+
+          if (intensity <= 0.03) return null;
           return [r.schoolLat, r.schoolLng, intensity];
-        });
+        })
+        .filter(Boolean);
 
       if (!points.length) return null;
 
       return L.heatLayer(points, {
-        radius: 32,
-        blur: 24,
+        radius: 19,
+        blur: 13,
         maxZoom: 13,
-        minOpacity: 0.35,
+        minOpacity: 0.16,
         gradient: {
-          0.10: '#0ea5e9',
-          0.40: '#22c55e',
+          0.15: '#0ea5e9',
+          0.42: '#22c55e',
           0.70: '#f59e0b',
           1.00: '#ef4444'
         }
@@ -1246,11 +1267,11 @@
         const color = getMarkerColor(r, meta);
         const isHeatView = activeView === 'heat_dmfx';
         const marker = L.circleMarker([r.schoolLat, r.schoolLng], {
-          radius: isHeatView ? (r.priorityLevel === 'p1' ? 6 : 3.2) : markerRadius(r.examined),
-          color: isHeatView ? (r.priorityLevel === 'p1' ? '#ffffff' : 'rgba(15,23,42,.28)') : '#ffffff',
-          weight: isHeatView ? (r.priorityLevel === 'p1' ? 1.4 : 0.5) : 1.2,
+          radius: isHeatView ? (r.priorityLevel === 'p1' ? 6.5 : 2.4) : markerRadius(r.examined),
+          color: isHeatView ? (r.priorityLevel === 'p1' ? '#ffffff' : 'rgba(15,23,42,.18)') : '#ffffff',
+          weight: isHeatView ? (r.priorityLevel === 'p1' ? 1.5 : 0.45) : 1.2,
           fillColor: isHeatView ? (r.priorityLevel === 'p1' ? '#dc2626' : '#0f172a') : color,
-          fillOpacity: isHeatView ? (r.priorityLevel === 'p1' ? 0.95 : 0.28) : 0.92
+          fillOpacity: isHeatView ? (r.priorityLevel === 'p1' ? 0.96 : 0.18) : 0.92
         });
 
         marker.bindTooltip(buildTooltip(r), {direction:'top', offset:[0,-5], sticky:true});
