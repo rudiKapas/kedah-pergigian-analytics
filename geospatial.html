@@ -619,7 +619,7 @@
   <div class="overlay-panel" id="overlayPanel">
     <button class="overlay-collapsed" id="overlayCollapsed" type="button" aria-label="Open map controls">
       <div class="collapsed-line" id="collapsedDataset">PGS201 Kedah</div>
-      <div class="collapsed-line collapsed-sub" id="collapsedView">Mean DMFX</div>
+      <div class="collapsed-line collapsed-sub" id="collapsedView">Heat map mean DMFX</div>
     </button>
 
     <div class="overlay-full" id="overlayFull">
@@ -660,12 +660,12 @@
         <div class="control-row">
           <label for="viewSelect">Paparan</label>
           <select id="viewSelect">
-            <option value="mean_dmfx">Mean DMFX</option>
+            <option value="heat_dmfx">Heat map mean DMFX</option>
+            <option value="mean_dmfx">Mean DMFX mengikut sekolah</option>
             <option value="priority">Keutamaan tindakan</option>
             <option value="prr_rate">PRR Jenis 1 per 100 murid diperiksa</option>
             <option value="fs_rate">Fissure sealant per 100 murid diperiksa</option>
             <option value="filling_rate">Tampalan per 100 murid diperiksa</option>
-            <option value="distance">Jarak sekolah ke klinik</option>
           </select>
         </div>
 
@@ -687,8 +687,6 @@
 
         <div class="button-row">
           <button class="btn" id="priorityToggle" type="button">Prioriti sahaja</button>
-          <button class="btn" id="clinicToggle" type="button">Tunjuk klinik</button>
-          <button class="btn" id="lineToggle" type="button">Tunjuk jarak</button>
           <button class="btn warning" id="resetBtn" type="button">Reset</button>
         </div>
       </div>
@@ -730,6 +728,8 @@
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Leaflet heatmap plugin -->
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
   <!-- PapaParse for CSV parsing -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
@@ -781,12 +781,13 @@
 
     let map;
     let schoolLayer = null;
+    let heatLayer = null;
     let clinicLayer = null;
     let lineLayer = null;
     let allRows = [];
     let filteredRows = [];
     let markersBySchoolKey = new Map();
-    let activeView = 'mean_dmfx';
+    let activeView = 'heat_dmfx';
     let showPriorityOnly = false;
     let showClinicMarkers = false;
     let showConnectionLines = false;
@@ -968,7 +969,6 @@
         dmfx50: quantile(rows.map(r=>r.meanDmfx), .50),
         dmfx75: quantile(rows.map(r=>r.meanDmfx), .75),
         prevention25: quantile(rows.map(r=>r.preventionRate), .25),
-        distance75: quantile(rows.map(r=>r.distanceKm), .75),
         filling75: quantile(rows.map(r=>r.fillingRate), .75)
       };
 
@@ -976,17 +976,12 @@
         const highBurden = Number.isFinite(r.meanDmfx) && r.meanDmfx >= quantiles.dmfx75;
         const moderateBurden = Number.isFinite(r.meanDmfx) && r.meanDmfx >= quantiles.dmfx50;
         const lowPrevention = Number.isFinite(r.preventionRate) && r.preventionRate <= quantiles.prevention25;
-        const longDistance = Number.isFinite(r.distanceKm) && r.distanceKm >= quantiles.distance75;
         const highFilling = Number.isFinite(r.fillingRate) && r.fillingRate >= quantiles.filling75;
 
         if (highBurden && lowPrevention){
           r.priorityLevel = 'p1';
           r.priorityReason = 'Mean DMFX tinggi + output pencegahan rendah';
           r.suggestedAction = 'Utamakan lawatan pencegahan, semak liputan PRR/fissure sealant';
-        } else if (highBurden && longDistance){
-          r.priorityLevel = 'p1';
-          r.priorityReason = 'Mean DMFX tinggi + jarak sekolah-klinik jauh';
-          r.suggestedAction = 'Pertimbangkan lawatan outreach/mobile team';
         } else if (highBurden && highFilling){
           r.priorityLevel = 'p2';
           r.priorityReason = 'Mean DMFX tinggi + beban tampalan tinggi';
@@ -1041,11 +1036,11 @@
 
     function getMetricValue(r, view){
       switch(view){
+        case 'heat_dmfx': return r.meanDmfx;
         case 'mean_dmfx': return r.meanDmfx;
         case 'prr_rate': return r.prrRate;
         case 'fs_rate': return r.fsRate;
         case 'filling_rate': return r.fillingRate;
-        case 'distance': return r.distanceKm;
         default: return r.meanDmfx;
       }
     }
@@ -1059,13 +1054,23 @@
 
     function getLegendHtml(){
       const viewLabel = {
-        mean_dmfx: 'Mean DMFX',
+        heat_dmfx: 'Heat map mean DMFX',
+        mean_dmfx: 'Mean DMFX mengikut sekolah',
         priority: 'Keutamaan tindakan',
         prr_rate: 'PRR Jenis 1 per 100 murid diperiksa',
         fs_rate: 'Fissure sealant per 100 murid diperiksa',
-        filling_rate: 'Tampalan per 100 murid diperiksa',
-        distance: 'Jarak sekolah ke klinik'
+        filling_rate: 'Tampalan per 100 murid diperiksa'
       }[activeView] || 'Paparan';
+
+      if (activeView === 'heat_dmfx'){
+        return `
+          <div class="legend-title">${viewLabel}</div>
+          <div class="legend-gradient"></div>
+          <div class="legend-row"><span class="legend-dot" style="background:#0ea5e9"></span><span>Kawasan sekolah dengan burden relatif rendah</span></div>
+          <div class="legend-row"><span class="legend-dot" style="background:#ef4444"></span><span>Kawasan sekolah dengan burden relatif tinggi</span></div>
+          <div class="legend-note">Heat map membantu melihat corak kawasan. Semak titik sekolah dan jadual keutamaan untuk keputusan tindakan kerana heat map dipengaruhi oleh ketumpatan lokasi sekolah.</div>
+        `;
+      }
 
       if (activeView === 'priority'){
         return `
@@ -1090,16 +1095,13 @@
     function getInsightHtml(){
       const p1 = filteredRows.filter(r => r.priorityLevel === 'p1').length;
       const high = filteredRows.filter(r => Number.isFinite(r.meanDmfx) && r.meanDmfx >= quantiles.dmfx75).length;
-      const dist = filteredRows.map(r=>r.distanceKm).filter(Number.isFinite);
-      const meanDist = dist.length ? dist.reduce((a,b)=>a+b,0)/dist.length : NaN;
-
       return `
         <div class="insight-title">Interpretasi untuk laporan teknikal</div>
         <div class="insight-note">
           Paparan semasa merangkumi <strong>${filteredRows.length}</strong> sekolah. 
           <strong>${high}</strong> sekolah berada dalam kategori burden DMFX relatif tinggi dan 
-          <strong>${p1}</strong> sekolah dikategorikan sebagai Prioriti 1. 
-          Purata jarak sekolah-klinik ialah <strong>${fmtNum(meanDist,1)} km</strong>.
+          <strong>${p1}</strong> sekolah dikategorikan sebagai Prioriti 1.
+          Heat map digunakan untuk melihat corak kawasan, manakala titik sekolah dan jadual keutamaan digunakan untuk keputusan tindakan.
         </div>
       `;
     }
@@ -1120,7 +1122,6 @@
           <div class="tooltip-label">PRR/100</div><div class="tooltip-value">${fmtNum(r.prrRate,1)}</div>
           <div class="tooltip-label">FS/100</div><div class="tooltip-value">${fmtNum(r.fsRate,1)}</div>
           <div class="tooltip-label">Tampalan/100</div><div class="tooltip-value">${fmtNum(r.fillingRate,1)}</div>
-          <div class="tooltip-label">Jarak</div><div class="tooltip-value">${fmtNum(r.distanceKm,1)} km</div>
           <div class="tooltip-label">Prioriti</div><div class="tooltip-value">${priorityLabel(r.priorityLevel)}</div>
         </div>
       `;
@@ -1181,6 +1182,7 @@
     // =========================================================
 
     function clearMapLayers(){
+      if (heatLayer){ map.removeLayer(heatLayer); heatLayer = null; }
       if (schoolLayer){ map.removeLayer(schoolLayer); schoolLayer = null; }
       if (clinicLayer){ map.removeLayer(clinicLayer); clinicLayer = null; }
       if (lineLayer){ map.removeLayer(lineLayer); lineLayer = null; }
@@ -1196,6 +1198,39 @@
       updateCollapsedLabels();
     }
 
+
+    function buildMeanDmfxHeatLayer(rows){
+      const values = rows.map(r => r.meanDmfx).filter(Number.isFinite);
+      if (!values.length || typeof L.heatLayer !== 'function') return null;
+
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const span = (max - min) || 1;
+
+      const points = rows
+        .filter(r => Number.isFinite(r.schoolLat) && Number.isFinite(r.schoolLng) && Number.isFinite(r.meanDmfx))
+        .map(r => {
+          let intensity = (r.meanDmfx - min) / span;
+          intensity = Math.max(0.12, Math.min(1, intensity));
+          return [r.schoolLat, r.schoolLng, intensity];
+        });
+
+      if (!points.length) return null;
+
+      return L.heatLayer(points, {
+        radius: 32,
+        blur: 24,
+        maxZoom: 13,
+        minOpacity: 0.35,
+        gradient: {
+          0.10: '#0ea5e9',
+          0.40: '#22c55e',
+          0.70: '#f59e0b',
+          1.00: '#ef4444'
+        }
+      });
+    }
+
     function renderMap(){
       clearMapLayers();
 
@@ -1209,12 +1244,13 @@
 
       filteredRows.forEach(r => {
         const color = getMarkerColor(r, meta);
+        const isHeatView = activeView === 'heat_dmfx';
         const marker = L.circleMarker([r.schoolLat, r.schoolLng], {
-          radius: markerRadius(r.examined),
-          color: '#ffffff',
-          weight: 1.2,
-          fillColor: color,
-          fillOpacity: 0.92
+          radius: isHeatView ? (r.priorityLevel === 'p1' ? 6 : 3.2) : markerRadius(r.examined),
+          color: isHeatView ? (r.priorityLevel === 'p1' ? '#ffffff' : 'rgba(15,23,42,.28)') : '#ffffff',
+          weight: isHeatView ? (r.priorityLevel === 'p1' ? 1.4 : 0.5) : 1.2,
+          fillColor: isHeatView ? (r.priorityLevel === 'p1' ? '#dc2626' : '#0f172a') : color,
+          fillOpacity: isHeatView ? (r.priorityLevel === 'p1' ? 0.95 : 0.28) : 0.92
         });
 
         marker.bindTooltip(buildTooltip(r), {direction:'top', offset:[0,-5], sticky:true});
@@ -1244,6 +1280,11 @@
           }
         }
       });
+
+      if (activeView === 'heat_dmfx') {
+        heatLayer = buildMeanDmfxHeatLayer(filteredRows);
+        if (heatLayer) heatLayer.addTo(map);
+      }
 
       if (showConnectionLines) lineLayer.addTo(map);
       if (showClinicMarkers) clinicLayer.addTo(map);
@@ -1439,23 +1480,13 @@
         applyFilters();
       });
 
-      document.getElementById('clinicToggle').addEventListener('click', e => {
-        showClinicMarkers = !showClinicMarkers;
-        e.currentTarget.classList.toggle('active', showClinicMarkers);
-        renderMap();
-      });
-
-      document.getElementById('lineToggle').addEventListener('click', e => {
-        showConnectionLines = !showConnectionLines;
-        e.currentTarget.classList.toggle('active', showConnectionLines);
-        renderMap();
-      });
-
       document.getElementById('resetBtn').addEventListener('click', () => {
         document.getElementById('districtSelect').value = '__all__';
         document.getElementById('clinicSelect').value = '__all__';
         document.getElementById('searchInput').value = '';
         showPriorityOnly = false;
+        showClinicMarkers = false;
+        showConnectionLines = false;
         document.getElementById('priorityToggle').classList.remove('active');
         applyFilters();
       });
